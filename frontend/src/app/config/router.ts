@@ -5,12 +5,6 @@ const routes: RouteObject[] = [
   {
     path: '/',
     Component: Layout,
-    // children: [
-    //   {
-    //     Component: Landing,
-    //     index: true,
-    //   },
-    // ],
   },
 ];
 
