@@ -1,12 +1,12 @@
 export const PATHS = {
   base: '/',
-  hotTickets: '/hottickets',
+  offer: '/offer',
   search: '/search',
 };
 
 export const PAGES = [
   {
-    path: PATHS.hotTickets,
+    path: PATHS.offer,
     title: 'Выгодные предложения',
   },
   {
