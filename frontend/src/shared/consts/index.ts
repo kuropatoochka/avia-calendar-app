@@ -1,1 +1,1 @@
-export { PATHS } from './paths';
+export { PATHS, PAGES } from './consts';
