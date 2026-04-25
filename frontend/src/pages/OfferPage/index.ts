@@ -1,3 +1,3 @@
 import { lazy } from 'react';
 
-export const LazyHotTickets = lazy(() => import('./ui/OfferPage'));
+export const LazyOfferPage = lazy(() => import('./ui/OfferPage'));

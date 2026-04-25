@@ -1,7 +1,8 @@
-import { createBrowserRouter, replace, type RouteObject } from 'react-router';
-import { BaseLayout } from '../layout/BaseLayout';
+import type { RouteObject } from 'react-router';
+import { createBrowserRouter, replace } from 'react-router';
+import { LazyOfferPage } from '@/pages/OfferPage';
 import { PATHS } from '@/shared/consts';
-import { LazyHotTickets } from '@/pages/OfferPage';
+import { BaseLayout } from '../layout/BaseLayout';
 
 const routes: RouteObject[] = [
   {
@@ -14,7 +15,7 @@ const routes: RouteObject[] = [
       },
       {
         path: PATHS.offer,
-        Component: LazyHotTickets,
+        Component: LazyOfferPage,
       },
     ],
   },
