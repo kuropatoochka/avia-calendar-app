@@ -1,0 +1,81 @@
+:root {
+  /* Colors */
+  --color-neutral-900: #141414;
+  --color-neutral-700: #474747;
+  --color-neutral-500: #757575;
+  --color-neutral-300: #a3a3a3;
+  --color-neutral-200: #d9d9d9;
+  --color-neutral-100: #e8e8e8;
+  --color-neutral-50: #f8f8f8;
+
+  --color-white: #ffffff;
+
+  --color-primary-700: #1d4ed8;
+  --color-primary-600: #2563eb;
+  --color-primary-500: #3b82f6;
+  --color-primary-100: #dbeafe;
+  --color-primary-50: #eff6ff;
+
+  --color-accent-500: #f59e0b;
+  --color-success-500: #22c55e;
+
+  /* Semantic colors */
+  --text-primary: var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-700);
+  --text-muted: var(--color-neutral-500);
+  --text-inverse: var(--color-white);
+
+  --background-page: #f4f7fb;
+  --background-section: var(--color-white);
+  --background-muted: var(--color-neutral-50);
+
+  --border-primary: var(--color-neutral-200);
+  --border-secondary: var(--color-neutral-100);
+
+  --button-primary-bg: var(--color-primary-600);
+  --button-primary-bg-hover: var(--color-primary-700);
+  --button-primary-text: var(--color-white);
+
+  --highlight-primary: var(--color-primary-600);
+  --highlight-soft: var(--color-primary-50);
+  --highlight-best-price: var(--color-accent-500);
+
+  /* Typography */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 28px;
+  --font-size-xxl: 40px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-sm: 1.2;
+  --line-height-md: 1.5;
+  --line-height-lg: 1.7;
+
+  /* Spacing */
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgb(20 20 20 / 6%);
+  --shadow-md: 0 8px 24px rgb(20 20 20 / 8%);
+  --shadow-lg: 0 16px 40px rgb(20 20 20 / 10%);
+}
