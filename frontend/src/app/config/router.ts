@@ -1,10 +1,16 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
-import { Layout } from '../layout/Layout';
+import { BaseLayout } from '../layout/BaseLayout';
+import { PATHS } from '@/shared/consts';
 
 const routes: RouteObject[] = [
   {
-    path: '/',
-    Component: Layout,
+    path: PATHS.base,
+    Component: BaseLayout,
+    children: [
+      {
+        path: PATHS.hotTickets,
+      },
+    ],
   },
 ];
 
