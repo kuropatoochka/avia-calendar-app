@@ -22,6 +22,53 @@ export default defineConfig([
     rules: {
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
       'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+      'import/order': [
+        'warn',
+        {
+          groups: [
+            'type',
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
+            'object',
+          ],
+          pathGroups: [
+            {
+              pattern: '@/app/**',
+              group: 'internal',
+              position: 'before',
+            },
+            {
+              pattern: '@/pages/**',
+              group: 'internal',
+              position: 'after',
+            },
+            {
+              pattern: '@/features/**',
+              group: 'internal',
+              position: 'after',
+            },
+            {
+              pattern: '@/shared/**',
+              group: 'internal',
+              position: 'after',
+            },
+            {
+              pattern: '@/**',
+              group: 'internal',
+              position: 'after',
+            },
+          ],
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+          'newlines-between': 'never',
+        },
+      ],
     },
     languageOptions: {
       ecmaVersion: 'latest',
