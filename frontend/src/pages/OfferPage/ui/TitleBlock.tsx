@@ -1,4 +1,5 @@
 import { Typography } from 'antd';
+import { Input } from '@/shared/ui';
 import styles from './styles.module.css';
 
 export const TitleBlock = () => {
@@ -8,6 +9,7 @@ export const TitleBlock = () => {
       <Typography.Paragraph className={styles.subtitle}>
         Да хоть куда, лишь бы подешевле...
       </Typography.Paragraph>
+      <Input />
     </>
   );
 };
