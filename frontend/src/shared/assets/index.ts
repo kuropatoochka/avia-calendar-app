@@ -1,4 +1,4 @@
-import ArrowDown from 'ArrowDown.svg';
+import ArrowDown from './ArrowDown.svg';
 import Cross from './Cross.svg';
 import Down from './Down.svg';
 import ExclamationMark from './ExclamationMark.svg';
