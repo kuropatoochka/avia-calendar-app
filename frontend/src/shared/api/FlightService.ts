@@ -1,5 +1,6 @@
 import type { BestPricesRequest, FlightsRequest } from '../types/api';
 import { getFlightSearchParams } from '../utils/getFlightSearchParams';
+import { BASE_URL } from './apiConsts';
 
 /**
  * @todo Добавить свойство туда-обратно

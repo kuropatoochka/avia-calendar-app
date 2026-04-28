@@ -1,8 +1,4 @@
-export type AirportDto = {
-  id: string;
-  airport: string;
-  city: string;
-};
+import { BASE_URL } from './apiConsts';
 
 export default class AirportService {
   static async getAirports(name?: string): Promise<Response> {
