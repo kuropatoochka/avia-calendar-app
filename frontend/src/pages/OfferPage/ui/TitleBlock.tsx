@@ -1,9 +1,5 @@
 import { Button, Typography } from 'antd';
-import {
-  Goal,
-  trackExperimentEvent,
-  useLaunchExperiment
-} from '@/features/launch-experiment';
+import { Goal, trackExperimentEvent, useLaunchExperiment } from '@/features/launch-experiment';
 import { cn } from '@/shared/utils';
 import styles from './styles.module.css';
 
