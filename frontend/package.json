@@ -7,15 +7,12 @@
     "dev": "vite --mode mock",
     "dev:mock": "vite --mode mock",
     "dev:api": "vite --mode api",
-
     "build": "tsc -b && vite build",
     "build:mock": "tsc -b && vite build --mode mock",
     "build:api": "tsc -b && vite build --mode api",
-
     "preview": "vite preview",
     "preview:mock": "npm run build:mock && vite preview",
     "preview:api": "npm run build:api && vite preview",
-
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
     "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
     "format:check": "prettier . --ignore-path .prettierignore --check",
