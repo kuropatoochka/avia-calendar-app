@@ -27,10 +27,14 @@ const airportsMock: AirportDto[] = [
 export const airportHandlers = [
   http.get('/api/airports', ({ request }) => {
     const url = new URL(request.url);
-    const name = url.searchParams.get('name')?.toLowerCase();
+    const name = url.searchParams.get('name')?.toLowerCase().trim();
 
     const filteredAirports = name
-      ? airportsMock.filter((item) => item.airport.toLowerCase().includes(name))
+      ? airportsMock.filter((item) => {
+          return (
+            item.airport.toLowerCase().includes(name) || item.city.toLowerCase().includes(name)
+          );
+        })
       : airportsMock;
 
     return HttpResponse.json(filteredAirports);
