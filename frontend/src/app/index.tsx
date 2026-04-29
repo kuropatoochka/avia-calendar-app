@@ -1,14 +1,17 @@
 import { createRoot } from 'react-dom/client';
+import { DATA_SOURCE } from '@/shared/consts';
 import { App } from './App';
 
 async function enableMocking() {
-  if (import.meta.env.VITE_MOCK_ENABLED === 'true') {
-    const { worker } = await import('./msw/browser');
-
-    return worker.start();
+  if (DATA_SOURCE !== 'mock') {
+    return;
   }
 
-  return Promise.resolve();
+  const { worker } = await import('./msw/browser');
+
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+  });
 }
 
 const container = document.getElementById('root');

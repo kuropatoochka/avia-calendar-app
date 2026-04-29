@@ -1,6 +1,5 @@
 import type { AirportDto } from '../../types/api';
 import { http, HttpResponse } from 'msw';
-import { BASE_URL } from '../apiConsts';
 
 const airportsMock: AirportDto[] = [
   {
@@ -26,7 +25,7 @@ const airportsMock: AirportDto[] = [
 ];
 
 export const airportHandlers = [
-  http.get(`${BASE_URL}/airports`, ({ request }) => {
+  http.get('/api/airports', ({ request }) => {
     const url = new URL(request.url);
     const name = url.searchParams.get('name')?.toLowerCase();
 
