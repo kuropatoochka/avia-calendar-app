@@ -1,3 +1,11 @@
 .subtitle {
   color: var(--text-muted);
 }
+
+.testButtonA {
+  background-color: var(--background-muted);
+}
+
+.testButtonB {
+  background-color: var(--color-primary-500);
+}

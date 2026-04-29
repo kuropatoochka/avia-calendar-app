@@ -1,5 +1,4 @@
 import { http, HttpResponse } from 'msw';
-import { BASE_URL } from '../apiConsts';
 
 type FlightMock = {
   id: string;
@@ -93,7 +92,7 @@ const isDateInRange = (date: string, dateFrom: string, dateTo: string) => {
 };
 
 export const flightHandlers = [
-  http.get(`${BASE_URL}/flights/best-prices`, ({ request }) => {
+  http.get('/api/flights/best-prices', ({ request }) => {
     const url = new URL(request.url);
 
     const origin = url.searchParams.get('origin');
@@ -135,7 +134,7 @@ export const flightHandlers = [
     return HttpResponse.json(response);
   }),
 
-  http.get(`${BASE_URL}/flights`, ({ request }) => {
+  http.get('/api/flights', ({ request }) => {
     const url = new URL(request.url);
 
     const origin = url.searchParams.get('origin');
