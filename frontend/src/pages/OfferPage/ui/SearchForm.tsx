@@ -1,20 +1,20 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { ConfigProvider, DatePicker, Input, Popover, Tooltip } from 'antd';
 import type { InputRef } from 'antd';
 import type { Dayjs } from 'dayjs';
-import type { AirportDto, Passengers } from '@/shared/types/api';
+import { ConfigProvider, DatePicker, Input, Popover, Tooltip } from 'antd';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import AirportService from '@/shared/api/AirportService';
 import ArrowDown from '@/shared/assets/ArrowDown.svg';
 import Person from '@/shared/assets/Person.svg';
 import Search from '@/shared/assets/Search.svg';
 import Swap from '@/shared/assets/Swap.svg';
+import type { AirportDto, Passengers } from '@/shared/types/api';
 import styles from './styles.module.css';
 
 type TripType = 'oneWay' | 'roundTrip';
 
 interface AirportOption {
-  value: string;    // city name
-  label: string;    // "City — Airport"
+  value: string; // city name
+  label: string; // "City — Airport"
   airportId: string;
 }
 
@@ -99,7 +99,14 @@ interface CityDropdownProps {
   onClose: () => void;
 }
 
-const CityDropdown = ({ open, options, search, onSearch, onSelect, onClose }: CityDropdownProps) => {
+const CityDropdown = ({
+  open,
+  options,
+  search,
+  onSearch,
+  onSelect,
+  onClose,
+}: CityDropdownProps) => {
   const inputRef = useRef<InputRef>(null);
 
   useEffect(() => {
@@ -122,23 +129,25 @@ const CityDropdown = ({ open, options, search, onSearch, onSelect, onClose }: Ci
         onClear={() => onSearch('')}
       />
       <div className={styles.citySearchList}>
-        {options.length > 0
-          ? options.map((opt) => (
-              <button
-                key={opt.airportId}
-                type="button"
-                className={styles.citySearchOption}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => { onSelect(opt); onClose(); }}
-              >
-                <span className={styles.citySearchOptionName}>{opt.value}</span>
-                <span className={styles.citySearchOptionAirport}>{opt.label}</span>
-              </button>
-            ))
-          : (
-            <div className={styles.citySearchEmpty}>Ничего не найдено</div>
-          )
-        }
+        {options.length > 0 ? (
+          options.map((opt) => (
+            <button
+              key={opt.airportId}
+              type="button"
+              className={styles.citySearchOption}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onSelect(opt);
+                onClose();
+              }}
+            >
+              <span className={styles.citySearchOptionName}>{opt.value}</span>
+              <span className={styles.citySearchOptionAirport}>{opt.label}</span>
+            </button>
+          ))
+        ) : (
+          <div className={styles.citySearchEmpty}>Ничего не найдено</div>
+        )}
       </div>
     </div>
   );
@@ -150,7 +159,12 @@ export const SearchForm = () => {
   const [tripTypeOpen, setTripTypeOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [passengersOpen, setPassengersOpen] = useState(false);
-  const [passengers, setPassengers] = useState<PassengersState>({ adults: 1, children: 0, toddler: 0, animals: 0 });
+  const [passengers, setPassengers] = useState<PassengersState>({
+    adults: 1,
+    children: 0,
+    toddler: 0,
+    animals: 0,
+  });
   const [serviceClasses, setServiceClasses] = useState<ServiceClass[]>(['economy']);
 
   // City search state
@@ -190,7 +204,11 @@ export const SearchForm = () => {
   // Outside-click handlers to close city dropdowns
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (originOpen && originWrapperRef.current && !originWrapperRef.current.contains(e.target as Node)) {
+      if (
+        originOpen &&
+        originWrapperRef.current &&
+        !originWrapperRef.current.contains(e.target as Node)
+      ) {
         setOriginOpen(false);
       }
     };
@@ -200,7 +218,11 @@ export const SearchForm = () => {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (destOpen && destWrapperRef.current && !destWrapperRef.current.contains(e.target as Node)) {
+      if (
+        destOpen &&
+        destWrapperRef.current &&
+        !destWrapperRef.current.contains(e.target as Node)
+      ) {
         setDestOpen(false);
       }
     };
@@ -371,10 +393,8 @@ export const SearchForm = () => {
   return (
     <div className={styles.searchForm}>
       <div className={styles.formRow}>
-
         {/* City group: From + Swap + To */}
         <div className={styles.cityGroup}>
-
           {/* Origin city */}
           <div ref={originWrapperRef} className={styles.cityCardWrapper}>
             <div
@@ -382,7 +402,9 @@ export const SearchForm = () => {
               onClick={handleOriginClick}
             >
               <span className={styles.cityLabel}>Откуда</span>
-              <span className={`${styles.cityValue} ${!originId ? styles.cityValuePlaceholder : ''}`}>
+              <span
+                className={`${styles.cityValue} ${!originId ? styles.cityValuePlaceholder : ''}`}
+              >
                 {originId ? originValue : 'Город вылета'}
               </span>
             </div>
@@ -403,7 +425,12 @@ export const SearchForm = () => {
             />
           </div>
 
-          <button type="button" className={styles.swapBtn} onClick={handleSwap} aria-label="Поменять города">
+          <button
+            type="button"
+            className={styles.swapBtn}
+            onClick={handleSwap}
+            aria-label="Поменять города"
+          >
             <Swap className={styles.swapIcon} />
           </button>
 
@@ -448,7 +475,9 @@ export const SearchForm = () => {
           <div className={styles.controlBtnOuter} role="button" tabIndex={0}>
             <div className={styles.controlBtn}>
               <span className={styles.controlBtnText}>{TRIP_TYPE_LABELS[tripType]}</span>
-              <ArrowDown className={`${styles.arrowIcon} ${tripTypeOpen ? styles.arrowIconOpen : ''}`} />
+              <ArrowDown
+                className={`${styles.arrowIcon} ${tripTypeOpen ? styles.arrowIconOpen : ''}`}
+              />
             </div>
           </div>
         </Popover>
@@ -461,9 +490,13 @@ export const SearchForm = () => {
           onClick={() => setDatePickerOpen(true)}
         >
           {/* Inner visual card — animates on click, DatePicker is NOT inside here */}
-          <div className={`${styles.controlBtn} ${errors.dates ? styles.controlBtnError : ''} ${!dateRange && !errors.dates ? styles.controlBtnEmpty : ''}`}>
+          <div
+            className={`${styles.controlBtn} ${errors.dates ? styles.controlBtnError : ''} ${!dateRange && !errors.dates ? styles.controlBtnEmpty : ''}`}
+          >
             <span className={styles.controlBtnText}>{getDateLabel()}</span>
-            <ArrowDown className={`${styles.arrowIcon} ${datePickerOpen ? styles.arrowIconOpen : ''}`} />
+            <ArrowDown
+              className={`${styles.arrowIcon} ${datePickerOpen ? styles.arrowIconOpen : ''}`}
+            />
           </div>
           {/* DatePicker lives in the stable outer wrapper so the calendar never shifts */}
           <ConfigProvider theme={{ token: { colorPrimary: '#40a9ff' } }}>
@@ -491,17 +524,28 @@ export const SearchForm = () => {
           onOpenChange={setPassengersOpen}
           motion={{ motionName: '' }}
         >
-          <div className={`${styles.controlBtnOuter} ${styles.controlBtnOuterPassengers}`} role="button" tabIndex={0}>
+          <div
+            className={`${styles.controlBtnOuter} ${styles.controlBtnOuterPassengers}`}
+            role="button"
+            tabIndex={0}
+          >
             <div className={`${styles.controlBtn} ${styles.controlBtnPassengers}`}>
               <Person className={styles.personIcon} />
               <span className={styles.controlBtnText}>{getPassengerLabel(passengers)}</span>
-              <ArrowDown className={`${styles.arrowIcon} ${passengersOpen ? styles.arrowIconOpen : ''}`} />
+              <ArrowDown
+                className={`${styles.arrowIcon} ${passengersOpen ? styles.arrowIconOpen : ''}`}
+              />
             </div>
           </div>
         </Popover>
 
         {/* Search button */}
-        <button type="button" className={styles.searchBtn} onClick={handleSearch} aria-label="Найти">
+        <button
+          type="button"
+          className={styles.searchBtn}
+          onClick={handleSearch}
+          aria-label="Найти"
+        >
           <Search className={styles.searchIcon} />
         </button>
       </div>
