@@ -3,10 +3,10 @@ import type { Dayjs } from 'dayjs';
 import { ConfigProvider, DatePicker, Input, Popover, Tooltip } from 'antd';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import AirportService from '@/shared/api/AirportService';
-import ArrowDown from '@/shared/assets/ArrowDown.svg';
-import Person from '@/shared/assets/Person.svg';
-import Search from '@/shared/assets/Search.svg';
-import Swap from '@/shared/assets/Swap.svg';
+import ArrowDown from '@/shared/assets/ArrowDown.svg?react';
+import Person from '@/shared/assets/Person.svg?react';
+import Search from '@/shared/assets/Search.svg?react';
+import Swap from '@/shared/assets/Swap.svg?react';
 import type { AirportDto, Passengers } from '@/shared/types/api';
 import styles from './styles.module.css';
 
