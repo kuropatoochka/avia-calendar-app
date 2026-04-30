@@ -1,3 +1,18 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 356px;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.content {
+  min-width: 0;
+}
+
+.sidebar {
+  min-width: 0;
+}
+
 .subtitle {
   color: var(--text-muted);
 }
