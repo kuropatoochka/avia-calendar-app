@@ -1,83 +1,5 @@
 import { http, HttpResponse } from 'msw';
-
-type FlightMock = {
-  id: string;
-  origin: string;
-  destination: string;
-  date: string;
-  price: number;
-  duration: number;
-  airline: string;
-  departureTime: string;
-  arrivalTime: string;
-  originAirport: string;
-  destinationAirport: string;
-  baggageIncluded: boolean;
-  stopsCount: number;
-};
-
-const flightsMock: FlightMock[] = [
-  {
-    id: 'flight-1',
-    origin: 'svo',
-    destination: 'led',
-    date: '2026-05-01',
-    price: 8200,
-    duration: 95,
-    airline: 'Аэрофлот',
-    departureTime: '08:30',
-    arrivalTime: '10:05',
-    originAirport: 'Шереметьево',
-    destinationAirport: 'Пулково',
-    baggageIncluded: true,
-    stopsCount: 0,
-  },
-  {
-    id: 'flight-2',
-    origin: 'svo',
-    destination: 'led',
-    date: '2026-05-01',
-    price: 7600,
-    duration: 105,
-    airline: 'Победа',
-    departureTime: '12:10',
-    arrivalTime: '13:55',
-    originAirport: 'Шереметьево',
-    destinationAirport: 'Пулково',
-    baggageIncluded: false,
-    stopsCount: 0,
-  },
-  {
-    id: 'flight-3',
-    origin: 'svo',
-    destination: 'led',
-    date: '2026-05-02',
-    price: 9100,
-    duration: 100,
-    airline: 'Россия',
-    departureTime: '15:40',
-    arrivalTime: '17:20',
-    originAirport: 'Шереметьево',
-    destinationAirport: 'Пулково',
-    baggageIncluded: true,
-    stopsCount: 0,
-  },
-  {
-    id: 'flight-4',
-    origin: 'dme',
-    destination: 'led',
-    date: '2026-05-02',
-    price: 8700,
-    duration: 110,
-    airline: 'S7 Airlines',
-    departureTime: '19:00',
-    arrivalTime: '20:50',
-    originAirport: 'Домодедово',
-    destinationAirport: 'Пулково',
-    baggageIncluded: true,
-    stopsCount: 0,
-  },
-];
+import { flightsMock } from '../mock/flightMock';
 
 const getPassengerMultiplier = (url: URL) => {
   const adults = Number(url.searchParams.get('passengers_adults') ?? 1);
@@ -89,6 +11,30 @@ const getPassengerMultiplier = (url: URL) => {
 
 const isDateInRange = (date: string, dateFrom: string, dateTo: string) => {
   return date >= dateFrom && date <= dateTo;
+};
+
+const getUTCDate = (date: string) => {
+  const [year, month, day] = date.split('-').map(Number);
+
+  return new Date(Date.UTC(year, month - 1, day));
+};
+
+const formatDate = (date: Date) => {
+  return date.toISOString().slice(0, 10);
+};
+
+const getDateRange = (dateFrom: string, dateTo: string) => {
+  const dates: string[] = [];
+
+  const currentDate = getUTCDate(dateFrom);
+  const endDate = getUTCDate(dateTo);
+
+  while (currentDate <= endDate) {
+    dates.push(formatDate(currentDate));
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+  }
+
+  return dates;
 };
 
 export const flightHandlers = [
@@ -105,6 +51,7 @@ export const flightHandlers = [
     }
 
     const passengerMultiplier = getPassengerMultiplier(url);
+    const dates = getDateRange(dateFrom, dateTo);
 
     const filteredFlights = flightsMock.filter((flight) => {
       return (
@@ -114,7 +61,7 @@ export const flightHandlers = [
       );
     });
 
-    const pricesByDate = filteredFlights.reduce<Record<string, number>>((acc, flight) => {
+    const minPricesByDate = filteredFlights.reduce<Record<string, number>>((acc, flight) => {
       const totalPrice = Math.round(flight.price * passengerMultiplier);
 
       if (!acc[flight.date] || totalPrice < acc[flight.date]) {
@@ -124,12 +71,10 @@ export const flightHandlers = [
       return acc;
     }, {});
 
-    const response = Object.entries(pricesByDate)
-      .map(([date, price]) => ({
-        date,
-        price,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    const response = dates.map((date) => ({
+      date,
+      minPrice: minPricesByDate[date] ?? null,
+    }));
 
     return HttpResponse.json(response);
   }),

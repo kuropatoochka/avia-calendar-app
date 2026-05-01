@@ -1,2 +1,2 @@
-export { airportHandlers } from './mock/airportHandler';
-export { flightHandlers } from './mock/flightHandler';
+export { airportHandlers } from './handlers/airportHandler';
+export { flightHandlers } from './handlers/flightHandler';
