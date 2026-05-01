@@ -9,7 +9,7 @@ import { getFlightSearchParams } from '../utils/getFlightSearchParams';
 
 export default class FlightService {
   static async getFlights(params: FlightsRequest) {
-    const url = new URL(`${API_URL}/flights`);
+    const url = new URL(`${API_URL}/flights`, window.location.origin);
     url.search = getFlightSearchParams<FlightsRequest>(params);
 
     const response = await fetch(url, {
@@ -20,7 +20,7 @@ export default class FlightService {
   }
 
   static async getPriceDynamics(params: PriceDynamicsRequest): Promise<Response> {
-    const url = new URL(`${API_URL}/flights/best-prices`);
+    const url = new URL(`${API_URL}/flights/best-prices`, window.location.origin);
     url.search = getFlightSearchParams<PriceDynamicsRequest>(params);
 
     const response = await fetch(url, {
