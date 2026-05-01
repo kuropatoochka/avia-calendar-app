@@ -1,7 +1,8 @@
+import type {Dayjs} from 'dayjs';
 import { DatePicker } from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
-import { useState, useRef } from 'react';
 import classNames from 'clsx';
+import dayjs from 'dayjs';
+import { useState, useRef } from 'react';
 import { ArrowDown } from '@/shared/assets';
 import styles from './styles.module.css';
 

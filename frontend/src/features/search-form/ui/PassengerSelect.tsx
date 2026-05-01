@@ -1,8 +1,8 @@
+import type { PassengersState, ServiceClass } from '../types/searchForm';
 import { Flex, Popover } from 'antd';
 import classNames from 'clsx';
 import { ArrowDown, Person } from '@/shared/assets';
 import { SERVICE_CLASS_LABELS } from '../consts/labels';
-import type { PassengersState, ServiceClass } from '../types/searchForm';
 import { getPassengerLabel } from '../utils/getPassengerLabel';
 import { PassengerCounter } from './PassengerCounter';
 import styles from './styles.module.css';

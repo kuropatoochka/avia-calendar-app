@@ -1,5 +1,5 @@
-import type { AirportDto } from '@/shared/types';
 import type { AirportOption } from '../types/searchForm';
+import type { AirportDto } from '@/shared/types';
 
 export const mapAirportToOption = (a: AirportDto): AirportOption => ({
   value: a.city,

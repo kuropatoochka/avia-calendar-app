@@ -1,7 +1,7 @@
-import { Select } from 'antd';
-import { useState, useRef } from 'react';
-import classNames from 'clsx';
 import type { AirportOption } from '../types/searchForm';
+import { Select } from 'antd';
+import classNames from 'clsx';
+import { useState, useRef } from 'react';
 import styles from './styles.module.css';
 
 interface CitySelectProps {

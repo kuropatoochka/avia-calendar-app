@@ -1,9 +1,9 @@
+import type { AirportOption, PassengersState, ServiceClass, TripType } from '../types/searchForm';
 import type { Dayjs } from 'dayjs';
 import { useState, useCallback } from 'react';
 import { AirportService } from '@/shared/api';
 import { DATA_SOURCE } from '@/shared/consts';
 import { DEFAULT_PASSENGERS } from '../consts/defaults';
-import type { AirportOption, PassengersState, ServiceClass, TripType } from '../types/searchForm';
 import { mapAirportToOption } from '../utils/mapAirportToOption';
 
 export const useSearchForm = () => {

@@ -1,6 +1,6 @@
+import { ConfigProvider } from 'antd';
 import { StrictMode } from 'react';
 import { RouterProvider } from 'react-router';
-import { ConfigProvider } from 'antd';
 import { LaunchExperimentProvider } from '@/features/launch-experiment';
 import { router } from './config/router';
 import './styles';

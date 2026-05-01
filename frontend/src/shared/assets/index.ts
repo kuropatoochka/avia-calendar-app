@@ -1,5 +1,4 @@
 import type { FC, SVGProps } from 'react';
-
 import ArrowDownSvg from './ArrowDown.svg';
 import ArrowUpSvg from './ArrowUp.svg';
 import CrossSvg from './Cross.svg';

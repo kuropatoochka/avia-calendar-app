@@ -1,8 +1,8 @@
+import type { TripType } from '../types/searchForm';
 import { Popover } from 'antd';
 import classNames from 'clsx';
 import { ArrowDown } from '@/shared/assets';
 import { TRIP_TYPE_LABELS } from '../consts/labels';
-import type { TripType } from '../types/searchForm';
 import styles from './styles.module.css';
 
 interface TripTypeSelectProps {
