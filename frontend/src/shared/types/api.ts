@@ -10,24 +10,24 @@ export type Passengers = {
   toddler?: number;
 };
 
-export type BestPricesRequest = {
-  origin: string;
-  destination: string;
+export type PriceDynamicsRequest = {
+  originAirportId: string;
+  destinationAirportId: string;
   dateFrom: string;
   dateTo: string;
   passengers: Passengers;
 };
 
-export type BestPricesDto = {
+export type PriceDynamicsDto = {
   date: string;
-  price: number;
-}[];
+  minPrice: number | null;
+};
 
 // export type FlightFilters = {};
 
 export type FlightsRequest = {
-  origin: string;
-  destination: string;
+  originAirportId: string;
+  destinationAirportId: string;
   date: string;
   passengers: Passengers;
   filters?: never;

@@ -1,4 +1,4 @@
-import type { BestPricesRequest, FlightsRequest, Passengers } from '../types/api';
+import type { FlightsRequest, Passengers, PriceDynamicsRequest } from '../types/api';
 
 const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) => {
   searchParams.set('passengers_adults', String(params.adults));
@@ -24,11 +24,13 @@ const getFiltersParams = (searchParams: URLSearchParams, params: never) => {
   return searchParams;
 };
 
-export const getFlightSearchParams = <T extends BestPricesRequest | FlightsRequest>(params: T) => {
+export const getFlightSearchParams = <T extends PriceDynamicsRequest | FlightsRequest>(
+  params: T,
+) => {
   const searchParams = new URLSearchParams();
 
-  searchParams.set('origin', params.origin);
-  searchParams.set('destination', params.destination);
+  searchParams.set('origin', params.originAirportId);
+  searchParams.set('destination', params.destinationAirportId);
 
   if ('dateFrom' in params) {
     searchParams.set('date_from', params.dateFrom);
