@@ -41,7 +41,9 @@
   gap: 2px;
   cursor: pointer;
   position: relative;
-  transition: background-color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
   transform-origin: center;
   flex-shrink: 0;
 }
@@ -179,7 +181,9 @@
   gap: 6px;
   flex-shrink: 0;
   position: relative;
-  transition: background-color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
   transform-origin: center;
   pointer-events: none;
 }
@@ -268,7 +272,9 @@
   padding: 0;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background-color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
 }
 
 .searchBtn:hover {
@@ -421,7 +427,10 @@
   font-weight: 500;
   color: #333;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .serviceClassBtn:hover {

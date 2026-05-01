@@ -14,7 +14,6 @@ interface CitySelectProps {
   onSelect: (opt: AirportOption) => void;
 }
 
-
 export const CitySelect = ({
   label,
   placeholder,

@@ -1,4 +1,4 @@
-import type {Dayjs} from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { DatePicker } from 'antd';
 import classNames from 'clsx';
 import dayjs from 'dayjs';
