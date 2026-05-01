@@ -1,15 +1,15 @@
-import ArrowDown from './ArrowDown.svg?react';
-import ArrowUp from './ArrowUp.svg?react';
-import Cross from './Cross.svg?react';
-import Down from './Down.svg?react';
-import ExclamationMark from './ExclamationMark.svg?react';
-import Fire from './Fire.svg?react';
-import Logo from './Logo.svg?react';
-import Person from './Person.svg?react';
-import Search from './Search.svg?react';
-import Star from './Star.svg?react';
-import Swap from './Swap.svg?react';
-import Up from './Up.svg?react';
+import ArrowDown from './ArrowDown.svg';
+import ArrowUp from './ArrowUp.svg';
+import Cross from './Cross.svg';
+import Down from './Down.svg';
+import ExclamationMark from './ExclamationMark.svg';
+import Fire from './Fire.svg';
+import Logo from './Logo.svg';
+import Person from './Person.svg';
+import Search from './Search.svg';
+import Star from './Star.svg';
+import Swap from './Swap.svg';
+import Up from './Up.svg';
 
 export {
   Logo,

@@ -18,3 +18,41 @@ body {
   height: calc(100vh - 64px);
   padding: 40px 100px;
 }
+
+/* Hide the calendar range picker triangle arrow */
+.ant-picker-range-arrow {
+  display: none !important;
+}
+
+/* Collapse space reserved for the hidden arrow, keep 4px gap to match Popover spacing */
+.ant-picker-dropdown {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.ant-picker-dropdown .ant-picker-panel-container {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Disable all AntD Select dropdown slide animations */
+.ant-select-dropdown {
+  animation: none !important;
+  transition: none !important;
+}
+
+.ant-select-dropdown.ant-slide-up-appear,
+.ant-select-dropdown.ant-slide-up-appear-prepare,
+.ant-select-dropdown.ant-slide-up-enter,
+.ant-select-dropdown.ant-slide-up-enter-prepare,
+.ant-select-dropdown.ant-slide-up-enter-active {
+  opacity: 1 !important;
+  transform: scaleY(1) !important;
+  transition: none !important;
+}
+
+.ant-select-dropdown.ant-slide-up-leave,
+.ant-select-dropdown.ant-slide-up-leave-active {
+  opacity: 0 !important;
+  transition: none !important;
+}

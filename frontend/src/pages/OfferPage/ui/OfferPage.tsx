@@ -1,4 +1,4 @@
-import { SearchForm } from './SearchForm';
+import { SearchForm } from '@/features/search-form';
 import { TitleBlock } from './TitleBlock';
 
 const OfferPage = () => {
