@@ -25,7 +25,7 @@ export const DateRangeSelect = ({
     dayjs(),
     dayjs().add(1, 'month'),
   ]);
-  const selectingRef = useRef(false);
+  const dateClickingRef = useRef(false);
 
   const label = value
     ? `${value[0].format('DD.MM')} — ${value[1].format('DD.MM')}`
@@ -59,20 +59,26 @@ export const DateRangeSelect = ({
         value={value}
         placement="bottomRight"
         onChange={(vals) => {
-          selectingRef.current = false;
           onChange(vals as [Dayjs, Dayjs] | null);
         }}
-        onCalendarChange={(vals) => {
-          selectingRef.current = !!(vals?.[0] && !vals?.[1]);
+        onCalendarChange={() => {
+          dateClickingRef.current = false;
         }}
         pickerValue={pickerValue}
         onPickerValueChange={(vals) => {
-          if (!selectingRef.current && vals?.[0] && vals?.[1]) {
+          if (!dateClickingRef.current && vals?.[0] && vals?.[1]) {
             setPickerValue([vals[0], vals[1]]);
           }
         }}
         panelRender={(panel) => (
-          <div className={styles.calendarPanel}>
+          <div
+            className={styles.calendarPanel}
+            onMouseDown={(e) => {
+              if ((e.target as HTMLElement).closest('.ant-picker-cell')) {
+                dateClickingRef.current = true;
+              }
+            }}
+          >
             <div className={styles.calendarResetRow}>
               <button
                 type="button"
