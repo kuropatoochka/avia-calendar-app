@@ -112,8 +112,12 @@ export const FlightFilters = () => {
 
           <div className={styles.label}>Диапазон цены, (руб.):</div>
           <Flex justify="space-between" style={{ marginBottom: 2 }}>
-            <span className={styles.sliderLabel}>{filters.priceRange[0].toLocaleString('ru-RU')}</span>
-            <span className={styles.sliderLabel}>{filters.priceRange[1].toLocaleString('ru-RU')}</span>
+            <span className={styles.sliderLabel}>
+              {filters.priceRange[0].toLocaleString('ru-RU')}
+            </span>
+            <span className={styles.sliderLabel}>
+              {filters.priceRange[1].toLocaleString('ru-RU')}
+            </span>
           </Flex>
           <Slider
             range
@@ -166,7 +170,9 @@ export const FlightFilters = () => {
             allowClear
           />
 
-          <div className={styles.label} style={{ marginTop: 12 }}>Перевозка животных:</div>
+          <div className={styles.label} style={{ marginTop: 12 }}>
+            Перевозка животных:
+          </div>
           <Flex gap={16}>
             <Checkbox
               checked={filters.petTransport.includes('cabin')}
