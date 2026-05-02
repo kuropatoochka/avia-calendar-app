@@ -1,16 +1,17 @@
-.layout {
+.columns {
   display: grid;
   grid-template-columns: 1fr 356px;
-  gap: var(--space-xl);
+  gap: 23px;
   align-items: start;
+  margin-top: var(--space-xl);
 }
 
-.content {
+.results {
   min-width: 0;
 }
 
-.sidebar {
-  min-width: 0;
+.filterWrapper {
+  width: 356px;
 }
 
 .subtitle {

@@ -4,14 +4,15 @@ import styles from './styles.module.css';
 
 const OfferPage = () => {
   return (
-    <div className={styles.layout}>
-      <div className={styles.content}>
-        <TitleBlock />
+    <>
+      <TitleBlock />
+      <div className={styles.columns}>
+        <div className={styles.results} />
+        <aside className={styles.filterWrapper}>
+          <FlightFilters />
+        </aside>
       </div>
-      <aside className={styles.sidebar}>
-        <FlightFilters />
-      </aside>
-    </div>
+    </>
   );
 };
 

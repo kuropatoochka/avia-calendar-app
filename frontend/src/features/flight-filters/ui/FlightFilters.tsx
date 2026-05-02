@@ -1,27 +1,14 @@
-import { Checkbox, InputNumber, Select, Slider, Typography } from 'antd';
-import type { BaggageType, DepartureTime, PetTransport } from '../lib/types';
-import { useFlightFilters } from '../lib/useFlightFilters';
+import { Checkbox, Flex, InputNumber, Select, Slider, Typography } from 'antd';
+import type { BaggageType, DepartureTime, PetTransport } from '../types/flightFilters';
+import { AIRLINE_OPTIONS, DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../consts/labels';
+import { useFlightFilters } from '../hooks/useFlightFilters';
 import styles from './styles.module.css';
-
-const DEPARTURE_TIMES: { value: DepartureTime; label: string }[] = [
-  { value: 'morning', label: 'Утро' },
-  { value: 'afternoon', label: 'День' },
-  { value: 'evening', label: 'Вечер' },
-  { value: 'night', label: 'Ночь' },
-];
-
-const AIRLINES = [
-  { value: 'aeroflot', label: 'Аэрофлот' },
-  { value: 's7', label: 'S7 Airlines' },
-  { value: 'pobeda', label: 'Победа' },
-  { value: 'ural', label: 'Уральские авиалинии' },
-  { value: 'rossiya', label: 'Россия' },
-];
 
 export const FlightFilters = () => {
   const { filters, updateFilter, resetFilters } = useFlightFilters();
 
   const toggleDepartureTime = (value: DepartureTime, checked: boolean) => {
+    if (!checked && filters.departureTimes.length === 1) return;
     const next = checked
       ? [...filters.departureTimes, value]
       : filters.departureTimes.filter((t) => t !== value);
@@ -44,19 +31,19 @@ export const FlightFilters = () => {
 
   return (
     <div>
-      <div className={styles.header}>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
         <Typography.Title level={4} style={{ margin: 0 }}>
           Дополнительные фильтры
         </Typography.Title>
         <Typography.Link onClick={resetFilters}>Сбросить</Typography.Link>
-      </div>
+      </Flex>
 
       <div className={styles.panel}>
         {/* ПЕРЕЛЁТ */}
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Перелёт</div>
 
-          <div className={styles.row}>
+          <Flex justify="space-between" align="flex-start" gap={8} style={{ marginBottom: 12 }}>
             <span className={styles.label}>Количество доступных пересадок, (шт):</span>
             <InputNumber
               className={styles.numberInput}
@@ -64,13 +51,13 @@ export const FlightFilters = () => {
               value={filters.maxStops}
               onChange={(v) => v !== null && updateFilter('maxStops', v)}
             />
-          </div>
+          </Flex>
 
           <div className={styles.label}>Длительность пересадки, (часы):</div>
-          <div className={styles.sliderLabels}>
-            <span>{filters.stopDurationRange[0]}</span>
-            <span>{filters.stopDurationRange[1]}</span>
-          </div>
+          <Flex justify="space-between" style={{ marginBottom: 2 }}>
+            <span className={styles.sliderLabel}>{filters.stopDurationRange[0]}</span>
+            <span className={styles.sliderLabel}>{filters.stopDurationRange[1]}</span>
+          </Flex>
           <Slider
             range
             min={1}
@@ -80,7 +67,7 @@ export const FlightFilters = () => {
             tooltip={{ formatter: (v) => `${v} ч` }}
           />
 
-          <div className={styles.row}>
+          <Flex justify="space-between" align="flex-start" gap={8} style={{ marginBottom: 12 }}>
             <span className={styles.label}>Максимальное время перелета, (часы):</span>
             <InputNumber
               className={styles.numberInput}
@@ -88,17 +75,17 @@ export const FlightFilters = () => {
               value={filters.maxFlightDuration}
               onChange={(v) => v !== null && updateFilter('maxFlightDuration', v)}
             />
-          </div>
+          </Flex>
 
           <div className={styles.label}>Удобное время вылета:</div>
           <div className={styles.checkboxGrid}>
-            {DEPARTURE_TIMES.map(({ value, label }) => (
+            {DEPARTURE_TIMES.map((value) => (
               <Checkbox
                 key={value}
                 checked={filters.departureTimes.includes(value)}
                 onChange={(e) => toggleDepartureTime(value, e.target.checked)}
               >
-                {label}
+                {DEPARTURE_TIME_LABELS[value]}
               </Checkbox>
             ))}
           </div>
@@ -108,7 +95,7 @@ export const FlightFilters = () => {
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Стоимость</div>
 
-          <div className={styles.checkboxRow}>
+          <Flex gap={16} style={{ marginBottom: 12 }}>
             <Checkbox
               checked={filters.pricePerPassenger}
               onChange={(e) => updateFilter('pricePerPassenger', e.target.checked)}
@@ -121,13 +108,13 @@ export const FlightFilters = () => {
             >
               Цена за всех
             </Checkbox>
-          </div>
+          </Flex>
 
           <div className={styles.label}>Диапазон цены, (руб.):</div>
-          <div className={styles.sliderLabels}>
-            <span>{filters.priceRange[0].toLocaleString('ru-RU')}</span>
-            <span>{filters.priceRange[1].toLocaleString('ru-RU')}</span>
-          </div>
+          <Flex justify="space-between" style={{ marginBottom: 2 }}>
+            <span className={styles.sliderLabel}>{filters.priceRange[0].toLocaleString('ru-RU')}</span>
+            <span className={styles.sliderLabel}>{filters.priceRange[1].toLocaleString('ru-RU')}</span>
+          </Flex>
           <Slider
             range
             min={100}
@@ -144,7 +131,7 @@ export const FlightFilters = () => {
           <div className={styles.sectionTitle}>Условия</div>
 
           <div className={styles.label}>Тип багажа:</div>
-          <div className={styles.checkboxRow}>
+          <Flex gap={16} style={{ marginBottom: 12 }}>
             <Checkbox
               checked={filters.baggageTypes.includes('hand')}
               onChange={(e) => toggleBaggageType('hand', e.target.checked)}
@@ -157,9 +144,9 @@ export const FlightFilters = () => {
             >
               Багаж
             </Checkbox>
-          </div>
+          </Flex>
 
-          <div className={styles.row}>
+          <Flex justify="space-between" align="flex-start" gap={8} style={{ marginBottom: 12 }}>
             <span className={styles.label}>Багаж, (в килограммах)</span>
             <InputNumber
               className={styles.numberInput}
@@ -167,7 +154,7 @@ export const FlightFilters = () => {
               value={filters.maxBaggageWeight}
               onChange={(v) => v !== null && updateFilter('maxBaggageWeight', v)}
             />
-          </div>
+          </Flex>
 
           <div className={styles.label}>Авиакомпания</div>
           <Select
@@ -175,14 +162,12 @@ export const FlightFilters = () => {
             placeholder="Выберите авиакомпанию"
             value={filters.airline || undefined}
             onChange={(v) => updateFilter('airline', v ?? '')}
-            options={AIRLINES}
+            options={AIRLINE_OPTIONS}
             allowClear
           />
 
-          <div className={styles.label} style={{ marginTop: 12 }}>
-            Перевозка животных:
-          </div>
-          <div className={styles.checkboxRow}>
+          <div className={styles.label} style={{ marginTop: 12 }}>Перевозка животных:</div>
+          <Flex gap={16}>
             <Checkbox
               checked={filters.petTransport.includes('cabin')}
               onChange={(e) => togglePetTransport('cabin', e.target.checked)}
@@ -195,7 +180,7 @@ export const FlightFilters = () => {
             >
               Как багаж
             </Checkbox>
-          </div>
+          </Flex>
         </div>
       </div>
     </div>
