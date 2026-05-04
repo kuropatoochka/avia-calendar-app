@@ -1,4 +1,4 @@
-import type { FlightDto } from '@/shared/types/api';
+import type { FlightDto } from '@/shared/types';
 
 export type Leg = {
   from: string;

@@ -14,7 +14,7 @@ const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) 
   return searchParams;
 };
 
-const getFiltersParams = (searchParams: URLSearchParams, params: never) => {
+const getFiltersParams = (searchParams: URLSearchParams, params: Record<string, unknown>) => {
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== '') {
       searchParams.set(key, String(value));
@@ -42,7 +42,7 @@ export const getFlightSearchParams = <T extends BestPricesRequest | FlightsReque
   getPassengersParams(searchParams, params.passengers);
 
   if ('filters' in params && params.filters) {
-    getFiltersParams(searchParams, params.filters);
+    getFiltersParams(searchParams, params.filters as Record<string, unknown>);
   }
 
   return searchParams.toString();

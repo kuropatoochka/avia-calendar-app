@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 import { CheckCircleFilled, InfoCircleOutlined, CloseOutlined, CheckOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
-import type { FlightDto, ServiceClass } from '@/shared/types/api';
-import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/types/api';
+import type { FlightDto, ServiceClass } from '@/shared/types';
+import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/types';
 import { AirlineCircle } from '@/shared/ui';
 import {
   formatFlightDate,
@@ -13,7 +13,7 @@ import {
   getAirlines,
 } from '@/shared/utils';
 import { buildLegs, getLayoverNotes } from '../lib/flightUtils';
-import type { Leg, LayoverNote, SeatsLeft } from '../lib/types';
+import type { LayoverNote, SeatsLeft } from '../lib/types';
 import styles from './styles.module.css';
 
 type Props = {

@@ -1,4 +1,4 @@
-import type { FlightDto, FlightStop } from '@/shared/types/api';
+import type { FlightDto, FlightStop } from '@/shared/types';
 import type { DepartureTime, FlightFiltersState } from '@/features/flight-filters';
 import type { Leg, LayoverNote } from './types';
 

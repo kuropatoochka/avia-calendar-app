@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import FlightService from '@/shared/api/FlightService';
-import type { BestPricesDto, FlightDto, FlightsRequest } from '@/shared/types/api';
+import type { BestPricesDto, FlightDto, FlightsRequest } from '@/shared/types';
 
 const addDays = (dateStr: string, days: number) => {
   const d = new Date(dateStr);

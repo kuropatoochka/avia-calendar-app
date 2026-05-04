@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Skeleton, Typography } from 'antd';
-import type { FlightDto, FlightsRequest, ServiceClass } from '@/shared/types/api';
-import { CLASS_DELTAS } from '@/shared/types/api';
+import type { FlightDto, FlightsRequest, ServiceClass } from '@/shared/types';
+import { CLASS_DELTAS } from '@/shared/types';
 import { useFlightFiltersContext } from '@/features/flight-filters';
 import { useFlightResults } from '../lib/useFlightResults';
 import { applyFilters } from '../lib/flightUtils';
@@ -11,16 +11,13 @@ import styles from './styles.module.css';
 
 type Props = {
   searchParams: FlightsRequest;
-  /** Called when the user clicks a date in the price chart so the parent
-   *  (or Feature 7) can update the selected travel date. */
-  onDateChange?: (date: string) => void;
 };
 
-export const FlightResultsBlock = ({ searchParams, onDateChange }: Props) => {
+export const FlightResultsBlock = ({ searchParams }: Props) => {
   // Reads filter state shared with <FlightFilters /> via FlightFiltersProvider
   const filters = useFlightFiltersContext();
 
-  const { flights, bestPrices, loading, error } = useFlightResults(searchParams);
+  const { flights, loading, error } = useFlightResults(searchParams);
   const [selectedFlight, setSelectedFlight] = useState<FlightDto | null>(null);
   const [expanded, setExpanded] = useState(false);
 

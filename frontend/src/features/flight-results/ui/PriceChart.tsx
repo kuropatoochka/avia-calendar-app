@@ -1,4 +1,4 @@
-import type { BestPricesDto } from '@/shared/types/api';
+import type { BestPricesDto } from '@/shared/types';
 import { formatDateShort } from '@/shared/utils';
 import styles from './styles.module.css';
 
