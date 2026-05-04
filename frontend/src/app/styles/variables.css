@@ -12,12 +12,24 @@
 
   --color-primary-700: #1d4ed8;
   --color-primary-600: #2563eb;
-  --color-primary-500: #3b82f6;
+  --color-primary-500: #40a9ff;
   --color-primary-100: #dbeafe;
   --color-primary-50: #eff6ff;
 
+  --color-accent-50:  #fffbeb;
+  --color-accent-100: #fde68a;
   --color-accent-500: #f59e0b;
+  --color-accent-700: #b45309;
+
+  --color-success-50:  #f0fdf4;
+  --color-success-100: #bbf7d0;
   --color-success-500: #22c55e;
+  --color-success-700: #15803d;
+
+  --color-error-50:  #fff1f0;
+  --color-error-100: #ffccc7;
+  --color-error-500: #f5222d;
+  --color-error-700: #cf1322;
 
   /* Semantic colors */
   --text-primary: var(--color-neutral-900);

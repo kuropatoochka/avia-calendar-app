@@ -4,6 +4,7 @@ import Cross from './Cross.svg';
 import Down from './Down.svg';
 import ExclamationMark from './ExclamationMark.svg';
 import Fire from './Fire.svg';
+import Plane from './Plane.svg';
 import Logo from './Logo.svg';
 import Person from './Person.svg';
 import Search from './Search.svg';
@@ -24,4 +25,5 @@ export {
   Cross,
   Swap,
   Fire,
+  Plane,
 };
