@@ -33,4 +33,22 @@ export type FlightsRequest = {
   filters?: never;
 };
 
-// export type FlightsDto = {};
+export type FlightDto = {
+  id: string;
+  origin: string;
+  destination: string;
+  date: string;
+  price: number;
+  duration: number;
+  airline: string;
+  departureTime: string;
+  arrivalTime: string;
+  originAirport: string;
+  destinationAirport: string;
+  baggageIncluded: boolean;
+  stopsCount: number;
+  petsAllowed: boolean;
+  groupFriendly: boolean;
+};
+
+export type FlightsDto = FlightDto[];

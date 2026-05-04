@@ -14,6 +14,8 @@ type FlightMock = {
   destinationAirport: string;
   baggageIncluded: boolean;
   stopsCount: number;
+  petsAllowed: boolean;
+  groupFriendly: boolean;
 };
 
 const flightsMock: FlightMock[] = [
@@ -31,6 +33,8 @@ const flightsMock: FlightMock[] = [
     destinationAirport: 'Пулково',
     baggageIncluded: true,
     stopsCount: 0,
+    petsAllowed: true,
+    groupFriendly: true,
   },
   {
     id: 'flight-2',
@@ -46,6 +50,8 @@ const flightsMock: FlightMock[] = [
     destinationAirport: 'Пулково',
     baggageIncluded: false,
     stopsCount: 0,
+    petsAllowed: false,
+    groupFriendly: false,
   },
   {
     id: 'flight-3',
@@ -61,6 +67,8 @@ const flightsMock: FlightMock[] = [
     destinationAirport: 'Пулково',
     baggageIncluded: true,
     stopsCount: 0,
+    petsAllowed: true,
+    groupFriendly: true,
   },
   {
     id: 'flight-4',
@@ -76,6 +84,8 @@ const flightsMock: FlightMock[] = [
     destinationAirport: 'Пулково',
     baggageIncluded: true,
     stopsCount: 0,
+    petsAllowed: false,
+    groupFriendly: true,
   },
 ];
 
