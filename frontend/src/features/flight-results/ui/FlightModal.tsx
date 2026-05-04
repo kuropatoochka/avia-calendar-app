@@ -1,5 +1,12 @@
 import type { LayoverNote, SeatsLeft } from '../lib/types';
-import { CheckCircleFilled, InfoCircleOutlined, CloseOutlined, CheckOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons';
+import {
+  CheckCircleFilled,
+  InfoCircleOutlined,
+  CloseOutlined,
+  CheckOutlined,
+  PlusOutlined,
+  MinusOutlined,
+} from '@ant-design/icons';
 import { Popover } from 'antd';
 import { useRef } from 'react';
 import type { FlightDto, ServiceClass } from '@/shared/types';
@@ -37,15 +44,21 @@ const CLASS_OPTIONS: { key: ServiceClass; label: string }[] = [
   { key: 'first', label: 'Первый класс' },
 ];
 
-const getFullRouteName = (flight: FlightDto) => [
-  flight.originAirport,
-  ...(flight.stops?.map(s => s.airport) ?? []),
-  flight.destinationAirport,
-].join(' → ');
+const getFullRouteName = (flight: FlightDto) =>
+  [
+    flight.originAirport,
+    ...(flight.stops?.map((s) => s.airport) ?? []),
+    flight.destinationAirport,
+  ].join(' → ');
 
 /* ── Seat icon SVG ── */
 const SeatIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 20 22" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <svg
+    viewBox="0 0 20 22"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
     <rect x="5" y="1" width="10" height="11" rx="2" />
     <rect x="3" y="13" width="14" height="4" rx="2" />
     <rect x="3" y="18" width="3" height="3" rx="1" />
@@ -54,9 +67,9 @@ const SeatIcon = ({ className }: { className?: string }) => (
 );
 
 const NOTE_PREFIXES: Record<LayoverNote['kind'], string> = {
-  danger:  '⚠',
+  danger: '⚠',
   warning: '·',
-  info:    '·',
+  info: '·',
 };
 
 /* ── Route detail popover ── */
@@ -65,7 +78,9 @@ const RouteDetail = ({ flight }: { flight: FlightDto }) => {
   const hasStops = (flight.stops?.length ?? 0) > 0;
   return (
     <div className={styles.routeDetail}>
-      <p className={styles.routeDetailTitle}>{flight.originCity} — {flight.destinationCity}</p>
+      <p className={styles.routeDetailTitle}>
+        {flight.originCity} — {flight.destinationCity}
+      </p>
       <p className={styles.routeDetailSub}>{formatDuration(flight.duration)} в пути</p>
       {legs.map((leg, i) => (
         <div key={i}>
@@ -86,7 +101,9 @@ const RouteDetail = ({ flight }: { flight: FlightDto }) => {
                 <span className={styles.routeDetailTime}>{leg.dep}</span>
                 <div>
                   <p className={styles.routeDetailCity}>{leg.from}</p>
-                  <p className={styles.routeDetailAirport}>{leg.fromAirport}, {leg.fromCode}</p>
+                  <p className={styles.routeDetailAirport}>
+                    {leg.fromAirport}, {leg.fromCode}
+                  </p>
                 </div>
               </div>
               <div className={styles.routeDetailPoint}>
@@ -96,30 +113,34 @@ const RouteDetail = ({ flight }: { flight: FlightDto }) => {
                 <span className={styles.routeDetailTime}>{leg.arr}</span>
                 <div>
                   <p className={styles.routeDetailCity}>{leg.to}</p>
-                  <p className={styles.routeDetailAirport}>{leg.toAirport}, {leg.toCode}</p>
+                  <p className={styles.routeDetailAirport}>
+                    {leg.toAirport}, {leg.toCode}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-          {hasStops && i < legs.length - 1 && (() => {
-            const stop = flight.stops![i];
-            const notes = getLayoverNotes(stop, leg.arr, leg.airline);
-            return (
-              <div className={styles.routeDetailTransfer}>
-                <span className={styles.routeDetailTransferBadge}>
-                  Пересадка в {stop.city} · {formatDuration(stop.durationMinutes)}
-                </span>
-                {notes.map((note, ni) => (
-                  <span
-                    key={ni}
-                    className={`${styles.routeDetailNote} ${styles[`routeDetailNote_${note.kind}`]}`}
-                  >
-                    {NOTE_PREFIXES[note.kind]} {note.text}
+          {hasStops &&
+            i < legs.length - 1 &&
+            (() => {
+              const stop = flight.stops![i];
+              const notes = getLayoverNotes(stop, leg.arr, leg.airline);
+              return (
+                <div className={styles.routeDetailTransfer}>
+                  <span className={styles.routeDetailTransferBadge}>
+                    Пересадка в {stop.city} · {formatDuration(stop.durationMinutes)}
                   </span>
-                ))}
-              </div>
-            );
-          })()}
+                  {notes.map((note, ni) => (
+                    <span
+                      key={ni}
+                      className={`${styles.routeDetailNote} ${styles[`routeDetailNote_${note.kind}`]}`}
+                    >
+                      {NOTE_PREFIXES[note.kind]} {note.text}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
         </div>
       ))}
     </div>
@@ -136,16 +157,22 @@ type BaggageDetailProps = {
   onFareChange: () => void;
 };
 
-const BaggageDetail = ({ flight, altSeatsLeft, fareOverride, serviceClass, onFareChange }: BaggageDetailProps) => {
+const BaggageDetail = ({
+  flight,
+  altSeatsLeft,
+  fareOverride,
+  serviceClass,
+  onFareChange,
+}: BaggageDetailProps) => {
   const effectiveBaggage = fareOverride ? !flight.baggageIncluded : flight.baggageIncluded;
   const noSeats = (altSeatsLeft[serviceClass] ?? 0) === 0;
   const altBaseFare = fareOverride
     ? flight.price
-    : (flight.baggageIncluded ? flight.price - 2500 : flight.price + 2500);
+    : flight.baggageIncluded
+      ? flight.price - 2500
+      : flight.price + 2500;
   const switchPrice = (altBaseFare + CLASS_DELTAS[serviceClass]).toLocaleString('ru-RU');
-  const switchLabel = effectiveBaggage
-    ? 'Поменять на ручную кладь?'
-    : 'Поменять на багаж?';
+  const switchLabel = effectiveBaggage ? 'Поменять на ручную кладь?' : 'Поменять на багаж?';
 
   return (
     <div className={styles.baggageDetail}>
@@ -165,7 +192,9 @@ const BaggageDetail = ({ flight, altSeatsLeft, fareOverride, serviceClass, onFar
             <CheckOutlined className={styles.baggageDetailIconOk} />
             <div className={styles.baggageDetailText}>
               <span>Багаж включён</span>
-              <span className={styles.baggageDetailHint}>до {flight.baggageWeight} кг · 158 лин. см</span>
+              <span className={styles.baggageDetailHint}>
+                до {flight.baggageWeight} кг · 158 лин. см
+              </span>
             </div>
           </>
         ) : (
@@ -212,7 +241,12 @@ type ClassDetailProps = {
   onClassChange: (cls: ServiceClass) => void;
 };
 
-const ClassDetail = ({ seatsLeft, baseFarePrice, serviceClass, onClassChange }: ClassDetailProps) => (
+const ClassDetail = ({
+  seatsLeft,
+  baseFarePrice,
+  serviceClass,
+  onClassChange,
+}: ClassDetailProps) => (
   <div className={styles.classDetail}>
     <p className={styles.classDetailTitle}>Класс обслуживания</p>
     {CLASS_OPTIONS.map(({ key, label }) => {
@@ -239,8 +273,17 @@ const ClassDetail = ({ seatsLeft, baseFarePrice, serviceClass, onClassChange }: 
 );
 
 export const FlightModal = ({
-  flight, passengersCount, bookedCount, fareOverride, serviceClass,
-  onFareChange, onClassChange, onToggleBooked, onAddOne, onRemoveOne, onClose,
+  flight,
+  passengersCount,
+  bookedCount,
+  fareOverride,
+  serviceClass,
+  onFareChange,
+  onClassChange,
+  onToggleBooked,
+  onAddOne,
+  onRemoveOne,
+  onClose,
 }: Props) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const getContainer = () => modalRef.current ?? document.body;
@@ -251,7 +294,9 @@ export const FlightModal = ({
 
   const effectiveBaggage = fareOverride ? !flight.baggageIncluded : flight.baggageIncluded;
   const baseFarePrice = fareOverride
-    ? (flight.baggageIncluded ? flight.price - 2500 : flight.price + 2500)
+    ? flight.baggageIncluded
+      ? flight.price - 2500
+      : flight.price + 2500
     : flight.price;
   const effectivePrice = baseFarePrice + CLASS_DELTAS[serviceClass];
   const effectiveOriginalPrice = flight.originalPrice + CLASS_DELTAS[serviceClass];
@@ -273,7 +318,9 @@ export const FlightModal = ({
         <div className={styles.modal} ref={modalRef} onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeader}>
             <h2 className={styles.modalTitle}>Детали рейса</h2>
-            <button className={styles.modalClose} onClick={onClose}>×</button>
+            <button className={styles.modalClose} onClick={onClose}>
+              ×
+            </button>
           </div>
 
           <div className={styles.modalAirline}>
@@ -294,10 +341,14 @@ export const FlightModal = ({
               <p className={styles.modalFlightNumber}>{getFullRouteName(flight)}</p>
             </div>
             <div className={styles.modalFlightMeta}>
-              <span className={`${styles.modalStopsBadge} ${flight.stopsCount === 0 ? styles.modalStopsBadgeDirect : styles.modalStopsBadgeTransfer}`}>
+              <span
+                className={`${styles.modalStopsBadge} ${flight.stopsCount === 0 ? styles.modalStopsBadgeDirect : styles.modalStopsBadgeTransfer}`}
+              >
                 {formatStopsFull(flight.stopsCount)}
               </span>
-              <span className={styles.modalDurationLabel}>{formatDuration(flight.duration)} в пути</span>
+              <span className={styles.modalDurationLabel}>
+                {formatDuration(flight.duration)} в пути
+              </span>
             </div>
           </div>
 
@@ -310,7 +361,9 @@ export const FlightModal = ({
             </div>
             <div>
               <p className={styles.modalLabel}>Время</p>
-              <p className={styles.modalValue}>{flight.departureTime} – {flight.arrivalTime}</p>
+              <p className={styles.modalValue}>
+                {flight.departureTime} – {flight.arrivalTime}
+              </p>
             </div>
             <div>
               <div className={styles.modalLabelRow}>
@@ -327,7 +380,9 @@ export const FlightModal = ({
                   </span>
                 </Popover>
               </div>
-              <p className={styles.modalValue}>{flight.originCity} – {flight.destinationCity}</p>
+              <p className={styles.modalValue}>
+                {flight.originCity} – {flight.destinationCity}
+              </p>
             </div>
             <div>
               <p className={styles.modalLabel}>Пассажиры</p>
@@ -381,7 +436,8 @@ export const FlightModal = ({
                 </Popover>
               </div>
               <p className={styles.modalValue}>
-                {effectiveBaggage ? 'Багаж' : 'Ручная кладь'} · {effectiveBaggage ? flight.baggageWeight : 10} кг
+                {effectiveBaggage ? 'Багаж' : 'Ручная кладь'} ·{' '}
+                {effectiveBaggage ? flight.baggageWeight : 10} кг
               </p>
             </div>
           </div>
@@ -389,7 +445,9 @@ export const FlightModal = ({
           <div className={styles.modalDivider} />
 
           {effectiveSeatsLeft[serviceClass] < 6 && (
-            <span className={`${styles.seatsLeftBadge} ${effectiveSeatsLeft[serviceClass] <= 2 ? styles.seatsLeftCritical : styles.seatsLeftWarning}`}>
+            <span
+              className={`${styles.seatsLeftBadge} ${effectiveSeatsLeft[serviceClass] <= 2 ? styles.seatsLeftCritical : styles.seatsLeftWarning}`}
+            >
               Осталось {formatSeats(effectiveSeatsLeft[serviceClass])}
             </span>
           )}
@@ -400,14 +458,15 @@ export const FlightModal = ({
                 {displayPrice.toLocaleString('ru-RU')} ₽
               </span>
               {hasDiscount && (
-                <span className={styles.modalOriginalPrice} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                <span
+                  className={styles.modalOriginalPrice}
+                  style={{ fontVariantNumeric: 'tabular-nums' }}
+                >
                   {displayOriginalPrice.toLocaleString('ru-RU')} ₽
                 </span>
               )}
             </div>
-            {hasDiscount && (
-              <div className={styles.modalDiscountBadge}>-{discount}%</div>
-            )}
+            {hasDiscount && <div className={styles.modalDiscountBadge}>-{discount}%</div>}
           </div>
 
           <div className={styles.modalBtnRow}>
@@ -415,15 +474,30 @@ export const FlightModal = ({
               className={booked ? styles.modalBookBtnBooked : styles.modalBookBtn}
               onClick={onToggleBooked}
               disabled={!booked && noSeatsInCurrentClass}
-              style={!booked && noSeatsInCurrentClass ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
+              style={
+                !booked && noSeatsInCurrentClass
+                  ? { opacity: 0.45, cursor: 'not-allowed' }
+                  : undefined
+              }
             >
-              {booked
-                ? <><CheckCircleFilled style={{ marginRight: 8 }} />Забронировано{bookedCount > 1 ? ` ${bookedCount}` : ''}</>
-                : noSeatsInCurrentClass ? 'Мест нет' : 'Забронировать'}
+              {booked ? (
+                <>
+                  <CheckCircleFilled style={{ marginRight: 8 }} />
+                  Забронировано{bookedCount > 1 ? ` ${bookedCount}` : ''}
+                </>
+              ) : noSeatsInCurrentClass ? (
+                'Мест нет'
+              ) : (
+                'Забронировать'
+              )}
             </button>
             {booked && (
               <>
-                <button className={styles.modalAddOneBtn} onClick={onRemoveOne} title="Убрать один билет">
+                <button
+                  className={styles.modalAddOneBtn}
+                  onClick={onRemoveOne}
+                  title="Убрать один билет"
+                >
                   <MinusOutlined />
                 </button>
                 <button
@@ -431,7 +505,11 @@ export const FlightModal = ({
                   onClick={onAddOne}
                   disabled={bookedCount >= effectiveSeatsLeft[serviceClass]}
                   title="Добавить ещё билет"
-                  style={{ opacity: bookedCount >= effectiveSeatsLeft[serviceClass] ? 0.35 : 1, cursor: bookedCount >= effectiveSeatsLeft[serviceClass] ? 'not-allowed' : 'pointer' }}
+                  style={{
+                    opacity: bookedCount >= effectiveSeatsLeft[serviceClass] ? 0.35 : 1,
+                    cursor:
+                      bookedCount >= effectiveSeatsLeft[serviceClass] ? 'not-allowed' : 'pointer',
+                  }}
                 >
                   <PlusOutlined />
                 </button>

@@ -13,9 +13,9 @@ type LogoConfig = {
 
 /** Maps FlightDto.airline → logo config */
 export const AIRLINE_LOGOS: Record<string, LogoConfig> = {
-  'Аэрофлот':            { src: aeroflot, circular: true  },
-  'Победа':              { src: pobeda,   circular: false },
-  'Россия':              { src: rossiya,  circular: false },
-  'Уральские авиалинии': { src: ural,     circular: true  },
-  'S7 Airlines':         { src: s7,       circular: true  },
+  Аэрофлот: { src: aeroflot, circular: true },
+  Победа: { src: pobeda, circular: false },
+  Россия: { src: rossiya, circular: false },
+  'Уральские авиалинии': { src: ural, circular: true },
+  'S7 Airlines': { src: s7, circular: true },
 };

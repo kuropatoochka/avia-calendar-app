@@ -31,11 +31,9 @@ export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props
   const yLevels = 5;
   const yStep = maxPrice / (yLevels - 1);
 
-  const xScale = (i: number) =>
-    data.length === 1 ? chartW / 2 : (i / (data.length - 1)) * chartW;
+  const xScale = (i: number) => (data.length === 1 ? chartW / 2 : (i / (data.length - 1)) * chartW);
 
-  const yScale = (price: number) =>
-    chartH - ((price - minPrice) / (maxPrice - minPrice)) * chartH;
+  const yScale = (price: number) => chartH - ((price - minPrice) / (maxPrice - minPrice)) * chartH;
 
   const points = data.map((d, i) => ({
     x: paddingLeft + xScale(i),
@@ -43,11 +41,9 @@ export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props
     ...d,
   }));
 
-  const pathD = points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-    .join(' ');
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 
-  const minPricePoint = points.reduce((min, p) => p.price < min.price ? p : min, points[0]);
+  const minPricePoint = points.reduce((min, p) => (p.price < min.price ? p : min), points[0]);
 
   return (
     <div className={styles.chartCard}>
@@ -56,11 +52,7 @@ export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props
       {onDateSelect && (
         <p className={styles.chartHint}>Нажмите на дату, чтобы выбрать её для поиска</p>
       )}
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className={styles.chartSvg}
-        aria-label="График динамики цен"
-      >
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.chartSvg} aria-label="График динамики цен">
         {/* Y-axis grid lines and labels */}
         {Array.from({ length: yLevels }, (_, i) => {
           const price = yStep * i;
@@ -76,13 +68,7 @@ export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props
                 strokeWidth={0.5}
                 strokeDasharray="4 3"
               />
-              <text
-                x={paddingLeft - 8}
-                y={y + 4}
-                textAnchor="end"
-                fontSize={11}
-                fill="#999"
-              >
+              <text x={paddingLeft - 8} y={y + 4} textAnchor="end" fontSize={11} fill="#999">
                 {price === 0 ? '0' : (price / 1000).toFixed(0) + ' тыс'}
               </text>
             </g>
@@ -152,13 +138,7 @@ export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props
 
               {/* Cheapest marker */}
               {isCheapest && (
-                <text
-                  x={p.x}
-                  y={H - 14}
-                  textAnchor="middle"
-                  fontSize={9}
-                  fill="#52c41a"
-                >
+                <text x={p.x} y={H - 14} textAnchor="middle" fontSize={9} fill="#52c41a">
                   min
                 </text>
               )}

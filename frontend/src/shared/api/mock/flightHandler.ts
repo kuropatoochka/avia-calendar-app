@@ -30,7 +30,7 @@ type FlightMock = {
   baggageWeight: number;
   stopsCount: number;
   stops?: FlightStop[];
-  seatsLeft: SeatsPerClass;    // seats for the default fare
+  seatsLeft: SeatsPerClass; // seats for the default fare
   seatsLeftAlt: SeatsPerClass; // seats for the alternative fare (baggage ↔ no-baggage)
 };
 
@@ -53,8 +53,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 23,
     stopsCount: 0,
-    seatsLeft:    { economy: 3, comfort: 8,  business: 12, first: 2 },
-    seatsLeftAlt: { economy: 7, comfort: 5,  business: 10, first: 0 }, // no-baggage fare: more economy, no first
+    seatsLeft: { economy: 3, comfort: 8, business: 12, first: 2 },
+    seatsLeftAlt: { economy: 7, comfort: 5, business: 10, first: 0 }, // no-baggage fare: more economy, no first
   },
   {
     id: 'flight-2',
@@ -74,8 +74,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: false,
     baggageWeight: 10,
     stopsCount: 0,
-    seatsLeft:    { economy: 8,  comfort: 12, business: 15, first: 0 },
-    seatsLeftAlt: { economy: 2,  comfort: 5,  business: 8,  first: 0 }, // with-baggage fare: much fewer seats
+    seatsLeft: { economy: 8, comfort: 12, business: 15, first: 0 },
+    seatsLeftAlt: { economy: 2, comfort: 5, business: 8, first: 0 }, // with-baggage fare: much fewer seats
   },
   {
     id: 'flight-3',
@@ -95,7 +95,7 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 15,
     stopsCount: 0,
-    seatsLeft:    { economy: 2, comfort: 6, business: 9, first: 1 },
+    seatsLeft: { economy: 2, comfort: 6, business: 9, first: 1 },
     seatsLeftAlt: { economy: 0, comfort: 2, business: 5, first: 0 }, // no-baggage: economy sold out!
   },
   {
@@ -116,8 +116,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 23,
     stopsCount: 0,
-    seatsLeft:    { economy: 5, comfort: 9,  business: 14, first: 3 },
-    seatsLeftAlt: { economy: 3, comfort: 7,  business: 12, first: 2 },
+    seatsLeft: { economy: 5, comfort: 9, business: 14, first: 3 },
+    seatsLeftAlt: { economy: 3, comfort: 7, business: 12, first: 2 },
   },
   {
     id: 'flight-12',
@@ -137,7 +137,7 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: false,
     baggageWeight: 10,
     stopsCount: 1,
-    seatsLeft:    { economy: 1, comfort: 3, business: 6, first: 0 },
+    seatsLeft: { economy: 1, comfort: 3, business: 6, first: 0 },
     seatsLeftAlt: { economy: 5, comfort: 2, business: 4, first: 0 }, // with-baggage: more economy seats
     stops: [
       {
@@ -146,7 +146,7 @@ const flightsMock: FlightMock[] = [
         code: 'SVX',
         durationMinutes: 75,
         legDurationMinutes: 150, // SVO → SVX (Уральские авиалинии)
-        legAirline: 'Победа',   // SVX → LED operated by Победа
+        legAirline: 'Победа', // SVX → LED operated by Победа
       },
     ],
   },
@@ -168,8 +168,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 15,
     stopsCount: 0,
-    seatsLeft:    { economy: 4, comfort: 8, business: 11, first: 2 },
-    seatsLeftAlt: { economy: 6, comfort: 4, business: 9,  first: 0 },
+    seatsLeft: { economy: 4, comfort: 8, business: 11, first: 2 },
+    seatsLeftAlt: { economy: 6, comfort: 4, business: 9, first: 0 },
   },
   {
     id: 'flight-5',
@@ -189,8 +189,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 23,
     stopsCount: 0,
-    seatsLeft:    { economy: 7, comfort: 11, business: 14, first: 0 },
-    seatsLeftAlt: { economy: 4, comfort: 8,  business: 10, first: 0 },
+    seatsLeft: { economy: 7, comfort: 11, business: 14, first: 0 },
+    seatsLeftAlt: { economy: 4, comfort: 8, business: 10, first: 0 },
   },
   {
     id: 'flight-6',
@@ -210,7 +210,7 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 23,
     stopsCount: 0,
-    seatsLeft:    { economy: 2, comfort: 6, business: 9, first: 1 },
+    seatsLeft: { economy: 2, comfort: 6, business: 9, first: 1 },
     seatsLeftAlt: { economy: 1, comfort: 4, business: 7, first: 0 },
   },
   {
@@ -231,8 +231,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: false,
     baggageWeight: 10,
     stopsCount: 0,
-    seatsLeft:    { economy: 6,  comfort: 10, business: 15, first: 0 },
-    seatsLeftAlt: { economy: 3,  comfort: 6,  business: 10, first: 0 },
+    seatsLeft: { economy: 6, comfort: 10, business: 15, first: 0 },
+    seatsLeftAlt: { economy: 3, comfort: 6, business: 10, first: 0 },
   },
   {
     id: 'flight-8',
@@ -252,8 +252,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 23,
     stopsCount: 0,
-    seatsLeft:    { economy: 3, comfort: 8,  business: 12, first: 2 },
-    seatsLeftAlt: { economy: 4, comfort: 5,  business: 8,  first: 1 },
+    seatsLeft: { economy: 3, comfort: 8, business: 12, first: 2 },
+    seatsLeftAlt: { economy: 4, comfort: 5, business: 8, first: 1 },
   },
   {
     id: 'flight-9',
@@ -273,8 +273,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: false,
     baggageWeight: 10,
     stopsCount: 0,
-    seatsLeft:    { economy: 9, comfort: 13, business: 16, first: 0 },
-    seatsLeftAlt: { economy: 4, comfort: 7,  business: 10, first: 0 },
+    seatsLeft: { economy: 9, comfort: 13, business: 16, first: 0 },
+    seatsLeftAlt: { economy: 4, comfort: 7, business: 10, first: 0 },
   },
   {
     id: 'flight-10',
@@ -294,8 +294,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 23,
     stopsCount: 0,
-    seatsLeft:    { economy: 4, comfort: 8, business: 11, first: 1 },
-    seatsLeftAlt: { economy: 2, comfort: 6, business: 8,  first: 0 },
+    seatsLeft: { economy: 4, comfort: 8, business: 11, first: 1 },
+    seatsLeftAlt: { economy: 2, comfort: 6, business: 8, first: 0 },
   },
 
   // ── Test flights for discount display rules (2026-05-03) ──────────────────
@@ -318,8 +318,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: false,
     baggageWeight: 10,
     stopsCount: 0,
-    seatsLeft:    { economy: 5, comfort: 9,  business: 14, first: 1 },
-    seatsLeftAlt: { economy: 3, comfort: 8,  business: 12, first: 0 },
+    seatsLeft: { economy: 5, comfort: 9, business: 14, first: 1 },
+    seatsLeftAlt: { economy: 3, comfort: 8, business: 12, first: 0 },
   },
   {
     // No discount, price ≥ 10 000 → should show nothing (no badge, no flame, no crossed price)
@@ -340,8 +340,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: true,
     baggageWeight: 23,
     stopsCount: 0,
-    seatsLeft:    { economy: 7, comfort: 10, business: 13, first: 2 },
-    seatsLeftAlt: { economy: 2, comfort: 5,  business: 8,  first: 0 },
+    seatsLeft: { economy: 7, comfort: 10, business: 13, first: 2 },
+    seatsLeftAlt: { economy: 2, comfort: 5, business: 8, first: 0 },
   },
   {
     // ~11 % discount → should show crossed price + badge, but NO flame
@@ -362,8 +362,8 @@ const flightsMock: FlightMock[] = [
     baggageIncluded: false,
     baggageWeight: 10,
     stopsCount: 0,
-    seatsLeft:    { economy: 4, comfort: 7,  business: 11, first: 0 },
-    seatsLeftAlt: { economy: 1, comfort: 5,  business: 9,  first: 0 },
+    seatsLeft: { economy: 4, comfort: 7, business: 11, first: 0 },
+    seatsLeftAlt: { economy: 1, comfort: 5, business: 9, first: 0 },
   },
 ];
 

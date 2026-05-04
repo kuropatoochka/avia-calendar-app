@@ -1,13 +1,33 @@
 import type { FlightDto } from '../types/api';
 
 export const MONTHS_GEN = [
-  'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
+  'января',
+  'февраля',
+  'марта',
+  'апреля',
+  'мая',
+  'июня',
+  'июля',
+  'августа',
+  'сентября',
+  'октября',
+  'ноября',
+  'декабря',
 ];
 
 export const MONTHS_SHORT = [
-  'янв', 'фев', 'мар', 'апр', 'май', 'июн',
-  'июл', 'авг', 'сен', 'окт', 'ноя', 'дек',
+  'янв',
+  'фев',
+  'мар',
+  'апр',
+  'май',
+  'июн',
+  'июл',
+  'авг',
+  'сен',
+  'окт',
+  'ноя',
+  'дек',
 ];
 
 export const WEEKDAYS_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
@@ -55,7 +75,7 @@ export const formatSeats = (n: number): string => {
 
 export const getAirlines = (flight: FlightDto): string[] => {
   const result: string[] = [flight.airline];
-  flight.stops?.forEach(s => {
+  flight.stops?.forEach((s) => {
     if (s.legAirline && s.legAirline !== result[result.length - 1]) {
       result.push(s.legAirline);
     }

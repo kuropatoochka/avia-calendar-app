@@ -78,7 +78,16 @@ const getSeatsTooltip = (
     <div style={{ minWidth: 200 }}>
       <div style={{ marginBottom: 6, fontSize: 11, color: '#aaa' }}>Другие варианты</div>
       {top3.map(({ label, price }, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, lineHeight: '1.8' }}>
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+            lineHeight: '1.8',
+          }}
+        >
           <span style={{ fontSize: 12 }}>{label}</span>
           <PriceCell price={price} />
         </div>
@@ -99,13 +108,13 @@ type Props = {
 /** All IATA codes in route order */
 const getAllCodes = (flight: FlightDto) => [
   flight.origin.toUpperCase(),
-  ...(flight.stops?.map(s => s.code) ?? []),
+  ...(flight.stops?.map((s) => s.code) ?? []),
   flight.destination.toUpperCase(),
 ];
 
 const getAllCities = (flight: FlightDto) => [
   flight.originCity,
-  ...(flight.stops?.map(s => s.city) ?? []),
+  ...(flight.stops?.map((s) => s.city) ?? []),
   flight.destinationCity,
 ];
 
@@ -117,7 +126,7 @@ const StopsTooltip = ({ flight }: { flight: FlightDto }) => {
   const legDurations: number[] = [];
   if (hasStops) {
     let flyingUsed = 0;
-    flight.stops!.forEach(s => {
+    flight.stops!.forEach((s) => {
       legDurations.push(s.legDurationMinutes);
       flyingUsed += s.legDurationMinutes;
     });
@@ -149,12 +158,14 @@ const StopsTooltip = ({ flight }: { flight: FlightDto }) => {
       </div>
       <div className={styles.tooltipCitiesRow}>
         {allCities.map((city, i) => (
-          <span key={i} className={styles.tooltipCity}>{city}</span>
+          <span key={i} className={styles.tooltipCity}>
+            {city}
+          </span>
         ))}
       </div>
       {hasStops && (
         <div className={styles.tooltipStops}>
-          {flight.stops!.map(stop => (
+          {flight.stops!.map((stop) => (
             <p key={stop.code} className={styles.tooltipStopLine}>
               Пересадка: {stop.city}, {stop.airport} · {formatDuration(stop.durationMinutes)}
             </p>
@@ -176,7 +187,9 @@ export const FlightCard = ({
   const booked = bookedCount > 0;
   const effectiveBaggage = fareOverride ? !flight.baggageIncluded : flight.baggageIncluded;
   const baseFarePrice = fareOverride
-    ? (flight.baggageIncluded ? flight.price - 2500 : flight.price + 2500)
+    ? flight.baggageIncluded
+      ? flight.price - 2500
+      : flight.price + 2500
     : flight.price;
   const effectivePrice = baseFarePrice + CLASS_DELTAS[serviceClass];
   const effectiveOriginalPrice = flight.originalPrice + CLASS_DELTAS[serviceClass];
@@ -186,11 +199,13 @@ export const FlightCard = ({
   const showLoneFlame = !hasDiscount && effectivePrice < 10000;
   // Seat counts for current fare and the alternative fare
   const effectiveSeatsLeft = fareOverride ? flight.seatsLeftAlt : flight.seatsLeft;
-  const altSeatsLeft        = fareOverride ? flight.seatsLeft    : flight.seatsLeftAlt;
+  const altSeatsLeft = fareOverride ? flight.seatsLeft : flight.seatsLeftAlt;
   // Base price of the alternative fare (what clicking "Изменить тариф" would give)
   const altBaseFarePrice = fareOverride
     ? flight.price
-    : (flight.baggageIncluded ? flight.price - 2500 : flight.price + 2500);
+    : flight.baggageIncluded
+      ? flight.price - 2500
+      : flight.price + 2500;
   const baggageLabel = effectiveBaggage ? 'Багаж' : 'Ручная кладь';
   const classLabel = CLASS_NAMES[serviceClass];
   const airlines = getAirlines(flight);
@@ -202,7 +217,9 @@ export const FlightCard = ({
         <div className={styles.priceGroup}>
           <span className={styles.price}>{effectivePrice.toLocaleString('ru-RU')} ₽</span>
           {hasDiscount && (
-            <span className={styles.originalPrice}>{effectiveOriginalPrice.toLocaleString('ru-RU')} ₽</span>
+            <span className={styles.originalPrice}>
+              {effectiveOriginalPrice.toLocaleString('ru-RU')} ₽
+            </span>
           )}
           <div className={styles.stopsBadgeGroup}>
             <Tooltip
@@ -214,21 +231,33 @@ export const FlightCard = ({
             >
               <span
                 className={`${styles.stopsLabel} ${flight.stopsCount === 0 ? styles.stopsLabelDirect : styles.stopsLabelTransfer}`}
-                onClick={e => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
                 {formatStops(flight.stopsCount)}
               </span>
             </Tooltip>
             {effectiveSeatsLeft[serviceClass] < 6 && (
               <Tooltip
-                title={getSeatsTooltip(effectiveSeatsLeft, altSeatsLeft, serviceClass, baseFarePrice, altBaseFarePrice, effectiveBaggage)}
+                title={getSeatsTooltip(
+                  effectiveSeatsLeft,
+                  altSeatsLeft,
+                  serviceClass,
+                  baseFarePrice,
+                  altBaseFarePrice,
+                  effectiveBaggage,
+                )}
                 color="white"
-                overlayInnerStyle={{ color: '#444', fontSize: 12, padding: '8px 12px', borderRadius: 8 }}
+                overlayInnerStyle={{
+                  color: '#444',
+                  fontSize: 12,
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                }}
                 getPopupContainer={() => document.body}
               >
                 <span
                   className={`${styles.seatsLeftBadge} ${effectiveSeatsLeft[serviceClass] <= 2 ? styles.seatsLeftCritical : styles.seatsLeftWarning}`}
-                  onClick={e => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   Осталось {formatSeats(effectiveSeatsLeft[serviceClass])}
                 </span>
@@ -259,17 +288,15 @@ export const FlightCard = ({
         <div className={styles.airlineCircleStack}>
           <AirlineCircle airline={flight.airline} size={40} />
           {hasCarrierChange && (
-            <AirlineCircle
-              airline={airlines[1]}
-              size={40}
-              className={styles.airlineLogoCircle2}
-            />
+            <AirlineCircle airline={airlines[1]} size={40} className={styles.airlineLogoCircle2} />
           )}
         </div>
 
         <div className={styles.detailCol}>
           <span className={styles.detailMain}>{formatFlightDate(flight.date)}</span>
-          <span className={styles.detailSub}>{flight.departureTime} – {flight.arrivalTime}</span>
+          <span className={styles.detailSub}>
+            {flight.departureTime} – {flight.arrivalTime}
+          </span>
         </div>
 
         <div className={styles.detailCol}>

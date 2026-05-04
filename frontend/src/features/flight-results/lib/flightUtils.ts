@@ -14,18 +14,20 @@ export const addMinutes = (time: string, minutes: number): string => {
 
 export const buildLegs = (flight: FlightDto): Leg[] => {
   if (!flight.stops?.length) {
-    return [{
-      from: flight.originCity,
-      fromAirport: flight.originAirport,
-      fromCode: flight.origin.toUpperCase(),
-      to: flight.destinationCity,
-      toAirport: flight.destinationAirport,
-      toCode: flight.destination.toUpperCase(),
-      dep: flight.departureTime,
-      arr: flight.arrivalTime,
-      duration: flight.duration,
-      airline: flight.airline,
-    }];
+    return [
+      {
+        from: flight.originCity,
+        fromAirport: flight.originAirport,
+        fromCode: flight.origin.toUpperCase(),
+        to: flight.destinationCity,
+        toAirport: flight.destinationAirport,
+        toCode: flight.destination.toUpperCase(),
+        dep: flight.departureTime,
+        arr: flight.arrivalTime,
+        duration: flight.duration,
+        airline: flight.airline,
+      },
+    ];
   }
 
   const legs: Leg[] = [];
@@ -38,9 +40,14 @@ export const buildLegs = (flight: FlightDto): Leg[] => {
     const fromCode = i === 0 ? flight.origin.toUpperCase() : flight.stops![i - 1].code;
     const airline = i === 0 ? flight.airline : (flight.stops![i - 1].legAirline ?? flight.airline);
     legs.push({
-      from: fromCity, fromAirport, fromCode,
-      to: stop.city, toAirport: stop.airport, toCode: stop.code,
-      dep: depTime, arr: arrTime,
+      from: fromCity,
+      fromAirport,
+      fromCode,
+      to: stop.city,
+      toAirport: stop.airport,
+      toCode: stop.code,
+      dep: depTime,
+      arr: arrTime,
       duration: stop.legDurationMinutes,
       airline,
     });
@@ -51,9 +58,14 @@ export const buildLegs = (flight: FlightDto): Leg[] => {
   const totalLayovers = flight.stops.reduce((s, st) => s + st.durationMinutes, 0);
   const totalLegFlying = flight.stops.reduce((s, st) => s + st.legDurationMinutes, 0);
   legs.push({
-    from: lastStop.city, fromAirport: lastStop.airport, fromCode: lastStop.code,
-    to: flight.destinationCity, toAirport: flight.destinationAirport, toCode: flight.destination.toUpperCase(),
-    dep: depTime, arr: flight.arrivalTime,
+    from: lastStop.city,
+    fromAirport: lastStop.airport,
+    fromCode: lastStop.code,
+    to: flight.destinationCity,
+    toAirport: flight.destinationAirport,
+    toCode: flight.destination.toUpperCase(),
+    dep: depTime,
+    arr: flight.arrivalTime,
     duration: flight.duration - totalLayovers - totalLegFlying,
     airline: lastStop.legAirline ?? flight.airline,
   });
@@ -103,7 +115,7 @@ export const hourToTimeOfDay = (hour: number): DepartureTime => {
 };
 
 export const applyFilters = (flights: FlightDto[], filters: FlightFiltersState): FlightDto[] =>
-  flights.filter(flight => {
+  flights.filter((flight) => {
     if (flight.stopsCount > filters.maxStops) return false;
     if (flight.duration > filters.maxFlightDuration * 60) return false;
 

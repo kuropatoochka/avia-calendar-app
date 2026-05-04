@@ -7,9 +7,5 @@ import { useFlightFilters } from './useFlightFilters';
  *  without either component needing to receive it as props. */
 export const FlightFiltersProvider = ({ children }: { children: ReactNode }) => {
   const value = useFlightFilters();
-  return (
-    <FlightFiltersContext.Provider value={value}>
-      {children}
-    </FlightFiltersContext.Provider>
-  );
+  return <FlightFiltersContext.Provider value={value}>{children}</FlightFiltersContext.Provider>;
 };

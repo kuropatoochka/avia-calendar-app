@@ -30,21 +30,21 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
   const getBookedCount = (id: string) => bookedCounts.get(bookedKey(id, getClass(id))) ?? 0;
 
   const toggleFareOverride = (id: string) =>
-    setFareOverrides(prev => {
+    setFareOverrides((prev) => {
       const next = new Map(prev);
       next.set(id, !prev.get(id));
       return next;
     });
 
   const setClassSelection = (id: string, cls: ServiceClass) =>
-    setClassSelections(prev => {
+    setClassSelections((prev) => {
       const next = new Map(prev);
       next.set(id, cls);
       return next;
     });
 
   const toggleBooked = (id: string, cls: ServiceClass) =>
-    setBookedCounts(prev => {
+    setBookedCounts((prev) => {
       const next = new Map(prev);
       const key = bookedKey(id, cls);
       if (next.has(key)) next.delete(key);
@@ -53,7 +53,7 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
     });
 
   const addOne = (id: string, cls: ServiceClass) =>
-    setBookedCounts(prev => {
+    setBookedCounts((prev) => {
       const next = new Map(prev);
       const key = bookedKey(id, cls);
       next.set(key, (next.get(key) ?? 1) + 1);
@@ -61,7 +61,7 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
     });
 
   const removeOne = (id: string, cls: ServiceClass) =>
-    setBookedCounts(prev => {
+    setBookedCounts((prev) => {
       const next = new Map(prev);
       const key = bookedKey(id, cls);
       const current = next.get(key) ?? 0;
@@ -74,7 +74,9 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
     const override = fareOverrides.get(flight.id) ?? false;
     const cls = classSelections.get(flight.id) ?? 'economy';
     const baseFare = override
-      ? (flight.baggageIncluded ? flight.price - 2500 : flight.price + 2500)
+      ? flight.baggageIncluded
+        ? flight.price - 2500
+        : flight.price + 2500
       : flight.price;
     return baseFare + CLASS_DELTAS[cls];
   };
@@ -100,7 +102,7 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
             <Typography.Title level={3} className={styles.sectionTitle}>
               Доступные предложения
             </Typography.Title>
-            <button className={styles.viewAll} onClick={() => setExpanded(v => !v)}>
+            <button className={styles.viewAll} onClick={() => setExpanded((v) => !v)}>
               {expanded ? 'Свернуть' : 'Посмотреть все'}
             </button>
           </div>

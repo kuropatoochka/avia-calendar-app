@@ -51,8 +51,8 @@ export type FlightStop = {
   city: string;
   code: string;
   durationMinutes: number;
-  legDurationMinutes: number;  // flight duration of the leg arriving at this stop
-  legAirline?: string;         // airline operating the leg DEPARTING from this stop (if different)
+  legDurationMinutes: number; // flight duration of the leg arriving at this stop
+  legAirline?: string; // airline operating the leg DEPARTING from this stop (if different)
 };
 
 export type FlightDto = {
