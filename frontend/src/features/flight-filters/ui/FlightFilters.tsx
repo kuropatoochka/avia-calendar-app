@@ -1,5 +1,5 @@
-import { Checkbox, InputNumber, Select, Slider, Typography } from 'antd';
 import type { BaggageType, DepartureTime, PetTransport } from '../lib/types';
+import { Checkbox, InputNumber, Select, Slider, Typography } from 'antd';
 import { useFlightFiltersShared } from '../lib/FlightFiltersContext';
 import styles from './styles.module.css';
 

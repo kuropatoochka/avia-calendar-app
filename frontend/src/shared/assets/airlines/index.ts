@@ -1,8 +1,8 @@
 import aeroflot from './aeroflot.png';
-import pobeda  from './pobeda.png';
+import pobeda from './pobeda.png';
 import rossiya from './rossiya.jpg';
-import ural    from './ural.png';
-import s7      from './s7.png';
+import s7 from './s7.png';
+import ural from './ural.png';
 
 type LogoConfig = {
   src: string;

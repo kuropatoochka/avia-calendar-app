@@ -1,8 +1,8 @@
 import { FlightFiltersProvider } from '@/features/flight-filters';
 import { FlightResultsBlock } from '@/features/flight-results';
 import type { FlightsRequest } from '@/shared/types';
-import { TitleBlock } from './TitleBlock';
 import styles from './styles.module.css';
+import { TitleBlock } from './TitleBlock';
 
 const DEFAULT_SEARCH_PARAMS: FlightsRequest = {
   origin: 'svo',

@@ -53,7 +53,7 @@ export const useFlightResults = (params: FlightsRequest | null) => {
     };
 
     fetchData();
-  }, [params?.origin, params?.destination, params?.date]);
+  }, [params]);
 
   const sortedFlights = [...flights].sort((a, b) => a.price - b.price);
 

@@ -1,6 +1,6 @@
+import type { FlightFiltersState } from './types';
 import { useState } from 'react';
 import { DEFAULT_FLIGHT_FILTERS } from './types';
-import type { FlightFiltersState } from './types';
 
 export const useFlightFilters = () => {
   const [filters, setFilters] = useState<FlightFiltersState>(DEFAULT_FLIGHT_FILTERS);

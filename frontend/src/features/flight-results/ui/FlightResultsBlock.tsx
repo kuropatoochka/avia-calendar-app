@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { Skeleton, Typography } from 'antd';
+import { useState } from 'react';
+import { useFlightFiltersContext } from '@/features/flight-filters';
 import type { FlightDto, FlightsRequest, ServiceClass } from '@/shared/types';
 import { CLASS_DELTAS } from '@/shared/types';
-import { useFlightFiltersContext } from '@/features/flight-filters';
-import { useFlightResults } from '../lib/useFlightResults';
 import { applyFilters } from '../lib/flightUtils';
+import { useFlightResults } from '../lib/useFlightResults';
 import { FlightCard } from './FlightCard';
 import { FlightModal } from './FlightModal';
 import styles from './styles.module.css';

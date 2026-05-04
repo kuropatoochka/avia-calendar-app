@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import type { LayoverNote, SeatsLeft } from '../lib/types';
 import { CheckCircleFilled, InfoCircleOutlined, CloseOutlined, CheckOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { Popover } from 'antd';
+import { useRef } from 'react';
 import type { FlightDto, ServiceClass } from '@/shared/types';
 import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/types';
 import { AirlineCircle } from '@/shared/ui';
@@ -13,7 +14,6 @@ import {
   getAirlines,
 } from '@/shared/utils';
 import { buildLegs, getLayoverNotes } from '../lib/flightUtils';
-import type { LayoverNote, SeatsLeft } from '../lib/types';
 import styles from './styles.module.css';
 
 type Props = {

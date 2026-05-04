@@ -1,9 +1,9 @@
 import { CheckCircleFilled } from '@ant-design/icons';
 import { Tooltip } from 'antd';
 import { Fire, Plane } from '@/shared/assets';
-import { AirlineCircle } from '@/shared/ui';
 import type { FlightDto, ServiceClass } from '@/shared/types';
 import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/types';
+import { AirlineCircle } from '@/shared/ui';
 import {
   formatFlightDate,
   formatPassengers,
