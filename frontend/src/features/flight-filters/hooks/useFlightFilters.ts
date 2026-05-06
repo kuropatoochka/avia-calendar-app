@@ -1,18 +1,46 @@
-import { useState } from 'react';
 import type { FlightFiltersState } from '../types/flightFilters';
+import { useState } from 'react';
 import { DEFAULT_FLIGHT_FILTERS } from '../consts/defaults';
 
-export const useFlightFilters = () => {
-  const [filters, setFilters] = useState<FlightFiltersState>(DEFAULT_FLIGHT_FILTERS);
+const normalizeFilters = (filters: FlightFiltersState): FlightFiltersState => ({
+  ...filters,
+  baggageTypes: ['hand', ...filters.baggageTypes.filter((type) => type !== 'hand')],
+});
 
-  const updateFilter = <K extends keyof FlightFiltersState>(
+export const useFlightFilters = () => {
+  const initialFilters = normalizeFilters(DEFAULT_FLIGHT_FILTERS);
+
+  const [filters, setFilters] = useState<FlightFiltersState>(initialFilters);
+  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(initialFilters);
+
+  const updateDraftFilter = <K extends keyof FlightFiltersState>(
     key: K,
     value: FlightFiltersState[K],
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setDraftFilters((prev) => {
+      const nextFilters: FlightFiltersState = { ...prev, [key]: value };
+
+      return normalizeFilters(nextFilters);
+    });
   };
 
-  const resetFilters = () => setFilters(DEFAULT_FLIGHT_FILTERS);
+  const applyFilters = () => {
+    setFilters(normalizeFilters(draftFilters));
+  };
 
-  return { filters, updateFilter, resetFilters };
+  const resetFilters = () => {
+    const nextFilters = normalizeFilters(DEFAULT_FLIGHT_FILTERS);
+
+    setDraftFilters(nextFilters);
+    setFilters(nextFilters);
+  };
+
+  return {
+    filters,
+    draftFilters,
+    updateDraftFilter,
+    updateFilter: updateDraftFilter,
+    applyFilters,
+    resetFilters,
+  };
 };
