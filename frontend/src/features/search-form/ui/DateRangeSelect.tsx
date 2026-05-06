@@ -1,9 +1,10 @@
 import type { Dayjs } from 'dayjs';
+import type { MouseEvent } from 'react';
 import { DatePicker } from 'antd';
-import classNames from 'clsx';
 import dayjs from 'dayjs';
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowDown } from '@/shared/assets';
+import { cn } from '@/shared/utils';
 import styles from './styles.module.css';
 
 interface DateRangeSelectProps {
@@ -25,56 +26,69 @@ export const DateRangeSelect = ({
     dayjs(),
     dayjs().add(1, 'month'),
   ]);
+
   const dateClickingRef = useRef(false);
 
   const label = value
     ? `${value[0].format('DD.MM')} — ${value[1].format('DD.MM')}`
     : 'Желаемые даты';
 
-  const handleReset = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleReset = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     onChange(null);
   };
 
   return (
-    <div
-      className={styles.controlBtnOuter}
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpenChange(true)}
-    >
-      <div
-        className={classNames(styles.controlBtn, {
-          [styles.controlBtnError]: hasError,
-          [styles.controlBtnEmpty]: !value && !hasError,
-        })}
+    <div className={styles.controlWrapper}>
+      <button
+        type="button"
+        className={styles.controlBtnOuter}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => onOpenChange(true)}
       >
-        <span className={styles.controlBtnText}>{label}</span>
-        <ArrowDown className={classNames(styles.arrowIcon, { [styles.arrowIconOpen]: open })} />
-      </div>
+        <span
+          className={cn(styles.controlBtn, {
+            [styles.controlBtnError]: hasError,
+            [styles.controlBtnEmpty]: !value && !hasError,
+          })}
+        >
+          <span className={styles.controlBtnText}>{label}</span>
+
+          <span
+            className={cn(styles.arrowIcon, {
+              [styles.arrowIconOpen]: open,
+            })}
+            aria-hidden="true"
+          >
+            <ArrowDown />
+          </span>
+        </span>
+      </button>
+
       <DatePicker.RangePicker
         className={styles.hiddenPicker}
         open={open}
         onOpenChange={onOpenChange}
         value={value}
         placement="bottomRight"
-        onChange={(vals) => {
-          onChange(vals as [Dayjs, Dayjs] | null);
+        onChange={(values) => {
+          onChange(values as [Dayjs, Dayjs] | null);
         }}
         onCalendarChange={() => {
           dateClickingRef.current = false;
         }}
         pickerValue={pickerValue}
-        onPickerValueChange={(vals) => {
-          if (!dateClickingRef.current && vals?.[0] && vals?.[1]) {
-            setPickerValue([vals[0], vals[1]]);
+        onPickerValueChange={(values) => {
+          if (!dateClickingRef.current && values?.[0] && values?.[1]) {
+            setPickerValue([values[0], values[1]]);
           }
         }}
         panelRender={(panel) => (
           <div
             className={styles.calendarPanel}
-            onMouseDown={(e) => {
-              if ((e.target as HTMLElement).closest('.ant-picker-cell')) {
+            onMouseDown={(event) => {
+              if ((event.target as HTMLElement).closest('.ant-picker-cell')) {
                 dateClickingRef.current = true;
               }
             }}
@@ -82,7 +96,7 @@ export const DateRangeSelect = ({
             <div className={styles.calendarResetRow}>
               <button
                 type="button"
-                className={classNames(styles.calendarResetBtn, {
+                className={cn(styles.calendarResetBtn, {
                   [styles.calendarResetBtnDisabled]: !value,
                 })}
                 disabled={!value}
@@ -91,6 +105,7 @@ export const DateRangeSelect = ({
                 Сбросить даты
               </button>
             </div>
+
             {panel}
           </div>
         )}

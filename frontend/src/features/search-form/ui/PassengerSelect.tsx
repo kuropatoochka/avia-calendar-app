@@ -1,7 +1,8 @@
 import type { PassengersState, ServiceClass } from '../types/searchForm';
+import type { Dispatch, SetStateAction } from 'react';
 import { Flex, Popover } from 'antd';
-import classNames from 'clsx';
 import { ArrowDown, Person } from '@/shared/assets';
+import { cn } from '@/shared/utils';
 import { SERVICE_CLASS_LABELS } from '../consts/labels';
 import { getPassengerLabel } from '../utils/getPassengerLabel';
 import { PassengerCounter } from './PassengerCounter';
@@ -11,7 +12,7 @@ interface PassengerSelectProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   passengers: PassengersState;
-  setPassengers: React.Dispatch<React.SetStateAction<PassengersState>>;
+  setPassengers: Dispatch<SetStateAction<PassengersState>>;
   serviceClasses: ServiceClass[];
   toggleServiceClass: (cls: ServiceClass) => void;
 }
@@ -25,52 +26,58 @@ export const PassengerSelect = ({
   toggleServiceClass,
 }: PassengerSelectProps) => {
   const content = (
-    <Flex vertical gap={12} style={{ width: 280, padding: '4px 0' }}>
+    <Flex vertical gap={12} className={styles.passengersContent}>
       <PassengerCounter
         label="Взрослые"
         value={passengers.adults}
         min={1}
-        onChange={(v) => setPassengers((p) => ({ ...p, adults: v }))}
+        onChange={(value) => setPassengers((prev) => ({ ...prev, adults: value }))}
       />
+
       <PassengerCounter
         label="Дети"
         subLabel="2–11 лет"
         value={passengers.children}
         min={0}
-        onChange={(v) => setPassengers((p) => ({ ...p, children: v }))}
+        onChange={(value) => setPassengers((prev) => ({ ...prev, children: value }))}
       />
+
       <PassengerCounter
         label="Младенцы"
         subLabel="до 2 лет"
         value={passengers.toddler}
         min={0}
-        onChange={(v) => setPassengers((p) => ({ ...p, toddler: v }))}
+        onChange={(value) => setPassengers((prev) => ({ ...prev, toddler: value }))}
       />
+
       <PassengerCounter
         label="Животные"
         helpText="животных до 10 кг можно перевозить в салоне"
         value={passengers.animals}
         min={0}
-        onChange={(v) => setPassengers((p) => ({ ...p, animals: v }))}
+        onChange={(value) => setPassengers((prev) => ({ ...prev, animals: value }))}
       />
+
       <div className={styles.passengersDivider} />
-      <div className={styles.serviceClassSection}>
+
+      <Flex vertical gap={8}>
         <span className={styles.serviceClassTitle}>Класс обслуживания</span>
+
         <Flex gap={8}>
-          {(Object.keys(SERVICE_CLASS_LABELS) as ServiceClass[]).map((cls) => (
+          {(Object.keys(SERVICE_CLASS_LABELS) as ServiceClass[]).map((serviceClass) => (
             <button
-              key={cls}
+              key={serviceClass}
               type="button"
-              className={classNames(styles.serviceClassBtn, {
-                [styles.serviceClassBtnActive]: serviceClasses.includes(cls),
+              className={cn(styles.serviceClassBtn, {
+                [styles.serviceClassBtnActive]: serviceClasses.includes(serviceClass),
               })}
-              onClick={() => toggleServiceClass(cls)}
+              onClick={() => toggleServiceClass(serviceClass)}
             >
-              {SERVICE_CLASS_LABELS[cls]}
+              {SERVICE_CLASS_LABELS[serviceClass]}
             </button>
           ))}
         </Flex>
-      </div>
+      </Flex>
     </Flex>
   );
 
@@ -85,17 +92,28 @@ export const PassengerSelect = ({
       align={{ offset: [0, 4] }}
       motion={{ motionName: '' }}
     >
-      <div
-        className={classNames(styles.controlBtnOuter, styles.controlBtnOuterPassengers)}
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
+        className={cn(styles.controlBtnOuter, styles.controlBtnOuterPassengers)}
+        aria-expanded={open}
       >
-        <div className={classNames(styles.controlBtn, styles.controlBtnPassengers)}>
-          <Person className={styles.personIcon} />
+        <span className={cn(styles.controlBtn, styles.controlBtnPassengers)}>
+          <span className={styles.personIcon} aria-hidden="true">
+            <Person />
+          </span>
+
           <span className={styles.controlBtnText}>{getPassengerLabel(passengers)}</span>
-          <ArrowDown className={classNames(styles.arrowIcon, { [styles.arrowIconOpen]: open })} />
-        </div>
-      </div>
+
+          <span
+            className={cn(styles.arrowIcon, {
+              [styles.arrowIconOpen]: open,
+            })}
+            aria-hidden="true"
+          >
+            <ArrowDown />
+          </span>
+        </span>
+      </button>
     </Popover>
   );
 };

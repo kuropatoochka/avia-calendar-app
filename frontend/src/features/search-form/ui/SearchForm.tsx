@@ -47,10 +47,10 @@ export const SearchForm = () => {
             cityId={originId}
             hasError={errors.origin}
             fetchOptions={fetchAirportOptions}
-            onSelect={(opt) => {
-              setOriginValue(opt.value);
-              setOriginId(opt.airportId);
-              setErrors((e) => ({ ...e, origin: false }));
+            onSelect={(option) => {
+              setOriginValue(option.value);
+              setOriginId(option.airportId);
+              setErrors((prev) => ({ ...prev, origin: false }));
             }}
           />
 
@@ -60,7 +60,9 @@ export const SearchForm = () => {
             onClick={handleSwap}
             aria-label="Поменять города"
           >
-            <Swap className={styles.swapIcon} />
+            <span className={styles.swapIcon} aria-hidden="true">
+              <Swap />
+            </span>
           </button>
 
           <CitySelect
@@ -70,10 +72,10 @@ export const SearchForm = () => {
             cityId={destId}
             hasError={errors.dest}
             fetchOptions={fetchAirportOptions}
-            onSelect={(opt) => {
-              setDestValue(opt.value);
-              setDestId(opt.airportId);
-              setErrors((e) => ({ ...e, dest: false }));
+            onSelect={(option) => {
+              setDestValue(option.value);
+              setDestId(option.airportId);
+              setErrors((prev) => ({ ...prev, dest: false }));
             }}
           />
         </div>
@@ -90,9 +92,9 @@ export const SearchForm = () => {
           open={datePickerOpen}
           hasError={errors.dates}
           onOpenChange={setDatePickerOpen}
-          onChange={(val) => {
-            setDateRange(val);
-            setErrors((e) => ({ ...e, dates: false }));
+          onChange={(value) => {
+            setDateRange(value);
+            setErrors((prev) => ({ ...prev, dates: false }));
           }}
         />
 
@@ -111,7 +113,9 @@ export const SearchForm = () => {
           onClick={handleSearch}
           aria-label="Найти"
         >
-          <Search className={styles.searchIcon} />
+          <span className={styles.searchIcon} aria-hidden="true">
+            <Search />
+          </span>
         </button>
       </div>
     </div>
