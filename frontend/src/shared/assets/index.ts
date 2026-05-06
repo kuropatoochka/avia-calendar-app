@@ -1,4 +1,5 @@
 import ArrowDown from './ArrowDown.svg';
+import ArrowRotateLeft from './ArrowRotateLeft.svg';
 import ArrowUp from './ArrowUp.svg';
 import Cross from './Cross.svg';
 import Down from './Down.svg';
@@ -24,4 +25,5 @@ export {
   Cross,
   Swap,
   Fire,
+  ArrowRotateLeft,
 };

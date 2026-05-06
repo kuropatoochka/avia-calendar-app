@@ -1,4 +1,4 @@
-import type { FlightsRequest, Passengers, PriceDynamicsRequest } from '../types/api';
+import type { FlightsRequest, Passengers, PriceDynamicsRequest, FlightFilters, FlightsRequest } from '../types/api';
 
 const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) => {
   searchParams.set('passengers_adults', String(params.adults));
@@ -14,7 +14,7 @@ const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) 
   return searchParams;
 };
 
-const getFiltersParams = (searchParams: URLSearchParams, params: never) => {
+const getFiltersParams = (searchParams: URLSearchParams, params: FlightFilters) => {
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== '') {
       searchParams.set(key, String(value));
