@@ -23,14 +23,25 @@ export type BestPricesDto = {
   price: number;
 }[];
 
-// export type FlightFilters = {};
+export type FlightFilters = {
+  maxStops?: number;
+  stopDurationRange?: [number, number];
+  maxFlightDuration?: number;
+  departureTimes?: string[];
+  pricePerPassenger?: boolean;
+  priceRange?: [number, number];
+  baggageTypes?: string[];
+  maxBaggageWeight?: number;
+  airline?: string;
+  petTransport?: string[];
+};
 
 export type FlightsRequest = {
   origin: string;
   destination: string;
   date: string;
   passengers: Passengers;
-  filters?: never;
+  filters?: FlightFilters;
 };
 
 // export type FlightsDto = {};
