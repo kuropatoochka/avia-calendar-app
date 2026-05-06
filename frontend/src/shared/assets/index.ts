@@ -1,27 +1,28 @@
-import ArrowDown from './ArrowDown.svg';
-import ArrowUp from './ArrowUp.svg';
-import Cross from './Cross.svg';
-import Down from './Down.svg';
-import ExclamationMark from './ExclamationMark.svg';
-import Fire from './Fire.svg';
-import Logo from './Logo.svg';
-import Person from './Person.svg';
-import Search from './Search.svg';
-import Star from './Star.svg';
-import Swap from './Swap.svg';
-import Up from './Up.svg';
+import type { FC, SVGProps } from 'react';
+import ArrowDownSvg from './ArrowDown.svg';
+import ArrowUpSvg from './ArrowUp.svg';
+import CrossSvg from './Cross.svg';
+import DownSvg from './Down.svg';
+import ExclamationMarkSvg from './ExclamationMark.svg';
+import FireSvg from './Fire.svg';
+import LogoSvg from './Logo.svg';
+import PersonSvg from './Person.svg';
+import SearchSvg from './Search.svg';
+import StarSvg from './Star.svg';
+import SwapSvg from './Swap.svg';
+import UpSvg from './Up.svg';
 
-export {
-  Logo,
-  Up,
-  Star,
-  Down,
-  Person,
-  Search,
-  ArrowUp,
-  ArrowDown,
-  ExclamationMark,
-  Cross,
-  Swap,
-  Fire,
-};
+type SvgComponent = FC<SVGProps<SVGSVGElement>>;
+
+export const ArrowDown = ArrowDownSvg as unknown as SvgComponent;
+export const ArrowUp = ArrowUpSvg as unknown as SvgComponent;
+export const Cross = CrossSvg as unknown as SvgComponent;
+export const Down = DownSvg as unknown as SvgComponent;
+export const ExclamationMark = ExclamationMarkSvg as unknown as SvgComponent;
+export const Fire = FireSvg as unknown as SvgComponent;
+export const Logo = LogoSvg as unknown as SvgComponent;
+export const Person = PersonSvg as unknown as SvgComponent;
+export const Search = SearchSvg as unknown as SvgComponent;
+export const Star = StarSvg as unknown as SvgComponent;
+export const Swap = SwapSvg as unknown as SvgComponent;
+export const Up = UpSvg as unknown as SvgComponent;
