@@ -1,7 +1,7 @@
-import { SearchForm } from '@/features/search-form';
 import { FlightFilters } from '@/features/flight-filters';
-import { TitleBlock } from './TitleBlock';
+import { SearchForm } from '@/features/search-form';
 import styles from './styles.module.css';
+import { TitleBlock } from './TitleBlock';
 
 const OfferPage = () => {
   return (

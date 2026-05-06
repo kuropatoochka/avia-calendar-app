@@ -5,6 +5,7 @@ import type {
   PetTransport,
 } from '../types/flightFilters';
 import type { CollapseProps } from 'antd';
+import type { ReactNode } from 'react';
 import {
   Button,
   Checkbox,
@@ -17,13 +18,8 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import type { ReactNode } from 'react';
 import { ArrowRotateLeft } from '@/shared/assets';
-import {
-  AIRLINE_OPTIONS,
-  DEPARTURE_TIME_LABELS,
-  DEPARTURE_TIMES
-} from '../consts/labels';
+import { AIRLINE_OPTIONS, DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../consts/labels';
 import { useFlightFilters } from '../hooks/useFlightFilters';
 import styles from './styles.module.css';
 
