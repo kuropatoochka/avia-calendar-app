@@ -1,7 +1,7 @@
 import type { AirportOption } from '../types/searchForm';
 import { Select } from 'antd';
 import classNames from 'clsx';
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import styles from './styles.module.css';
 
 interface CitySelectProps {
@@ -50,7 +50,7 @@ export const CitySelect = ({
         placeholder={placeholder}
         value={cityId ? { value: cityId, label: cityName } : undefined}
         open={open}
-        onDropdownVisibleChange={setOpen}
+        onOpenChange={setOpen}
         options={options.map((o) => ({
           value: o.airportId,
           label: o.value,

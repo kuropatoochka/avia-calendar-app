@@ -1,7 +1,7 @@
 import type { TripType } from '../types/searchForm';
-import { Popover } from 'antd';
-import classNames from 'clsx';
+import { Flex, Popover } from 'antd';
 import { ArrowDown } from '@/shared/assets';
+import { cn } from '@/shared/utils';
 import { TRIP_TYPE_LABELS } from '../consts/labels';
 import styles from './styles.module.css';
 
@@ -14,12 +14,12 @@ interface TripTypeSelectProps {
 
 export const TripTypeSelect = ({ value, open, onOpenChange, onChange }: TripTypeSelectProps) => {
   const content = (
-    <div className={styles.tripTypeContent}>
+    <Flex vertical gap={2} className={styles.tripTypeContent}>
       {(['oneWay', 'roundTrip'] as TripType[]).map((type) => (
         <button
           key={type}
           type="button"
-          className={classNames(styles.tripTypeOption, {
+          className={cn(styles.tripTypeOption, {
             [styles.tripTypeOptionActive]: value === type,
           })}
           onClick={() => {
@@ -30,7 +30,7 @@ export const TripTypeSelect = ({ value, open, onOpenChange, onChange }: TripType
           {TRIP_TYPE_LABELS[type]}
         </button>
       ))}
-    </div>
+    </Flex>
   );
 
   return (
@@ -44,12 +44,25 @@ export const TripTypeSelect = ({ value, open, onOpenChange, onChange }: TripType
       align={{ offset: [0, 4] }}
       motion={{ motionName: '' }}
     >
-      <div className={styles.controlBtnOuter} role="button" tabIndex={0}>
-        <div className={styles.controlBtn}>
+      <button
+        type="button"
+        className={styles.controlBtnOuter}
+        aria-expanded={open}
+        aria-haspopup="menu"
+      >
+        <span className={styles.controlBtn}>
           <span className={styles.controlBtnText}>{TRIP_TYPE_LABELS[value]}</span>
-          <ArrowDown className={classNames(styles.arrowIcon, { [styles.arrowIconOpen]: open })} />
-        </div>
-      </div>
+
+          <span
+            className={cn(styles.arrowIcon, {
+              [styles.arrowIconOpen]: open,
+            })}
+            aria-hidden="true"
+          >
+            <ArrowDown />
+          </span>
+        </span>
+      </button>
     </Popover>
   );
 };
