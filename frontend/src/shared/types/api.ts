@@ -39,11 +39,25 @@ export type BestPricesDto = {
   price: number;
 }[];
 
+export type FlightFilters = {
+  maxStops?: number;
+  stopDurationRange?: [number, number];
+  maxFlightDuration?: number;
+  departureTimes?: string[];
+  pricePerPassenger?: boolean;
+  priceRange?: [number, number];
+  baggageTypes?: string[];
+  maxBaggageWeight?: number;
+  airline?: string;
+  petTransport?: string[];
+};
+
 export type FlightsRequest = {
   origin: string;
   destination: string;
   date: string;
   passengers: Passengers;
+  filters?: FlightFilters;
 };
 
 export type FlightStop = {
@@ -51,8 +65,8 @@ export type FlightStop = {
   city: string;
   code: string;
   durationMinutes: number;
-  legDurationMinutes: number; // flight duration of the leg arriving at this stop
-  legAirline?: string; // airline operating the leg DEPARTING from this stop (if different)
+  legDurationMinutes: number;
+  legAirline?: string;
 };
 
 export type FlightDto = {

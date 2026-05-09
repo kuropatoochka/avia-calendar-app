@@ -1,4 +1,4 @@
-import type { BestPricesRequest, FlightsRequest, Passengers } from '../types/api';
+import type { BestPricesRequest, FlightFilters, FlightsRequest, Passengers } from '../types/api';
 
 const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) => {
   searchParams.set('passengers_adults', String(params.adults));
@@ -14,7 +14,7 @@ const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) 
   return searchParams;
 };
 
-const getFiltersParams = (searchParams: URLSearchParams, params: Record<string, unknown>) => {
+const getFiltersParams = (searchParams: URLSearchParams, params: FlightFilters) => {
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== '') {
       searchParams.set(key, String(value));
@@ -42,7 +42,7 @@ export const getFlightSearchParams = <T extends BestPricesRequest | FlightsReque
   getPassengersParams(searchParams, params.passengers);
 
   if ('filters' in params && params.filters) {
-    getFiltersParams(searchParams, params.filters as Record<string, unknown>);
+    getFiltersParams(searchParams, params.filters);
   }
 
   return searchParams.toString();

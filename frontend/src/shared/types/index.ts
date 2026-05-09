@@ -3,6 +3,7 @@ export type {
   Passengers,
   BestPricesRequest,
   BestPricesDto,
+  FlightFilters,
   FlightsRequest,
   FlightStop,
   FlightDto,

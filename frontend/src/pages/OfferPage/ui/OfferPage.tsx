@@ -1,5 +1,6 @@
-import { FlightFiltersProvider } from '@/features/flight-filters';
+import { FlightFilters, FlightFiltersProvider } from '@/features/flight-filters';
 import { FlightResultsBlock } from '@/features/flight-results';
+import { SearchForm } from '@/features/search-form';
 import type { FlightsRequest } from '@/shared/types';
 import styles from './styles.module.css';
 import { TitleBlock } from './TitleBlock';
@@ -12,16 +13,16 @@ const DEFAULT_SEARCH_PARAMS: FlightsRequest = {
 };
 
 const OfferPage = () => (
-  // FlightFiltersProvider makes filter state available to both
-  // <FlightFilters /> (Feature 5) and <FlightResultsBlock /> (Feature 9)
-  // when Feature 5 is placed on this page.
   <FlightFiltersProvider>
-    <div className={styles.page}>
-      <TitleBlock />
-      {/* Feature 4 (search form) mounts here */}
-      {/* Feature 5 (filters) mounts here */}
-      {/* Feature 7 (calendar) mounts here */}
-      <FlightResultsBlock searchParams={DEFAULT_SEARCH_PARAMS} />
+    <TitleBlock />
+    <SearchForm />
+    <div className={styles.columns}>
+      <div className={styles.results}>
+        <FlightResultsBlock searchParams={DEFAULT_SEARCH_PARAMS} />
+      </div>
+      <aside className={styles.filterWrapper}>
+        <FlightFilters />
+      </aside>
     </div>
   </FlightFiltersProvider>
 );

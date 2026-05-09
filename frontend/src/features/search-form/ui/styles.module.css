@@ -1,0 +1,538 @@
+.searchForm {
+  background-color: #40a9ff;
+  border-radius: 30px;
+  padding: 35px 37px 32px 34px;
+  box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.25);
+  display: flex;
+  width: fit-content;
+  margin: 0 auto var(--space-xl);
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.cityGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Force dropdown to align exactly with the card, 4px gap below */
+.cityCard :global(.ant-select-dropdown) {
+  left: 0 !important;
+  top: 75px !important;
+  min-width: 197px !important;
+  z-index: 1050 !important;
+}
+
+.cityCard {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #d9d9d9;
+  padding: 10px 15px 15px 15px;
+  width: 197px;
+  height: 71px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  position: relative;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+  transform-origin: center;
+  flex-shrink: 0;
+}
+
+.cityCard:hover {
+  background: #eeecec;
+}
+
+.cityCard:active {
+  background: #dcdcdc;
+  transform: scale(0.97);
+}
+
+.cityCardError {
+  border-color: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.35);
+}
+
+.cityLabel {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 22px;
+  color: #666;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.citySelectInput {
+  width: 100%;
+  padding: 0 !important;
+}
+
+.airportOption {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 0;
+}
+
+.airportCity {
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #141414;
+  line-height: 1.4;
+}
+
+.airportCode {
+  font-family: 'Rubik', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #40a9ff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.airportName {
+  font-family: 'Rubik', sans-serif;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.citySelectInput :global(.ant-select-content) {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 22px;
+  color: #141414;
+}
+
+.citySelectInput :global(.ant-select-input) {
+  font-family: 'Rubik', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.citySelectInput :global(.ant-select-input::placeholder) {
+  font-weight: 400;
+  color: #bbb;
+}
+
+.swapBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.swapIcon {
+  width: 30px;
+  height: 29px;
+  color: white;
+  transition: transform 0.35s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swapIcon :global(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.swapBtn:hover .swapIcon {
+  transform: rotate(180deg);
+}
+
+.swapBtn:active .swapIcon {
+  transform: rotate(180deg) scale(0.88);
+}
+
+.controlWrapper {
+  display: flex;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.controlBtnOuter {
+  display: flex;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.controlBtnOuterPassengers {
+  min-width: 190px;
+  width: auto;
+}
+
+.controlBtn {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #d9d9d9;
+  width: 165px;
+  height: 71px;
+  box-sizing: border-box;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-shrink: 0;
+  position: relative;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+  transform-origin: center;
+}
+
+.controlBtnOuter:hover .controlBtn {
+  background: #eeecec;
+}
+
+.controlBtnOuter:active .controlBtn {
+  background: #dcdcdc;
+  transform: scale(0.97);
+}
+
+.controlBtnPassengers {
+  width: auto;
+  min-width: 190px;
+}
+
+.controlBtnError {
+  border-color: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.35);
+}
+
+.controlBtnEmpty {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 1px #40a9ff;
+}
+
+.controlBtnText {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 22px;
+  color: #666;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.personIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.personIcon :global(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.arrowIcon {
+  width: 10px;
+  height: 7px;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.85);
+  transition: transform 0.2s ease;
+  transform-origin: 50% 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrowIcon :global(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.arrowIconOpen {
+  transform: rotate(180deg);
+}
+
+.hiddenPicker {
+  position: absolute !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  left: auto !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+
+.searchBtn {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #c4c4c4;
+  width: 66px;
+  height: 71px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.searchBtn:hover {
+  background: #eeecec;
+}
+
+.searchBtn:active {
+  transform: scale(0.97);
+}
+
+.searchIcon {
+  width: 30px;
+  height: 30px;
+  color: rgba(0, 0, 0, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchIcon :global(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.calendarPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+.calendarResetRow {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 16px 10px;
+}
+
+.calendarResetBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Rubik', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #40a9ff;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.calendarResetBtn:hover:not(:disabled) {
+  color: #1677ff;
+}
+
+.calendarResetBtnDisabled {
+  color: #bbb;
+  cursor: default;
+}
+
+.tripTypeContent {
+  min-width: 160px;
+}
+
+.tripTypeOption {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 12px;
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  border-radius: 6px;
+  width: 100%;
+  transition: background-color 0.15s;
+}
+
+.tripTypeOption:hover {
+  background-color: #f0f7ff;
+  color: #40a9ff;
+}
+
+.tripTypeOptionActive {
+  color: #40a9ff;
+  font-weight: 500;
+}
+
+.passengersContent {
+  width: 280px;
+  padding: 4px 0;
+}
+
+.passengerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.passengerLabelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.passengerLabel {
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.passengerSubLabel {
+  font-family: 'Rubik', sans-serif;
+  font-size: 12px;
+  color: #999;
+}
+
+.helpIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #bbb;
+  font-size: 10px;
+  font-weight: 600;
+  color: #999;
+  cursor: default;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.passengersDivider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 2px 0;
+}
+
+.serviceClassSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serviceClassTitle {
+  font-family: 'Rubik', sans-serif;
+  font-size: 13px;
+  color: #666;
+}
+
+.serviceClassBtn {
+  flex: 1;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  font-family: 'Rubik', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.serviceClassBtn:hover {
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.serviceClassBtnActive {
+  background: #40a9ff;
+  border-color: #40a9ff;
+  color: white;
+}
+
+.serviceClassBtnActive:hover {
+  background: #40a9ff;
+  color: white;
+}
+
+.passengerCounter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.counterBtn {
+  width: 28px;
+  height: 28px;
+  background: #e6f4ff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #40a9ff;
+  line-height: 1;
+  transition: background-color 0.15s;
+}
+
+.counterBtn:hover:not(:disabled) {
+  background: #40a9ff;
+  color: white;
+}
+
+.counterBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.counterValue {
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 18px;
+  text-align: center;
+  color: #141414;
+}

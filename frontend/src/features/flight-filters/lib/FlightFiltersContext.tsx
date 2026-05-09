@@ -1,7 +1,7 @@
-import type { FlightFiltersState } from './types';
-import type { useFlightFilters } from './useFlightFilters';
+import type { useFlightFilters } from '../hooks/useFlightFilters';
+import type { FlightFiltersState } from '../types/flightFilters';
 import { createContext, useContext } from 'react';
-import { DEFAULT_FLIGHT_FILTERS } from './types';
+import { DEFAULT_FLIGHT_FILTERS } from '../consts/defaults';
 
 type FlightFiltersContextValue = ReturnType<typeof useFlightFilters>;
 
@@ -9,7 +9,10 @@ const noop = () => {};
 
 export const FlightFiltersContext = createContext<FlightFiltersContextValue>({
   filters: DEFAULT_FLIGHT_FILTERS,
+  draftFilters: DEFAULT_FLIGHT_FILTERS,
+  updateDraftFilter: noop as FlightFiltersContextValue['updateDraftFilter'],
   updateFilter: noop as FlightFiltersContextValue['updateFilter'],
+  applyFilters: noop,
   resetFilters: noop,
 });
 
