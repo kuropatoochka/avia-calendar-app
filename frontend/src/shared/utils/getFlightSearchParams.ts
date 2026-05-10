@@ -1,4 +1,4 @@
-import type { FlightsRequest, Passengers, PriceDynamicsRequest, FlightFilters, FlightsRequest } from '../types/api';
+import type { FlightFilters, FlightsRequest, Passengers, PriceDynamicsRequest } from '../types/api';
 
 const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) => {
   searchParams.set('passengers_adults', String(params.adults));
