@@ -1,4 +1,4 @@
-import type { ThemeConfig } from "antd"
+import type { ThemeConfig } from 'antd';
 
 /**
  * Ant Design theme configuration

@@ -1,9 +1,4 @@
-import type {
-  BaggageType,
-  DepartureTime,
-  FlightFiltersState,
-  PetTransport,
-} from '../model/types';
+import type { BaggageType, DepartureTime, FlightFiltersState, PetTransport } from '../model/types';
 import type { CollapseProps } from 'antd';
 import type { ReactNode } from 'react';
 import {
