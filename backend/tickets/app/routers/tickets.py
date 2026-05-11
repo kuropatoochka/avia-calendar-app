@@ -11,7 +11,7 @@ from app.schemas.tickets import TicketItem, TicketsListResponse
 from app.services.ticket_query import (
     TicketListParams,
     fetch_tickets,
-    parse_order_by,
+    parse_company_csv,
     parse_service_class_csv,
 )
 
@@ -62,6 +62,15 @@ def list_tickets(
             ),
         ),
     ] = None,
+    company: Annotated[
+        str | None,
+        Query(
+            description=(
+                "CSV-список id компаний. "
+                "Если задано, показываются билеты только этих перевозчиков."
+            ),
+        ),
+    ] = None,
     todlers_number: Annotated[
         int,
         Query(ge=0, description="Количество младенцев"),
@@ -70,15 +79,6 @@ def list_tickets(
         int,
         Query(ge=0, description="Количество детей"),
     ] = 0,
-    order_by: Annotated[
-        str,
-        Query(
-            description=(
-                "Класс обслуживания для сортировки по возрастанию поля total "
-                "(BUDGET, BUSINESS, COMFORT, FIRST_CLASS)"
-            ),
-        ),
-    ] = "BUDGET",
 ) -> TicketsListResponse:
     if from_date > from_to:
         raise HTTPException(
@@ -93,13 +93,15 @@ def list_tickets(
             detail=str(exc),
         ) from exc
 
-    try:
-        order_by_token = parse_order_by(order_by)
-    except ValueError as exc:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(exc),
-        ) from exc
+    company_ids: tuple[int, ...] | None = None
+    if company is not None:
+        try:
+            company_ids = parse_company_csv(company)
+        except ValueError as exc:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(exc),
+            ) from exc
 
     params = TicketListParams(
         offset=offset,
@@ -110,6 +112,7 @@ def list_tickets(
         to_date=from_to,
         from_time=from_time,
         to_time=to_time,
+        company_ids=company_ids,
         todlers_number=todlers_number,
         children_number=children_number,
         passengers_number=passengers_number,
@@ -117,7 +120,6 @@ def list_tickets(
         want_business="BUSINESS" in classes,
         want_comfort="COMFORT" in classes,
         want_first_class="FIRST_CLASS" in classes,
-        order_by=order_by_token,
     )
     rows, total, offset_effective = fetch_tickets(db, params)
     items = [TicketItem.model_validate(r) for r in rows]

@@ -12,23 +12,6 @@ ALLOWED_SERVICE_CLASSES = frozenset(
     {"BUDGET", "BUSINESS", "COMFORT", "FIRST_CLASS"},
 )
 
-SORT_TOTAL_COLUMN = {
-    "BUDGET": "_sort_budget_total",
-    "BUSINESS": "_sort_business_total",
-    "COMFORT": "_sort_comfort_total",
-    "FIRST_CLASS": "_sort_first_class_total",
-}
-
-
-def parse_order_by(raw: str) -> str:
-    """Один токен класса; регистр неважен."""
-    token = raw.strip().upper()
-    if token not in ALLOWED_SERVICE_CLASSES:
-        allowed = ", ".join(sorted(ALLOWED_SERVICE_CLASSES))
-        msg = f"unknown order_by: {token!r}; expected one of: {allowed}"
-        raise ValueError(msg)
-    return token
-
 
 @dataclass(frozen=True)
 class TicketListParams:
@@ -40,6 +23,7 @@ class TicketListParams:
     to_date: date
     from_time: time | None
     to_time: time | None
+    company_ids: tuple[int, ...] | None
     todlers_number: int
     children_number: int
     passengers_number: int
@@ -47,7 +31,6 @@ class TicketListParams:
     want_business: bool
     want_comfort: bool
     want_first_class: bool
-    order_by: str
 
 
 def parse_service_class_csv(raw: str) -> frozenset[str]:
@@ -66,6 +49,33 @@ def parse_service_class_csv(raw: str) -> frozenset[str]:
             msg = f"unknown service_class token: {p}"
             raise ValueError(msg)
     return frozenset(parts)
+
+
+def parse_company_csv(raw: str) -> tuple[int, ...]:
+    """
+    Разбор CSV id компаний.
+
+    Возбуждает ValueError при пустом результате, нецелых значениях или id < 1.
+    """
+    tokens = [part.strip() for part in raw.split(",") if part.strip()]
+    if not tokens:
+        msg = "company must contain at least one company id"
+        raise ValueError(msg)
+
+    ids: list[int] = []
+    for token in tokens:
+        try:
+            company_id = int(token)
+        except ValueError as exc:
+            msg = f"company contains non-integer token: {token!r}"
+            raise ValueError(msg) from exc
+        if company_id < 1:
+            msg = "company id must be >= 1"
+            raise ValueError(msg)
+        ids.append(company_id)
+
+    # Убираем дубли, сохраняя порядок из запроса.
+    return tuple(dict.fromkeys(ids))
 
 
 LIST_TICKETS_SQL_TEMPLATE = """
@@ -189,7 +199,63 @@ SELECT
       )
       ELSE NULL
     END
-  ) AS _sort_first_class_total
+  ) AS _sort_first_class_total,
+  LEAST(
+    COALESCE(
+      CASE
+        WHEN :want_budget AND tb.seats >= :party_size AND pl.budget_seats >= :party_size
+        THEN (
+          tb.toddler_price * :todlers_number
+          + tb.children_price * :children_number
+          + tb.price * :passengers_number
+        )
+        ELSE NULL
+      END,
+      2147483647
+    ),
+    COALESCE(
+      CASE
+        WHEN :want_business
+          AND tbs.seats >= :party_size
+          AND pl.business_seats >= :party_size
+        THEN (
+          tbs.toddler_price * :todlers_number
+          + tbs.children_price * :children_number
+          + tbs.price * :passengers_number
+        )
+        ELSE NULL
+      END,
+      2147483647
+    ),
+    COALESCE(
+      CASE
+        WHEN :want_comfort
+          AND tcm.seats >= :party_size
+          AND pl.comfort_seats >= :party_size
+        THEN (
+          tcm.toddler_price * :todlers_number
+          + tcm.children_price * :children_number
+          + tcm.price * :passengers_number
+        )
+        ELSE NULL
+      END,
+      2147483647
+    ),
+    COALESCE(
+      CASE
+        WHEN :want_first_class
+          AND tfc.seats >= :party_size
+          AND pl.first_class_seats >= :party_size
+        THEN (
+          tfc.toddler_price * :todlers_number
+          + tfc.children_price * :children_number
+          + tfc.price * :passengers_number
+        )
+        ELSE NULL
+      END,
+      2147483647
+    )
+  ) AS _sort_min_total
 FROM flight_instance fi
 JOIN flight f ON fi.flight_id = f.id
 JOIN airport af ON f.airport_from_id = af.id
@@ -208,19 +274,13 @@ WHERE af.id = :airport_from
   AND fi.departure_date <= :to_date
   AND (:from_time IS NULL OR fi.departure_time >= :from_time)
   AND (:to_time IS NULL OR fi.arrival_time <= :to_time)
-{order_by_clause}
-"""
-
-_ORDER_SUFFIX_TEMPLATE = """
-ORDER BY {sort_column} ASC NULLS LAST, fi.id ASC
+  AND (
+    :company_ids IS NULL
+    OR fi.company_id = ANY(CAST(:company_ids AS int[]))
+  )
+ORDER BY _sort_min_total ASC, fi.id ASC
 LIMIT :limit OFFSET :offset
 """
-
-
-def _list_tickets_sql(order_by: str) -> str:
-    sort_column = SORT_TOTAL_COLUMN[order_by]
-    order_by_clause = _ORDER_SUFFIX_TEMPLATE.format(sort_column=sort_column)
-    return LIST_TICKETS_SQL_TEMPLATE.format(order_by_clause=order_by_clause)
 
 
 def _list_bind_params(params: TicketListParams, offset: int) -> dict[str, Any]:
@@ -236,6 +296,7 @@ def _list_bind_params(params: TicketListParams, offset: int) -> dict[str, Any]:
         "to_date": params.to_date,
         "from_time": params.from_time,
         "to_time": params.to_time,
+        "company_ids": list(params.company_ids) if params.company_ids else None,
         "todlers_number": params.todlers_number,
         "children_number": params.children_number,
         "passengers_number": params.passengers_number,
@@ -283,7 +344,7 @@ def fetch_tickets(
     Если запрошенный offset ≥ числа подходящих строк, подставляется смещение
     начала последней страницы, чтобы не отдавать пустой items при ненулевом total.
     """
-    stmt = text(_list_tickets_sql(params.order_by))
+    stmt = text(LIST_TICKETS_SQL_TEMPLATE)
     bind = _list_bind_params(params, params.offset)
     rows = db.execute(stmt, bind).mappings().all()
 
@@ -326,6 +387,10 @@ WHERE af.id = :airport_from
   AND fi.departure_date <= :to_date
   AND (:from_time IS NULL OR fi.departure_time >= :from_time)
   AND (:to_time IS NULL OR fi.arrival_time <= :to_time)
+  AND (
+    :company_ids IS NULL
+    OR fi.company_id = ANY(CAST(:company_ids AS int[]))
+  )
 """)
 
 
@@ -340,6 +405,7 @@ def _count_tickets(db: Session, params: TicketListParams) -> int:
                 "to_date": params.to_date,
                 "from_time": params.from_time,
                 "to_time": params.to_time,
+                "company_ids": list(params.company_ids) if params.company_ids else None,
             },
         )
         .mappings()

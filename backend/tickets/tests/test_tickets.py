@@ -33,25 +33,6 @@ def test_tickets_unknown_service_class_returns_422() -> None:
     assert "unknown service_class" in response.json()["detail"]
 
 
-def test_tickets_invalid_order_by_returns_422() -> None:
-    response = client.get(
-        "/tickets",
-        params={
-            "airport_from": 1,
-            "airport_to": 4,
-            "from_date": "2026-06-01",
-            "from_to": "2026-06-30",
-            "passengers_number": 1,
-            "service_class": "BUDGET",
-            "offset": 0,
-            "limit": 20,
-            "order_by": "ECONOMY",
-        },
-    )
-    assert response.status_code == 422
-    assert "order_by" in response.json()["detail"]
-
-
 def test_tickets_inverted_date_range_returns_422() -> None:
     response = client.get(
         "/tickets",
