@@ -26,6 +26,9 @@ tickets/
 │   ├── py.typed            # маркер типизируемого пакета для Mypy
 │   ├── main.py             # точка входа FastAPI (`app` приложение для ASGI-сервера)
 │   ├── config.py           # Pydantic Settings (URL БД и прочее)
+│   ├── routers/            # маршруты API (`tickets.py` — GET /tickets)
+│   ├── schemas/            # Pydantic-схемы (`schemas/tickets.py`)
+│   ├── services/           # запросы к данным (`ticket_query.py` — SQL списка рейсов)
 │   └── db/
 │       ├── base.py         # общий DeclarativeBase для ORM-моделей
 │       └── session.py      # Engine, SessionLocal, зависимость get_db
@@ -178,3 +181,14 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - **`GET /health/db`** — проверка подключения к PostgreSQL одним запросом.
 
 При отсутствии доступной базы второй эндпоинт завершится ошибкой до уровня HTTP 5xx или обрыва соединения — это ожидаемо до настройки `DATABASE_URL` и живого инстанса PostgreSQL.
+
+### Поиск рейсов и билетов
+
+- **`GET /tickets`** — паджинированный список экземпляров рейсов (`flight_instance`) с городами/аэропортами, перевозчиком, самолётом и **опциональными** блоками цен по классам обслуживания.
+  - **Query:** обязательные — `airport_from`, `airport_to`, `from_date`, `from_to`, `passengers_number` (**≥ 1**), `service_class` (непустая строка), **`offset`**, **`limit`**. **Опционально:** `todlers_number`, `children_number` (по умолчанию 0), **`order_by`** — один класс (`BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS`), по умолчанию `BUDGET`. Идентификаторы аэропортов — целые `airport.id`; `from_date` / `from_to` — включительные границы по дате вылета; `service_class` — CSV, допустимые токены (регистр не важен): `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS`. При неизвестном токене в `service_class` / `order_by`, пустом CSV или если `from_date` > `from_to` — ответ **422**.
+  - **Ответ:** объект с полями `items`, `total`, `offset`, `limit`. Каждый элемент содержит маршрут (`city_from`, `city_to`, `airport_from`, `airport_to`), `flight_number`, `company_name`, `duration` (минуты), `departure_date` / `departure_time`, `arrival_date` / `arrival_time`, `plane_type`, `plane_number`, и четыре поля цен: `budget_prices`, `business_prices`, `comfort_prices`, `first_class_prices`.
+  - **Непустой блок цены** (`ServiceClassPrices`) формируется в **PostgreSQL** (`json_build_object` + `CASE`): только если класс указан в `service_class` **и** одновременно `tarif.seats >= N` и в салоне `plane` достаточно мест, где `N = todlers_number + children_number + passengers_number`. Иначе поле — **`null`**.
+  - Внутри блока: `total` = `todlers_price * todlers_number + children_price * children_number + price * passengers_number`; позже в ту же структуру можно добавить надбавки (багаж, животные).
+  - **Сортировка:** по **возрастанию** поля `total` в блоке цен, соответствующем параметру **`order_by`** (тот же расчёт, что и для непустого JSON-блока: запрошенный класс в `service_class`, `tarif.seats` и места в салоне). Строки без доступного `total` для выбранного класса идут последними (`NULLS LAST`), затем стабильно по `fi.id`.
+  - **Пагинация:** `total` считается по тем же связям, что и выборка списка (`company`, `plane`, все тарифы, города). Если **`offset` ≥ `total`** (запрошена страница за концом выборки), ответ подставляет смещение **начала последней страницы** и возвращает её строки; поле **`offset`** в JSON ответа — фактическое смещение (может отличаться от query).
+  - Реализация: `app/routers/tickets.py` (эндпоинт), `app/services/ticket_query.py` (SQL, разбор CSV, привязка параметров цен), `app/schemas/tickets.py` (модели ответа).

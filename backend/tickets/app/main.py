@@ -6,11 +6,13 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db.session import get_db
+from app.routers.tickets import router as tickets_router
 
 
 def create_app() -> FastAPI:
     cfg = get_settings()
     app = FastAPI(title=cfg.api_title, version=cfg.api_version)
+    app.include_router(tickets_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:
