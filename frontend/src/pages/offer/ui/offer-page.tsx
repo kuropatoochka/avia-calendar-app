@@ -1,11 +1,11 @@
-import { Space, Typography } from 'antd';
+import { Flex, Space, Typography } from 'antd';
 import { FlightFilters } from '@/features/flight-filters';
 import { SearchForm } from '@/features/search-form';
 import styles from './offer-page.module.css';
 
 const OfferPage = () => {
   return (
-    <>
+    <Flex vertical gap={32}>
       <Space orientation="vertical" size={8}>
         <Typography.Title>Куда летим?</Typography.Title>
         <Typography.Paragraph type="secondary">
@@ -19,7 +19,7 @@ const OfferPage = () => {
           <FlightFilters />
         </aside>
       </div>
-    </>
+    </Flex>
   );
 };
 
