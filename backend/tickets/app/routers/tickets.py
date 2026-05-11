@@ -89,6 +89,22 @@ def list_tickets(
             ),
         ),
     ] = "TOTAL",
+    animal_as_passenger: Annotated[
+        bool,
+        Query(
+            description=(
+                "Если true, добавляет стоимость животного как пассажира в total."
+            ),
+        ),
+    ] = False,
+    animal_as_baggage: Annotated[
+        bool,
+        Query(
+            description=(
+                "Если true, добавляет стоимость животного как багажа в total."
+            ),
+        ),
+    ] = False,
     todlers_number: Annotated[
         int,
         Query(ge=0, description="Количество младенцев"),
@@ -107,6 +123,13 @@ def list_tickets(
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="price_from must be less than or equal to price_to",
+        )
+    if animal_as_passenger and animal_as_baggage:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=(
+                "animal_as_passenger and animal_as_baggage are mutually exclusive"
+            ),
         )
     try:
         classes = parse_service_class_csv(service_class)
@@ -146,6 +169,8 @@ def list_tickets(
         price_from=price_from,
         price_to=price_to,
         price_type=parsed_price_type,
+        animal_as_passenger=animal_as_passenger,
+        animal_as_baggage=animal_as_baggage,
         todlers_number=todlers_number,
         children_number=children_number,
         passengers_number=passengers_number,

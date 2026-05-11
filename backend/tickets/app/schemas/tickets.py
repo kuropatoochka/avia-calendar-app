@@ -14,6 +14,9 @@ class ServiceClassPrices(BaseModel):
     price: int
     children_price: int
     todlers_price: int
+    animal_price: int
+    animal_baggage_price: int
+    baggage_price: int
 
 
 class TicketItem(BaseModel):

@@ -79,6 +79,26 @@ def test_tickets_invalid_price_type_returns_422() -> None:
     assert "price_type" in response.json()["detail"]
 
 
+def test_tickets_animal_flags_mutually_exclusive_returns_422() -> None:
+    response = client.get(
+        "/tickets",
+        params={
+            "airport_from": 1,
+            "airport_to": 4,
+            "from_date": "2026-06-01",
+            "from_to": "2026-06-30",
+            "passengers_number": 1,
+            "service_class": "BUDGET",
+            "animal_as_passenger": True,
+            "animal_as_baggage": True,
+            "offset": 0,
+            "limit": 20,
+        },
+    )
+    assert response.status_code == 422
+    assert "mutually exclusive" in response.json()["detail"]
+
+
 def test_tickets_sql_uses_typed_casts_for_nullable_filters() -> None:
     count_sql = str(_COUNT_SQL)
 

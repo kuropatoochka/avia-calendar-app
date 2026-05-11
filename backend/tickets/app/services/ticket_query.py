@@ -28,6 +28,8 @@ class TicketListParams:
     price_from: int | None
     price_to: int | None
     price_type: str
+    animal_as_passenger: bool
+    animal_as_baggage: bool
     todlers_number: int
     children_number: int
     passengers_number: int
@@ -92,7 +94,35 @@ def parse_price_type(raw: str) -> str:
     return token
 
 
-BUDGET_PRICE_FILTER_SQL = """
+def _total_price_expr(tarif_alias: str) -> str:
+    return (
+        f"{tarif_alias}.toddler_price * :todlers_number\n"
+        f"        + {tarif_alias}.children_price * :children_number\n"
+        f"        + {tarif_alias}.price * :passengers_number\n"
+        "        + (\n"
+        "          CASE\n"
+        "            WHEN CAST(:animal_as_passenger AS boolean)\n"
+        f"            THEN {tarif_alias}.animal_price\n"
+        "            ELSE 0\n"
+        "          END\n"
+        "        )\n"
+        "        + (\n"
+        "          CASE\n"
+        "            WHEN CAST(:animal_as_baggage AS boolean)\n"
+        f"            THEN {tarif_alias}.animal_baggage_price\n"
+        "            ELSE 0\n"
+        "          END\n"
+        "        )"
+    )
+
+
+BUDGET_TOTAL_EXPR = _total_price_expr("tb")
+BUSINESS_TOTAL_EXPR = _total_price_expr("tbs")
+COMFORT_TOTAL_EXPR = _total_price_expr("tcm")
+FIRST_CLASS_TOTAL_EXPR = _total_price_expr("tfc")
+
+
+BUDGET_PRICE_FILTER_SQL = f"""
 :want_budget
 AND tb.seats >= :party_size
 AND pl.budget_seats >= :party_size
@@ -101,9 +131,7 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tb.price
-      ELSE tb.toddler_price * :todlers_number
-        + tb.children_price * :children_number
-        + tb.price * :passengers_number
+      ELSE {BUDGET_TOTAL_EXPR}
     END
   ) >= CAST(:price_from AS integer)
 )
@@ -112,15 +140,13 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tb.price
-      ELSE tb.toddler_price * :todlers_number
-        + tb.children_price * :children_number
-        + tb.price * :passengers_number
+      ELSE {BUDGET_TOTAL_EXPR}
     END
   ) <= CAST(:price_to AS integer)
 )
 """.strip()
 
-BUSINESS_PRICE_FILTER_SQL = """
+BUSINESS_PRICE_FILTER_SQL = f"""
 :want_business
 AND tbs.seats >= :party_size
 AND pl.business_seats >= :party_size
@@ -129,9 +155,7 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tbs.price
-      ELSE tbs.toddler_price * :todlers_number
-        + tbs.children_price * :children_number
-        + tbs.price * :passengers_number
+      ELSE {BUSINESS_TOTAL_EXPR}
     END
   ) >= CAST(:price_from AS integer)
 )
@@ -140,15 +164,13 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tbs.price
-      ELSE tbs.toddler_price * :todlers_number
-        + tbs.children_price * :children_number
-        + tbs.price * :passengers_number
+      ELSE {BUSINESS_TOTAL_EXPR}
     END
   ) <= CAST(:price_to AS integer)
 )
 """.strip()
 
-COMFORT_PRICE_FILTER_SQL = """
+COMFORT_PRICE_FILTER_SQL = f"""
 :want_comfort
 AND tcm.seats >= :party_size
 AND pl.comfort_seats >= :party_size
@@ -157,9 +179,7 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tcm.price
-      ELSE tcm.toddler_price * :todlers_number
-        + tcm.children_price * :children_number
-        + tcm.price * :passengers_number
+      ELSE {COMFORT_TOTAL_EXPR}
     END
   ) >= CAST(:price_from AS integer)
 )
@@ -168,15 +188,13 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tcm.price
-      ELSE tcm.toddler_price * :todlers_number
-        + tcm.children_price * :children_number
-        + tcm.price * :passengers_number
+      ELSE {COMFORT_TOTAL_EXPR}
     END
   ) <= CAST(:price_to AS integer)
 )
 """.strip()
 
-FIRST_CLASS_PRICE_FILTER_SQL = """
+FIRST_CLASS_PRICE_FILTER_SQL = f"""
 :want_first_class
 AND tfc.seats >= :party_size
 AND pl.first_class_seats >= :party_size
@@ -185,9 +203,7 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tfc.price
-      ELSE tfc.toddler_price * :todlers_number
-        + tfc.children_price * :children_number
-        + tfc.price * :passengers_number
+      ELSE {FIRST_CLASS_TOTAL_EXPR}
     END
   ) >= CAST(:price_from AS integer)
 )
@@ -196,9 +212,7 @@ AND (
   OR (
     CASE
       WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tfc.price
-      ELSE tfc.toddler_price * :todlers_number
-        + tfc.children_price * :children_number
-        + tfc.price * :passengers_number
+      ELSE {FIRST_CLASS_TOTAL_EXPR}
     END
   ) <= CAST(:price_to AS integer)
 )
@@ -208,9 +222,7 @@ BUDGET_SORT_TOTAL_EXPR = f"""
 CASE
   WHEN {BUDGET_PRICE_FILTER_SQL}
   THEN (
-    tb.toddler_price * :todlers_number
-    + tb.children_price * :children_number
-    + tb.price * :passengers_number
+    {BUDGET_TOTAL_EXPR}
   )
   ELSE NULL
 END
@@ -220,9 +232,7 @@ BUSINESS_SORT_TOTAL_EXPR = f"""
 CASE
   WHEN {BUSINESS_PRICE_FILTER_SQL}
   THEN (
-    tbs.toddler_price * :todlers_number
-    + tbs.children_price * :children_number
-    + tbs.price * :passengers_number
+    {BUSINESS_TOTAL_EXPR}
   )
   ELSE NULL
 END
@@ -232,9 +242,7 @@ COMFORT_SORT_TOTAL_EXPR = f"""
 CASE
   WHEN {COMFORT_PRICE_FILTER_SQL}
   THEN (
-    tcm.toddler_price * :todlers_number
-    + tcm.children_price * :children_number
-    + tcm.price * :passengers_number
+    {COMFORT_TOTAL_EXPR}
   )
   ELSE NULL
 END
@@ -244,9 +252,7 @@ FIRST_CLASS_SORT_TOTAL_EXPR = f"""
 CASE
   WHEN {FIRST_CLASS_PRICE_FILTER_SQL}
   THEN (
-    tfc.toddler_price * :todlers_number
-    + tfc.children_price * :children_number
-    + tfc.price * :passengers_number
+    {FIRST_CLASS_TOTAL_EXPR}
   )
   ELSE NULL
 END
@@ -273,12 +279,13 @@ SELECT
     WHEN {BUDGET_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
-        tb.toddler_price * :todlers_number
-        + tb.children_price * :children_number
-        + tb.price * :passengers_number,
+        {BUDGET_TOTAL_EXPR},
       'price', tb.price,
       'children_price', tb.children_price,
-      'todlers_price', tb.toddler_price
+      'todlers_price', tb.toddler_price,
+      'animal_price', tb.animal_price,
+      'animal_baggage_price', tb.animal_baggage_price,
+      'baggage_price', tb.baggage_price
     )::json
     ELSE NULL
   END AS budget_prices,
@@ -286,12 +293,13 @@ SELECT
     WHEN {BUSINESS_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
-        tbs.toddler_price * :todlers_number
-        + tbs.children_price * :children_number
-        + tbs.price * :passengers_number,
+        {BUSINESS_TOTAL_EXPR},
       'price', tbs.price,
       'children_price', tbs.children_price,
-      'todlers_price', tbs.toddler_price
+      'todlers_price', tbs.toddler_price,
+      'animal_price', tbs.animal_price,
+      'animal_baggage_price', tbs.animal_baggage_price,
+      'baggage_price', tbs.baggage_price
     )::json
     ELSE NULL
   END AS business_prices,
@@ -299,12 +307,13 @@ SELECT
     WHEN {COMFORT_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
-        tcm.toddler_price * :todlers_number
-        + tcm.children_price * :children_number
-        + tcm.price * :passengers_number,
+        {COMFORT_TOTAL_EXPR},
       'price', tcm.price,
       'children_price', tcm.children_price,
-      'todlers_price', tcm.toddler_price
+      'todlers_price', tcm.toddler_price,
+      'animal_price', tcm.animal_price,
+      'animal_baggage_price', tcm.animal_baggage_price,
+      'baggage_price', tcm.baggage_price
     )::json
     ELSE NULL
   END AS comfort_prices,
@@ -312,12 +321,13 @@ SELECT
     WHEN {FIRST_CLASS_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
-        tfc.toddler_price * :todlers_number
-        + tfc.children_price * :children_number
-        + tfc.price * :passengers_number,
+        {FIRST_CLASS_TOTAL_EXPR},
       'price', tfc.price,
       'children_price', tfc.children_price,
-      'todlers_price', tfc.toddler_price
+      'todlers_price', tfc.toddler_price,
+      'animal_price', tfc.animal_price,
+      'animal_baggage_price', tfc.animal_baggage_price,
+      'baggage_price', tfc.baggage_price
     )::json
     ELSE NULL
   END AS first_class_prices,
@@ -403,6 +413,8 @@ def _list_bind_params(params: TicketListParams, offset: int) -> dict[str, Any]:
         "price_from": params.price_from,
         "price_to": params.price_to,
         "price_type": params.price_type,
+        "animal_as_passenger": params.animal_as_passenger,
+        "animal_as_baggage": params.animal_as_baggage,
         "todlers_number": params.todlers_number,
         "children_number": params.children_number,
         "passengers_number": params.passengers_number,
@@ -530,6 +542,8 @@ def _count_tickets(db: Session, params: TicketListParams) -> int:
                 "price_from": params.price_from,
                 "price_to": params.price_to,
                 "price_type": params.price_type,
+                "animal_as_passenger": params.animal_as_passenger,
+                "animal_as_baggage": params.animal_as_baggage,
                 "todlers_number": params.todlers_number,
                 "children_number": params.children_number,
                 "passengers_number": params.passengers_number,
