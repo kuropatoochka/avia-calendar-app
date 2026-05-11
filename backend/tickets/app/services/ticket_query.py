@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 ALLOWED_SERVICE_CLASSES = frozenset(
     {"BUDGET", "BUSINESS", "COMFORT", "FIRST_CLASS"},
 )
+ALLOWED_PRICE_TYPES = frozenset({"PASSENGER", "TOTAL"})
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,9 @@ class TicketListParams:
     from_time: time | None
     to_time: time | None
     company_ids: tuple[int, ...] | None
+    price_from: int | None
+    price_to: int | None
+    price_type: str
     todlers_number: int
     children_number: int
     passengers_number: int
@@ -78,7 +82,178 @@ def parse_company_csv(raw: str) -> tuple[int, ...]:
     return tuple(dict.fromkeys(ids))
 
 
-LIST_TICKETS_SQL_TEMPLATE = """
+def parse_price_type(raw: str) -> str:
+    """Разбор типа фильтрации цены: PASSENGER или TOTAL."""
+    token = raw.strip().upper()
+    if token not in ALLOWED_PRICE_TYPES:
+        allowed = ", ".join(sorted(ALLOWED_PRICE_TYPES))
+        msg = f"unknown price_type: {token!r}; expected one of: {allowed}"
+        raise ValueError(msg)
+    return token
+
+
+BUDGET_PRICE_FILTER_SQL = """
+:want_budget
+AND tb.seats >= :party_size
+AND pl.budget_seats >= :party_size
+AND (
+  CAST(:price_from AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tb.price
+      ELSE tb.toddler_price * :todlers_number
+        + tb.children_price * :children_number
+        + tb.price * :passengers_number
+    END
+  ) >= CAST(:price_from AS integer)
+)
+AND (
+  CAST(:price_to AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tb.price
+      ELSE tb.toddler_price * :todlers_number
+        + tb.children_price * :children_number
+        + tb.price * :passengers_number
+    END
+  ) <= CAST(:price_to AS integer)
+)
+""".strip()
+
+BUSINESS_PRICE_FILTER_SQL = """
+:want_business
+AND tbs.seats >= :party_size
+AND pl.business_seats >= :party_size
+AND (
+  CAST(:price_from AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tbs.price
+      ELSE tbs.toddler_price * :todlers_number
+        + tbs.children_price * :children_number
+        + tbs.price * :passengers_number
+    END
+  ) >= CAST(:price_from AS integer)
+)
+AND (
+  CAST(:price_to AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tbs.price
+      ELSE tbs.toddler_price * :todlers_number
+        + tbs.children_price * :children_number
+        + tbs.price * :passengers_number
+    END
+  ) <= CAST(:price_to AS integer)
+)
+""".strip()
+
+COMFORT_PRICE_FILTER_SQL = """
+:want_comfort
+AND tcm.seats >= :party_size
+AND pl.comfort_seats >= :party_size
+AND (
+  CAST(:price_from AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tcm.price
+      ELSE tcm.toddler_price * :todlers_number
+        + tcm.children_price * :children_number
+        + tcm.price * :passengers_number
+    END
+  ) >= CAST(:price_from AS integer)
+)
+AND (
+  CAST(:price_to AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tcm.price
+      ELSE tcm.toddler_price * :todlers_number
+        + tcm.children_price * :children_number
+        + tcm.price * :passengers_number
+    END
+  ) <= CAST(:price_to AS integer)
+)
+""".strip()
+
+FIRST_CLASS_PRICE_FILTER_SQL = """
+:want_first_class
+AND tfc.seats >= :party_size
+AND pl.first_class_seats >= :party_size
+AND (
+  CAST(:price_from AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tfc.price
+      ELSE tfc.toddler_price * :todlers_number
+        + tfc.children_price * :children_number
+        + tfc.price * :passengers_number
+    END
+  ) >= CAST(:price_from AS integer)
+)
+AND (
+  CAST(:price_to AS integer) IS NULL
+  OR (
+    CASE
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tfc.price
+      ELSE tfc.toddler_price * :todlers_number
+        + tfc.children_price * :children_number
+        + tfc.price * :passengers_number
+    END
+  ) <= CAST(:price_to AS integer)
+)
+""".strip()
+
+BUDGET_SORT_TOTAL_EXPR = f"""
+CASE
+  WHEN {BUDGET_PRICE_FILTER_SQL}
+  THEN (
+    tb.toddler_price * :todlers_number
+    + tb.children_price * :children_number
+    + tb.price * :passengers_number
+  )
+  ELSE NULL
+END
+""".strip()
+
+BUSINESS_SORT_TOTAL_EXPR = f"""
+CASE
+  WHEN {BUSINESS_PRICE_FILTER_SQL}
+  THEN (
+    tbs.toddler_price * :todlers_number
+    + tbs.children_price * :children_number
+    + tbs.price * :passengers_number
+  )
+  ELSE NULL
+END
+""".strip()
+
+COMFORT_SORT_TOTAL_EXPR = f"""
+CASE
+  WHEN {COMFORT_PRICE_FILTER_SQL}
+  THEN (
+    tcm.toddler_price * :todlers_number
+    + tcm.children_price * :children_number
+    + tcm.price * :passengers_number
+  )
+  ELSE NULL
+END
+""".strip()
+
+FIRST_CLASS_SORT_TOTAL_EXPR = f"""
+CASE
+  WHEN {FIRST_CLASS_PRICE_FILTER_SQL}
+  THEN (
+    tfc.toddler_price * :todlers_number
+    + tfc.children_price * :children_number
+    + tfc.price * :passengers_number
+  )
+  ELSE NULL
+END
+""".strip()
+
+
+LIST_TICKETS_SQL_TEMPLATE = f"""
 SELECT
   c_from.name AS city_from,
   c_to.name AS city_to,
@@ -95,7 +270,7 @@ SELECT
   pl.number AS plane_number,
   COUNT(*) OVER () AS _total_count,
   CASE
-    WHEN :want_budget AND tb.seats >= :party_size AND pl.budget_seats >= :party_size
+    WHEN {BUDGET_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
         tb.toddler_price * :todlers_number
@@ -108,9 +283,7 @@ SELECT
     ELSE NULL
   END AS budget_prices,
   CASE
-    WHEN :want_business
-      AND tbs.seats >= :party_size
-      AND pl.business_seats >= :party_size
+    WHEN {BUSINESS_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
         tbs.toddler_price * :todlers_number
@@ -123,7 +296,7 @@ SELECT
     ELSE NULL
   END AS business_prices,
   CASE
-    WHEN :want_comfort AND tcm.seats >= :party_size AND pl.comfort_seats >= :party_size
+    WHEN {COMFORT_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
         tcm.toddler_price * :todlers_number
@@ -136,9 +309,7 @@ SELECT
     ELSE NULL
   END AS comfort_prices,
   CASE
-    WHEN :want_first_class
-      AND tfc.seats >= :party_size
-      AND pl.first_class_seats >= :party_size
+    WHEN {FIRST_CLASS_PRICE_FILTER_SQL}
     THEN json_build_object(
       'total',
         tfc.toddler_price * :todlers_number
@@ -152,7 +323,7 @@ SELECT
   END AS first_class_prices,
   (
     CASE
-      WHEN :want_budget AND tb.seats >= :party_size AND pl.budget_seats >= :party_size
+      WHEN {BUDGET_PRICE_FILTER_SQL}
       THEN (
         tb.toddler_price * :todlers_number
         + tb.children_price * :children_number
@@ -162,99 +333,19 @@ SELECT
     END
   ) AS _sort_budget_total,
   (
-    CASE
-      WHEN :want_business
-        AND tbs.seats >= :party_size
-        AND pl.business_seats >= :party_size
-      THEN (
-        tbs.toddler_price * :todlers_number
-        + tbs.children_price * :children_number
-        + tbs.price * :passengers_number
-      )
-      ELSE NULL
-    END
+    {BUSINESS_SORT_TOTAL_EXPR}
   ) AS _sort_business_total,
   (
-    CASE
-      WHEN :want_comfort
-        AND tcm.seats >= :party_size
-        AND pl.comfort_seats >= :party_size
-      THEN (
-        tcm.toddler_price * :todlers_number
-        + tcm.children_price * :children_number
-        + tcm.price * :passengers_number
-      )
-      ELSE NULL
-    END
+    {COMFORT_SORT_TOTAL_EXPR}
   ) AS _sort_comfort_total,
   (
-    CASE
-      WHEN :want_first_class
-        AND tfc.seats >= :party_size
-        AND pl.first_class_seats >= :party_size
-      THEN (
-        tfc.toddler_price * :todlers_number
-        + tfc.children_price * :children_number
-        + tfc.price * :passengers_number
-      )
-      ELSE NULL
-    END
+    {FIRST_CLASS_SORT_TOTAL_EXPR}
   ) AS _sort_first_class_total,
   LEAST(
-    COALESCE(
-      CASE
-        WHEN :want_budget AND tb.seats >= :party_size AND pl.budget_seats >= :party_size
-        THEN (
-          tb.toddler_price * :todlers_number
-          + tb.children_price * :children_number
-          + tb.price * :passengers_number
-        )
-        ELSE NULL
-      END,
-      2147483647
-    ),
-    COALESCE(
-      CASE
-        WHEN :want_business
-          AND tbs.seats >= :party_size
-          AND pl.business_seats >= :party_size
-        THEN (
-          tbs.toddler_price * :todlers_number
-          + tbs.children_price * :children_number
-          + tbs.price * :passengers_number
-        )
-        ELSE NULL
-      END,
-      2147483647
-    ),
-    COALESCE(
-      CASE
-        WHEN :want_comfort
-          AND tcm.seats >= :party_size
-          AND pl.comfort_seats >= :party_size
-        THEN (
-          tcm.toddler_price * :todlers_number
-          + tcm.children_price * :children_number
-          + tcm.price * :passengers_number
-        )
-        ELSE NULL
-      END,
-      2147483647
-    ),
-    COALESCE(
-      CASE
-        WHEN :want_first_class
-          AND tfc.seats >= :party_size
-          AND pl.first_class_seats >= :party_size
-        THEN (
-          tfc.toddler_price * :todlers_number
-          + tfc.children_price * :children_number
-          + tfc.price * :passengers_number
-        )
-        ELSE NULL
-      END,
-      2147483647
-    )
+    COALESCE(({BUDGET_SORT_TOTAL_EXPR}), 2147483647),
+    COALESCE(({BUSINESS_SORT_TOTAL_EXPR}), 2147483647),
+    COALESCE(({COMFORT_SORT_TOTAL_EXPR}), 2147483647),
+    COALESCE(({FIRST_CLASS_SORT_TOTAL_EXPR}), 2147483647)
   ) AS _sort_min_total
 FROM flight_instance fi
 JOIN flight f ON fi.flight_id = f.id
@@ -272,11 +363,23 @@ WHERE af.id = :airport_from
   AND at.id = :airport_to
   AND fi.departure_date >= :from_date
   AND fi.departure_date <= :to_date
-  AND (:from_time IS NULL OR fi.departure_time >= :from_time)
-  AND (:to_time IS NULL OR fi.arrival_time <= :to_time)
   AND (
-    :company_ids IS NULL
+    CAST(:from_time AS time) IS NULL
+    OR fi.departure_time >= CAST(:from_time AS time)
+  )
+  AND (
+    CAST(:to_time AS time) IS NULL
+    OR fi.arrival_time <= CAST(:to_time AS time)
+  )
+  AND (
+    CAST(:company_ids AS int[]) IS NULL
     OR fi.company_id = ANY(CAST(:company_ids AS int[]))
+  )
+  AND (
+    ({BUDGET_PRICE_FILTER_SQL})
+    OR ({BUSINESS_PRICE_FILTER_SQL})
+    OR ({COMFORT_PRICE_FILTER_SQL})
+    OR ({FIRST_CLASS_PRICE_FILTER_SQL})
   )
 ORDER BY _sort_min_total ASC, fi.id ASC
 LIMIT :limit OFFSET :offset
@@ -297,6 +400,9 @@ def _list_bind_params(params: TicketListParams, offset: int) -> dict[str, Any]:
         "from_time": params.from_time,
         "to_time": params.to_time,
         "company_ids": list(params.company_ids) if params.company_ids else None,
+        "price_from": params.price_from,
+        "price_to": params.price_to,
+        "price_type": params.price_type,
         "todlers_number": params.todlers_number,
         "children_number": params.children_number,
         "passengers_number": params.passengers_number,
@@ -367,7 +473,7 @@ def fetch_tickets(
     return [], total, params.offset
 
 
-_COUNT_SQL = text("""
+_COUNT_SQL = text(f"""
 SELECT COUNT(*)::int AS c
 FROM flight_instance fi
 JOIN flight f ON fi.flight_id = f.id
@@ -385,16 +491,31 @@ WHERE af.id = :airport_from
   AND at.id = :airport_to
   AND fi.departure_date >= :from_date
   AND fi.departure_date <= :to_date
-  AND (:from_time IS NULL OR fi.departure_time >= :from_time)
-  AND (:to_time IS NULL OR fi.arrival_time <= :to_time)
   AND (
-    :company_ids IS NULL
+    CAST(:from_time AS time) IS NULL
+    OR fi.departure_time >= CAST(:from_time AS time)
+  )
+  AND (
+    CAST(:to_time AS time) IS NULL
+    OR fi.arrival_time <= CAST(:to_time AS time)
+  )
+  AND (
+    CAST(:company_ids AS int[]) IS NULL
     OR fi.company_id = ANY(CAST(:company_ids AS int[]))
+  )
+  AND (
+    ({BUDGET_PRICE_FILTER_SQL})
+    OR ({BUSINESS_PRICE_FILTER_SQL})
+    OR ({COMFORT_PRICE_FILTER_SQL})
+    OR ({FIRST_CLASS_PRICE_FILTER_SQL})
   )
 """)
 
 
 def _count_tickets(db: Session, params: TicketListParams) -> int:
+    party_size = (
+        params.todlers_number + params.children_number + params.passengers_number
+    )
     row = (
         db.execute(
             _COUNT_SQL,
@@ -406,6 +527,17 @@ def _count_tickets(db: Session, params: TicketListParams) -> int:
                 "from_time": params.from_time,
                 "to_time": params.to_time,
                 "company_ids": list(params.company_ids) if params.company_ids else None,
+                "price_from": params.price_from,
+                "price_to": params.price_to,
+                "price_type": params.price_type,
+                "todlers_number": params.todlers_number,
+                "children_number": params.children_number,
+                "passengers_number": params.passengers_number,
+                "party_size": party_size,
+                "want_budget": params.want_budget,
+                "want_business": params.want_business,
+                "want_comfort": params.want_comfort,
+                "want_first_class": params.want_first_class,
             },
         )
         .mappings()
