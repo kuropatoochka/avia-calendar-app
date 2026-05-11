@@ -1,16 +1,16 @@
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: var(--space-xl);
   box-shadow: var(--shadow-sm);
 }
 
 .logo {
-  height: 100%;
-  display: flex;
-  align-items: center;
+  color: var(--color-primary);
 }
 
 .menu {
-  border-bottom: none;
+  min-width: 0;
+  flex: auto;
+  justify-content: flex-end;
 }

@@ -2,6 +2,14 @@
  * Ant Design global overrides
  */
 
+.ant-layout-content {
+  padding: var(--space-xl);
+}
+
+.ant-layout-header {
+  padding: 0 var(--space-xl);
+}
+
 /* Date picker adjustments */
 .ant-picker-range-arrow {
   display: none !important;
