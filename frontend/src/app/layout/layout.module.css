@@ -1,0 +1,16 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.logo {
+  color: var(--color-primary);
+}
+
+.menu {
+  min-width: 0;
+  flex: auto;
+  justify-content: flex-end;
+}
