@@ -2,7 +2,7 @@ import { Layout, Menu } from 'antd';
 import { Link, useLocation } from 'react-router';
 import { Logo } from '@/shared/assets';
 import { PAGES, PATHS } from '@/shared/consts';
-import styles from './styles.module.css';
+import styles from './layout.module.css';
 
 export const Header = () => {
   const { pathname } = useLocation();
