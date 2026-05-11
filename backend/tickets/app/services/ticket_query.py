@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, time
 from typing import Any
 
 from sqlalchemy import text
@@ -38,6 +38,8 @@ class TicketListParams:
     airport_to: int
     from_date: date
     to_date: date
+    from_time: time | None
+    to_time: time | None
     todlers_number: int
     children_number: int
     passengers_number: int
@@ -204,6 +206,8 @@ WHERE af.id = :airport_from
   AND at.id = :airport_to
   AND fi.departure_date >= :from_date
   AND fi.departure_date <= :to_date
+  AND (:from_time IS NULL OR fi.departure_time >= :from_time)
+  AND (:to_time IS NULL OR fi.arrival_time <= :to_time)
 {order_by_clause}
 """
 
@@ -230,6 +234,8 @@ def _list_bind_params(params: TicketListParams, offset: int) -> dict[str, Any]:
         "airport_to": params.airport_to,
         "from_date": params.from_date,
         "to_date": params.to_date,
+        "from_time": params.from_time,
+        "to_time": params.to_time,
         "todlers_number": params.todlers_number,
         "children_number": params.children_number,
         "passengers_number": params.passengers_number,
@@ -318,6 +324,8 @@ WHERE af.id = :airport_from
   AND at.id = :airport_to
   AND fi.departure_date >= :from_date
   AND fi.departure_date <= :to_date
+  AND (:from_time IS NULL OR fi.departure_time >= :from_time)
+  AND (:to_time IS NULL OR fi.arrival_time <= :to_time)
 """)
 
 
@@ -330,6 +338,8 @@ def _count_tickets(db: Session, params: TicketListParams) -> int:
                 "airport_to": params.airport_to,
                 "from_date": params.from_date,
                 "to_date": params.to_date,
+                "from_time": params.from_time,
+                "to_time": params.to_time,
             },
         )
         .mappings()

@@ -1,6 +1,6 @@
 """Маршруты списка билетов / рейсов."""
 
-from datetime import date
+from datetime import date, time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -44,6 +44,24 @@ def list_tickets(
     ],
     offset: Annotated[int, Query(ge=0, description="Смещение пагинации")],
     limit: Annotated[int, Query(ge=1, le=500, description="Размер страницы")],
+    from_time: Annotated[
+        time | None,
+        Query(
+            description=(
+                "Минимальное время вылета (включительно). "
+                "Если задано, подбираются рейсы с departure_time не раньше значения."
+            ),
+        ),
+    ] = None,
+    to_time: Annotated[
+        time | None,
+        Query(
+            description=(
+                "Максимальное время прибытия (включительно). "
+                "Если задано, подбираются рейсы с arrival_time не позже значения."
+            ),
+        ),
+    ] = None,
     todlers_number: Annotated[
         int,
         Query(ge=0, description="Количество младенцев"),
@@ -90,6 +108,8 @@ def list_tickets(
         airport_to=airport_to,
         from_date=from_date,
         to_date=from_to,
+        from_time=from_time,
+        to_time=to_time,
         todlers_number=todlers_number,
         children_number=children_number,
         passengers_number=passengers_number,
