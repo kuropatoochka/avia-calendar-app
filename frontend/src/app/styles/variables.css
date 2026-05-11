@@ -36,6 +36,8 @@
   --line-height-md: 1.5;
   --line-height-lg: 1.7;
 
+  --font-family: 'Rubik', sans-serif;
+
   /* Spacing */
   --space-2xs: 4px;
   --space-xs: 8px;
