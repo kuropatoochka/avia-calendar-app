@@ -1,6 +1,6 @@
-import type { BestPricesRequest, FlightsRequest } from '../types/api';
-import { API_URL } from '../consts/api';
-import { getFlightSearchParams } from '../utils/getFlightSearchParams';
+import type { BestPricesRequest, FlightsRequest } from '../../types/api';
+import { API_URL } from '../../consts/api';
+import { getFlightSearchParams } from '../../utils/getFlightSearchParams';
 
 /**
  * @todo Добавить свойство туда-обратно
