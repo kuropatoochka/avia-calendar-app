@@ -1,4 +1,4 @@
-import type { FlightFiltersState } from '../types/flightFilters';
+import type { FlightFiltersState } from './types';
 
 export const DEFAULT_FLIGHT_FILTERS: FlightFiltersState = {
   maxStops: 2,

@@ -1,4 +1,4 @@
-import type { DepartureTime } from '../types/flightFilters';
+import type { DepartureTime } from './types';
 
 export const DEPARTURE_TIME_LABELS: Record<DepartureTime, string> = {
   morning: 'Утро',
