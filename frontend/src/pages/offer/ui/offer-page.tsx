@@ -1,12 +1,17 @@
+import { Space, Typography } from 'antd';
 import { FlightFilters } from '@/features/flight-filters';
 import { SearchForm } from '@/features/search-form';
 import styles from './offer-page.module.css';
-import { TitleBlock } from './title-block';
 
 const OfferPage = () => {
   return (
     <>
-      <TitleBlock />
+      <Space orientation="vertical" size={8}>
+        <Typography.Title>Куда летим?</Typography.Title>
+        <Typography.Paragraph type="secondary">
+          Да хоть куда, лишь бы подешевле...
+        </Typography.Paragraph>
+      </Space>
       <SearchForm />
       <div className={styles.columns}>
         <div className={styles.results} />
