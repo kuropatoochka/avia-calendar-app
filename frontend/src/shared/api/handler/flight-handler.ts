@@ -1,5 +1,5 @@
-import type { Passengers, ServiceClass } from '@/shared/types';
 import { http, HttpResponse } from 'msw';
+import type { Passengers, ServiceClass } from '@/shared/types';
 import { generateFlights, getDateRange } from '../mock/generate-flight-mocks';
 
 const SERVICE_CLASSES: ServiceClass[] = ['economy', 'comfort', 'business', 'first'];

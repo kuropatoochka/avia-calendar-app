@@ -1,0 +1,74 @@
+.card {
+  background: var(--background-page);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.airline {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.route {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.price {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.timesRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.timeBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.time {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.airport {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.timeDivider {
+  flex: 1;
+  height: 1px;
+  background: var(--border-primary);
+  opacity: 0.6;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}

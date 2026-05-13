@@ -1,7 +1,7 @@
+import { useCallback, useState } from 'react';
 import { FlightService } from '@/shared/api';
 import { useFetch } from '@/shared/hooks';
 import type { PriceDynamicsDto, PriceDynamicsRequest } from '@/shared/types';
-import { useCallback, useState } from 'react';
 
 export const usePriceDynamics = () => {
   const [priceDynamics, setPriceDynamics] = useState<PriceDynamicsDto[]>([]);

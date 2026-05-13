@@ -1,9 +1,12 @@
+import { Collapse, Flex, Space, Typography } from 'antd';
+import { useMemo, useState } from 'react';
 import { FlightFilters } from '@/features/flight-filters';
 import type { FlightFiltersState } from '@/features/flight-filters/model/types';
+import { FlightOffersList, useFlightOffers } from '@/features/flight-offers-list';
+import type { PriceDynamicsSelection } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
 import {
   PriceDynamicsBlock,
   PriceDynamicsPlaceholder,
-  type PriceDynamicsSelection,
 } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
 import { SearchForm } from '@/features/search-form';
 import {
@@ -13,10 +16,8 @@ import {
 import type { SearchFormValues } from '@/features/search-form/model/types';
 import { airportMock } from '@/shared/api';
 import { ArrowDown } from '@/shared/assets';
-import type { PriceDynamicsRequest } from '@/shared/types';
+import type { FlightsRequest, PriceDynamicsRequest } from '@/shared/types';
 import { cn } from '@/shared/utils';
-import { Collapse, Flex, Space, Typography } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
 import styles from './offer-page.module.css';
 
 type PriceDynamicsChartConfig = {
@@ -38,7 +39,9 @@ const DEFAULT_AIRPORTS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
 const OfferPage = () => {
   const [activeSearch, setActiveSearch] = useState<ActiveSearchState | null>(null);
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
-  const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>([]);
+  const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
+  const [hasOffersRequest, setHasOffersRequest] = useState(false);
+  const { offers, fetchOffers, isOffersLoading, offersError, resetOffers } = useFlightOffers();
 
   const airportLookup = useMemo(() => {
     const entries = [...airportMock, ...DEFAULT_AIRPORTS];
@@ -49,11 +52,30 @@ const OfferPage = () => {
     return airportLookup.get(airportId)?.airport ?? airportId.toUpperCase();
   };
 
+  const mapFiltersToRequest = (filters: FlightFiltersState): FlightFilters => ({
+    maxStops: filters.maxStops,
+    // TODO: Map stop duration when backend/handlers support it.
+    stopDurationRange: filters.stopDurationRange,
+    maxFlightDuration: filters.maxFlightDuration,
+    // TODO: Map departure times when backend/handlers support it.
+    departureTimes: filters.departureTimes,
+    // TODO: Map price mode when backend/handlers support it.
+    pricePerPassenger: filters.pricePerPassenger,
+    priceRange: filters.priceRange,
+    // TODO: Map baggage and pet filters when backend/handlers support it.
+    baggageTypes: filters.baggageTypes,
+    maxBaggageWeight: filters.maxBaggageWeight,
+    airline: filters.airline,
+    petTransport: filters.petTransport,
+  });
+
   const handleSearch = (values: SearchFormValues) => {
     const [dateFrom, dateTo] = values.dateRange;
 
     if (!dateFrom || !dateTo) {
       setActiveSearch(null);
+      setHasOffersRequest(false);
+      resetOffers();
       return;
     }
 
@@ -77,6 +99,9 @@ const OfferPage = () => {
       originLabel: getAirportLabel(values.originAirport),
       destinationLabel: getAirportLabel(values.destinationAirport),
     });
+
+    setHasOffersRequest(false);
+    resetOffers();
   };
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
@@ -113,18 +138,25 @@ const OfferPage = () => {
     return charts;
   }, [activeSearch]);
 
-  useEffect(() => {
-    if (priceDynamicsCharts) {
-      setPriceDynamicsOpenKeys(['price-dynamics']);
-    } else {
-      setPriceDynamicsOpenKeys([]);
-    }
-  }, [priceDynamicsCharts]);
-
   const handleShowFlights = (selection: PriceDynamicsSelection) => {
     if (!activeSearch) {
       return;
     }
+
+    const isReturn = selection.direction === 'return';
+    const filters = activeFilters ? mapFiltersToRequest(activeFilters) : undefined;
+    const request: FlightsRequest = {
+      originAirportId: isReturn
+        ? activeSearch.baseParams.destinationAirportId
+        : activeSearch.baseParams.originAirportId,
+      destinationAirportId: isReturn
+        ? activeSearch.baseParams.originAirportId
+        : activeSearch.baseParams.destinationAirportId,
+      date: selection.date,
+      passengers: activeSearch.baseParams.passengers,
+      serviceClass: activeSearch.baseParams.serviceClass,
+      ...(filters ? { filters } : undefined),
+    };
 
     console.log('Show flights for selected date', {
       direction: selection.direction,
@@ -132,6 +164,9 @@ const OfferPage = () => {
       baseSearchParams: activeSearch.baseParams,
       filters: activeFilters,
     });
+
+    setHasOffersRequest(true);
+    void fetchOffers(request);
   };
 
   return (
@@ -183,6 +218,18 @@ const OfferPage = () => {
                 },
               ]}
             />
+            <section className={styles.offersSection}>
+              <Typography.Title level={4} className={styles.sectionTitle}>
+                Доступные предложения
+              </Typography.Title>
+              <FlightOffersList
+                offers={offers}
+                isLoading={isOffersLoading}
+                error={offersError}
+                hasRequested={hasOffersRequest}
+                resolveAirportLabel={getAirportLabel}
+              />
+            </section>
           </div>
           <aside className={styles.filterWrapper}>
             <FlightFilters onApply={handleApplyFilters} />

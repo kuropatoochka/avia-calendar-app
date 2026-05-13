@@ -1,7 +1,7 @@
-import type { PriceDynamicsDto, PriceDynamicsRequest } from '@/shared/types';
-import { cn } from '@/shared/utils';
 import { Button, Spin } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { PriceDynamicsDto, PriceDynamicsRequest } from '@/shared/types';
+import { cn } from '@/shared/utils';
 import { usePriceDynamics } from '../hooks/usePriceDynamics';
 import styles from './price-dynamics.module.css';
 

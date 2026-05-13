@@ -29,11 +29,3 @@ h2.ant-typography {
 .ant-layout-header {
   padding: 0 var(--space-xl);
 }
-
-.ant-collapse-borderless >.ant-collapse-item>.ant-collapse-panel>.ant-collapse-body{
-  margin: 0 !important;
-}
-
-div.ant-collapse-body {
-  padding: 0;
-}

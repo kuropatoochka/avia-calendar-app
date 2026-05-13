@@ -1,7 +1,8 @@
-import { Search, Swap } from '@/shared/assets';
-import { cn } from '@/shared/utils';
+import type { PassengersState, SearchFormValues, ServiceClass } from '../model/types';
 import { Button, Flex, Form } from 'antd';
 import { useState } from 'react';
+import { Search, Swap } from '@/shared/assets';
+import { cn } from '@/shared/utils';
 import {
   DEFAULT_DESTINATION_AIRPORT,
   DEFAULT_ORIGIN_AIRPORT,
@@ -9,7 +10,6 @@ import {
   DEFAULT_SERVICE_CLASS,
   getDefaultSearchFormValues,
 } from '../model/consts';
-import type { PassengersState, SearchFormValues, ServiceClass } from '../model/types';
 import { AirportSelect } from './airport-select';
 import { DateRangeSelect } from './date-range-select';
 import { PassengerSelect } from './passenger-select';
