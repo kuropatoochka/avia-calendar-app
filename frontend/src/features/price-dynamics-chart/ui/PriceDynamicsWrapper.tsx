@@ -12,10 +12,13 @@ const priceFormatter = new Intl.NumberFormat('ru-RU', {
 });
 
 const getMaxPrice = (items: PriceDynamicsDto[]) => {
-  return items.reduce(
-    (max, item) => (item.minPrice !== null && item.minPrice > max ? item.minPrice : max),
-    0,
-  );
+  return items.reduce((max, item) => {
+    if (item.minPrice !== null && item.minPrice > max) {
+      return item.minPrice;
+    }
+
+    return max;
+  }, 0);
 };
 
 const formatDateLabel = (date: string) => {
@@ -84,7 +87,7 @@ const PriceDynamicsSection = ({
     usePriceDynamics();
 
   useEffect(() => {
-    fetchPriceDynamics(params);
+    void fetchPriceDynamics(params);
   }, [fetchPriceDynamics, params]);
 
   useEffect(() => {
@@ -118,15 +121,16 @@ const PriceDynamicsSection = ({
           <div className={styles.chartScroll}>
             <div className={styles.chartGrid}>
               {priceDynamics.map((item) => {
-                const isUnavailable = item.minPrice === null;
+                const minPrice = item.minPrice;
+                const isUnavailable = minPrice === null;
+
                 const height =
-                  !isUnavailable && maxPrice > 0
-                    ? Math.max(8, Math.round((item.minPrice / maxPrice) * 100))
+                  minPrice !== null && maxPrice > 0
+                    ? Math.max(8, Math.round((minPrice / maxPrice) * 100))
                     : 0;
+
                 const isSelected = selected?.date === item.date && selected.direction === direction;
-                const priceLabel = isUnavailable
-                  ? 'нет'
-                  : priceFormatter.format(item.minPrice ?? 0);
+                const priceLabel = minPrice === null ? 'нет' : priceFormatter.format(minPrice);
                 const ariaLabel = isUnavailable
                   ? `Дата ${formatDateLabel(item.date)} недоступна`
                   : `Выбрать дату ${formatDateLabel(item.date)}, цена ${priceLabel}`;
