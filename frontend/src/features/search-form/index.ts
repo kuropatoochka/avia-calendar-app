@@ -1,1 +1,2 @@
-export { SearchForm } from './ui/SearchForm';
+export { SearchForm } from './ui/search-form';
+export type { AirportOption, PassengersState, ServiceClass, TripType } from './model/types';

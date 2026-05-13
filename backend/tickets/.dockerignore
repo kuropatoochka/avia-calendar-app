@@ -1,0 +1,16 @@
+.git
+.venv
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+.env
+.cursor
+
+# Тесты и дев-зависимости не нужны в образе приложения
+tests
+

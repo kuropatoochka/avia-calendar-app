@@ -3,15 +3,39 @@ name: frontend-ci
 on:
   pull_request:
     branches: ["main", "develop"]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci.yml"
 
   workflow_dispatch:
 
 jobs:
+  check-frontend-changes:
+    name: check-frontend-changes
+    runs-on: ubuntu-latest
+
+    outputs:
+      frontend_changed: ${{ steps.changes.outputs.frontend_changed }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check frontend changes
+        id: changes
+        shell: bash
+        run: |
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          if echo "$changed_files" | grep -Eq '^(frontend/|\.github/workflows/frontend-ci\.yml$)'; then
+            echo "frontend_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "frontend_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   frontend-ci:
     name: frontend-ci
+    needs: check-frontend-changes
+    if: needs.check-frontend-changes.outputs.frontend_changed == 'true'
     runs-on: ubuntu-latest
 
     defaults:

@@ -1,5 +1,4 @@
-export { airportHandlers } from './handlers/airportHandler';
-export { flightHandlers } from './handlers/flightHandler';
-
-export { default as FlightService } from './FlightService';
-export { default as AirportService } from './AirportService';
+export { default as AirportService } from './service/airport-service';
+export { airportHandlers } from './handler/airport-handler';
+export { flightHandlers } from './handler/flight-handler';
+export { airportMock } from './mock/airport-mock';

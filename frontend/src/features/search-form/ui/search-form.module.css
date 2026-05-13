@@ -1,0 +1,346 @@
+.form {
+  margin: 0;
+  padding: var(--space-xl);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.field {
+  min-width: 170px;
+  width: fit-content;
+  height: 64px;
+  padding: 8px 16px;
+  background: var(--color-background-primary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-primary);
+}
+
+.field :global(.ant-typography) {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.field :global(.ant-select) {
+  margin: 0;
+  padding: 8px 0;
+  border: none;
+}
+
+.arrow {
+  width: 12px;
+  height: 12px;
+  display: block;
+  color: var(--text-secondary);
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+.airport_select__code:global(.ant-typography) {
+  font-size: var(--font-size-2xs);
+  color: var(--color-primary);
+  text-transform: uppercase;
+}
+
+:global(.ant-btn-icon)>svg.swapIcon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-background-primary);
+  transition: transform 0.2s ease;
+}
+
+.swapIconRotated {
+  transform: rotate(180deg);
+}
+
+.controlWrapper {
+  display: flex;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.controlBtnOuter {
+  display: flex;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.controlBtnOuterPassengers {
+  min-width: 190px;
+  width: auto;
+}
+
+.controlBtn {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #d9d9d9;
+  width: 165px;
+  height: 71px;
+  box-sizing: border-box;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-shrink: 0;
+  position: relative;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+  transform-origin: center;
+}
+
+.controlBtnOuter:hover .controlBtn {
+  background: #eeecec;
+}
+
+.controlBtnOuter:active .controlBtn {
+  background: #dcdcdc;
+  transform: scale(0.97);
+}
+
+.controlBtnPassengers {
+  width: auto;
+  min-width: 190px;
+}
+
+.controlBtnError {
+  border-color: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.35);
+}
+
+.controlBtnEmpty {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 1px #40a9ff;
+}
+
+.controlBtnText {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 22px;
+  color: #666;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.personIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.personIcon :global(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.searchBtn {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #c4c4c4;
+  width: 66px;
+  height: 71px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.searchBtn:hover {
+  background: #eeecec;
+}
+
+.searchBtn:active {
+  transform: scale(0.97);
+}
+
+.searchIcon {
+  width: 30px;
+  height: 30px;
+  color: rgba(0, 0, 0, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchIcon :global(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.calendarPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+.passengersContent {
+  width: 280px;
+  padding: 4px 0;
+}
+
+.passengerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.passengerLabelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.passengerLabel {
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.passengerSubLabel {
+  font-family: 'Rubik', sans-serif;
+  font-size: 12px;
+  color: #999;
+}
+
+.helpIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #bbb;
+  font-size: 10px;
+  font-weight: 600;
+  color: #999;
+  cursor: default;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.passengersDivider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 2px 0;
+}
+
+.serviceClassSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serviceClassTitle {
+  font-family: 'Rubik', sans-serif;
+  font-size: 13px;
+  color: #666;
+}
+
+.serviceClassBtn {
+  flex: 1;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  font-family: 'Rubik', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.serviceClassBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.serviceClassBtnActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-background-primary);
+}
+
+.serviceClassBtnActive:hover {
+  background: var(--color-primary);
+  color: var(--color-background-primary);
+}
+
+.passengerCounter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.counterBtn {
+  width: 28px;
+  height: 28px;
+  background: #e6f4ff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  line-height: 1;
+  transition: background-color 0.15s;
+}
+
+.counterBtn:hover:not(:disabled) {
+    background: var(--color-primary);
+  color: var(--color-background-primary);
+}
+
+.counterBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.counterValue {
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 18px;
+  text-align: center;
+  color: #141414;
+}
