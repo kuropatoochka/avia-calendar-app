@@ -43,6 +43,28 @@ type PriceDynamicsBlockProps = {
   onShowFlights?: (selection: PriceDynamicsSelection) => void;
 };
 
+type SelectionState = {
+  searchKey: string;
+  selection: PriceDynamicsSelection;
+};
+
+const getSectionKey = (section: PriceDynamicsSectionConfig) => {
+  const { params } = section;
+
+  return [
+    section.label,
+    params.originAirportId,
+    params.destinationAirportId,
+    params.dateFrom,
+    params.dateTo,
+    params.serviceClass,
+    params.passengers.adults,
+    params.passengers.children,
+    params.passengers.toddler,
+    params.passengers.animals,
+  ].join('-');
+};
+
 const PriceDynamicsSection = ({
   label,
   params,
@@ -77,6 +99,7 @@ const PriceDynamicsSection = ({
   const stateText = isPriceDynamicsLoading
     ? 'Загружаем динамику цен...'
     : (priceDynamicsError ?? 'Нет данных по выбранному периоду.');
+
   const direction: PriceDynamicsSelection['direction'] =
     label === 'Обратно' ? 'return' : 'outbound';
 
@@ -87,6 +110,7 @@ const PriceDynamicsSection = ({
         <p className={styles.subtitle}>{routeSummary}</p>
         <p className={styles.meta}>{dateSummary}</p>
       </div>
+
       {showState ? (
         <div className={styles.stateText}>{stateText}</div>
       ) : (
@@ -131,11 +155,13 @@ const PriceDynamicsSection = ({
                         />
                       </button>
                     </div>
+
                     <div
                       className={cn(styles.priceLabel, isUnavailable && styles.priceUnavailable)}
                     >
                       {priceLabel}
                     </div>
+
                     <div className={styles.dateLabel}>{formatDateLabel(item.date)}</div>
                   </div>
                 );
@@ -149,8 +175,31 @@ const PriceDynamicsSection = ({
 };
 
 export const PriceDynamicsBlock = ({ sections, onShowFlights }: PriceDynamicsBlockProps) => {
-  const [selected, setSelected] = useState<PriceDynamicsSelection | null>(null);
+  const [selectionState, setSelectionState] = useState<SelectionState | null>(null);
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+
+  const sectionEntries = useMemo(() => {
+    return sections.map((section) => ({
+      section,
+      sectionKey: getSectionKey(section),
+    }));
+  }, [sections]);
+
+  const searchKey = useMemo(() => {
+    return sectionEntries.map(({ sectionKey }) => sectionKey).join('|');
+  }, [sectionEntries]);
+
+  const selected = selectionState?.searchKey === searchKey ? selectionState.selection : null;
+
+  const handleSelect = useCallback(
+    (selection: PriceDynamicsSelection) => {
+      setSelectionState({
+        searchKey,
+        selection,
+      });
+    },
+    [searchKey],
+  );
 
   const handleLoadingChange = useCallback((key: string, isLoading: boolean) => {
     setLoadingMap((prev) => {
@@ -158,39 +207,41 @@ export const PriceDynamicsBlock = ({ sections, onShowFlights }: PriceDynamicsBlo
         return prev;
       }
 
+      if (!isLoading) {
+        const next = { ...prev };
+
+        delete next[key];
+
+        return next;
+      }
+
       return {
         ...prev,
-        [key]: isLoading,
+        [key]: true,
       };
     });
   }, []);
 
   const isAnyLoading = useMemo(() => {
-    return Object.values(loadingMap).some(Boolean);
-  }, [loadingMap]);
-
-  useEffect(() => {
-    setSelected(null);
-    setLoadingMap({});
-  }, [sections]);
+    return sectionEntries.some(({ sectionKey }) => loadingMap[sectionKey]);
+  }, [loadingMap, sectionEntries]);
 
   return (
     <section className={styles.card}>
       <Spin spinning={isAnyLoading}>
-        {sections.map((section) => {
-          const sectionKey = `${section.label}-${section.params.originAirportId}`;
-
+        {sectionEntries.map(({ section, sectionKey }) => {
           return (
             <PriceDynamicsSection
               key={sectionKey}
               {...section}
               selected={selected}
-              onSelect={setSelected}
+              onSelect={handleSelect}
               sectionKey={sectionKey}
               onLoadingChange={handleLoadingChange}
             />
           );
         })}
+
         <div className={styles.actions}>
           <Button
             type="primary"
