@@ -4,9 +4,8 @@
 
 div.ant-typography {
   margin: 0;
-  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-md);
+  line-height: var(--line-height-sm);
 }
 
 h1.ant-typography {
@@ -29,6 +28,10 @@ h2.ant-typography {
 
 .ant-layout-header {
   padding: 0 var(--space-xl);
+}
+
+.ant-form-item {
+  margin: 0;
 }
 
 /* Date picker adjustments */

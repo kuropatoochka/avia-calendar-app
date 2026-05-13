@@ -1,115 +1,50 @@
 import type { Dayjs } from 'dayjs';
-import type { MouseEvent } from 'react';
-import { DatePicker } from 'antd';
+import { DatePicker, Flex } from 'antd';
 import dayjs from 'dayjs';
-import { useRef, useState } from 'react';
 import { ArrowDown } from '@/shared/assets';
 import { cn } from '@/shared/utils';
 import styles from './search-form.module.css';
 
-interface DateRangeSelectProps {
-  value: [Dayjs, Dayjs] | null;
+const { RangePicker } = DatePicker;
+
+interface Props {
+  value?: [Dayjs, Dayjs] | null;
   open: boolean;
-  hasError?: boolean;
-  onOpenChange: (v: boolean) => void;
-  onChange: (val: [Dayjs, Dayjs] | null) => void;
+  onOpenChange: (open: boolean) => void;
+  onChange?: (value: [Dayjs, Dayjs] | null) => void;
 }
 
-export const DateRangeSelect = ({
-  value,
-  open,
-  hasError,
-  onOpenChange,
-  onChange,
-}: DateRangeSelectProps) => {
-  const [pickerValue, setPickerValue] = useState<[Dayjs, Dayjs]>([
-    dayjs(),
-    dayjs().add(1, 'month'),
-  ]);
-
-  const dateClickingRef = useRef(false);
-
-  const label = value
-    ? `${value[0].format('DD.MM')} — ${value[1].format('DD.MM')}`
-    : 'Желаемые даты';
-
-  const handleReset = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onChange(null);
+export const DateRangeSelect = ({ value, open, onOpenChange, onChange }: Props) => {
+  const disablePastDates = (date: Dayjs) => {
+    return date.isBefore(dayjs().startOf('day'), 'day');
   };
 
   return (
-    <div className={styles.controlWrapper}>
-      <button
-        type="button"
-        className={styles.controlBtnOuter}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        onClick={() => onOpenChange(true)}
-      >
-        <span
-          className={cn(styles.controlBtn, {
-            [styles.controlBtnError]: hasError,
-            [styles.controlBtnEmpty]: !value && !hasError,
-          })}
-        >
-          <span className={styles.controlBtnText}>{label}</span>
-
-          <span
-            className={cn(styles.arrowIcon, {
-              [styles.arrowIconOpen]: open,
-            })}
-            aria-hidden="true"
-          >
-            <ArrowDown />
-          </span>
-        </span>
-      </button>
-
-      <DatePicker.RangePicker
-        className={styles.hiddenPicker}
+    <Flex className={styles.field} vertical justify="space-around">
+      <RangePicker
+        value={value}
         open={open}
         onOpenChange={onOpenChange}
-        value={value}
-        placement="bottomRight"
-        onChange={(values) => {
-          onChange(values as [Dayjs, Dayjs] | null);
-        }}
-        onCalendarChange={() => {
-          dateClickingRef.current = false;
-        }}
-        pickerValue={pickerValue}
-        onPickerValueChange={(values) => {
-          if (!dateClickingRef.current && values?.[0] && values?.[1]) {
-            setPickerValue([values[0], values[1]]);
+        disabledDate={disablePastDates}
+        variant="borderless"
+        format="DD.MM.YYYY"
+        placeholder={['Туда', 'Обратно']}
+        suffixIcon={
+          <ArrowDown
+            className={cn(styles.arrow, {
+              [styles.arrowOpen]: open,
+            })}
+          />
+        }
+        onChange={(dates) => {
+          if (!dates?.[0] || !dates?.[1]) {
+            onChange?.(null);
+            return;
           }
-        }}
-        panelRender={(panel) => (
-          <div
-            className={styles.calendarPanel}
-            onMouseDown={(event) => {
-              if ((event.target as HTMLElement).closest('.ant-picker-cell')) {
-                dateClickingRef.current = true;
-              }
-            }}
-          >
-            <div className={styles.calendarResetRow}>
-              <button
-                type="button"
-                className={cn(styles.calendarResetBtn, {
-                  [styles.calendarResetBtnDisabled]: !value,
-                })}
-                disabled={!value}
-                onClick={handleReset}
-              >
-                Сбросить даты
-              </button>
-            </div>
 
-            {panel}
-          </div>
-        )}
+          onChange?.([dates[0], dates[1]]);
+        }}
       />
-    </div>
+    </Flex>
   );
 };

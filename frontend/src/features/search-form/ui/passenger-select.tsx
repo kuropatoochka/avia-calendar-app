@@ -1,5 +1,4 @@
 import type { PassengersState, ServiceClass } from '../model/types';
-import type { Dispatch, SetStateAction } from 'react';
 import { Flex, Popover } from 'antd';
 import { ArrowDown, Person } from '@/shared/assets';
 import { cn } from '@/shared/utils';
@@ -8,30 +7,37 @@ import { SERVICE_CLASS_LABELS } from '../model/labels';
 import { PassengerCounter } from './passenger-counter';
 import styles from './search-form.module.css';
 
-interface PassengerSelectProps {
+interface Props {
   open: boolean;
-  onOpenChange: (v: boolean) => void;
+  onOpenChange: (open: boolean) => void;
   passengers: PassengersState;
-  setPassengers: Dispatch<SetStateAction<PassengersState>>;
-  serviceClasses: ServiceClass[];
-  toggleServiceClass: (cls: ServiceClass) => void;
+  onPassengersChange: (passengers: PassengersState) => void;
+  serviceClass: ServiceClass;
+  onServiceClassChange: (serviceClass: ServiceClass) => void;
 }
 
 export const PassengerSelect = ({
   open,
   onOpenChange,
   passengers,
-  setPassengers,
-  serviceClasses,
-  toggleServiceClass,
-}: PassengerSelectProps) => {
+  onPassengersChange,
+  serviceClass,
+  onServiceClassChange,
+}: Props) => {
+  const updatePassengers = (nextPassengers: Partial<PassengersState>) => {
+    onPassengersChange({
+      ...passengers,
+      ...nextPassengers,
+    });
+  };
+
   const content = (
     <Flex vertical gap={12} className={styles.passengersContent}>
       <PassengerCounter
         label="Взрослые"
         value={passengers.adults}
         min={1}
-        onChange={(value) => setPassengers((prev) => ({ ...prev, adults: value }))}
+        onChange={(value) => updatePassengers({ adults: value })}
       />
 
       <PassengerCounter
@@ -39,7 +45,7 @@ export const PassengerSelect = ({
         subLabel="2–11 лет"
         value={passengers.children}
         min={0}
-        onChange={(value) => setPassengers((prev) => ({ ...prev, children: value }))}
+        onChange={(value) => updatePassengers({ children: value })}
       />
 
       <PassengerCounter
@@ -47,7 +53,7 @@ export const PassengerSelect = ({
         subLabel="до 2 лет"
         value={passengers.toddler}
         min={0}
-        onChange={(value) => setPassengers((prev) => ({ ...prev, toddler: value }))}
+        onChange={(value) => updatePassengers({ toddler: value })}
       />
 
       <PassengerCounter
@@ -55,7 +61,7 @@ export const PassengerSelect = ({
         helpText="животных до 10 кг можно перевозить в салоне"
         value={passengers.animals}
         min={0}
-        onChange={(value) => setPassengers((prev) => ({ ...prev, animals: value }))}
+        onChange={(value) => updatePassengers({ animals: value })}
       />
 
       <div className={styles.passengersDivider} />
@@ -64,16 +70,16 @@ export const PassengerSelect = ({
         <span className={styles.serviceClassTitle}>Класс обслуживания</span>
 
         <Flex gap={8}>
-          {(Object.keys(SERVICE_CLASS_LABELS) as ServiceClass[]).map((serviceClass) => (
+          {(Object.keys(SERVICE_CLASS_LABELS) as ServiceClass[]).map((item) => (
             <button
-              key={serviceClass}
+              key={item}
               type="button"
               className={cn(styles.serviceClassBtn, {
-                [styles.serviceClassBtnActive]: serviceClasses.includes(serviceClass),
+                [styles.serviceClassBtnActive]: serviceClass === item,
               })}
-              onClick={() => toggleServiceClass(serviceClass)}
+              onClick={() => onServiceClassChange(item)}
             >
-              {SERVICE_CLASS_LABELS[serviceClass]}
+              {SERVICE_CLASS_LABELS[item]}
             </button>
           ))}
         </Flex>
@@ -90,7 +96,6 @@ export const PassengerSelect = ({
       onOpenChange={onOpenChange}
       arrow={false}
       align={{ offset: [0, 4] }}
-      motion={{ motionName: '' }}
     >
       <button
         type="button"

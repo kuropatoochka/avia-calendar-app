@@ -22,6 +22,7 @@
   --border-primary: var(--color-border-primary);
 
   /* Typography */
+  --font-size-2xs: 12px;
   --font-size-xs: 14px;
   --font-size-sm: 16px;
   --font-size-md: 24px;
@@ -54,7 +55,7 @@
   --radius-full: 999px;
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgb(20 20 20 / 6%);
-  --shadow-md: 0 8px 24px rgb(20 20 20 / 8%);
-  --shadow-lg: 0 16px 40px rgb(20 20 20 / 10%);
+  --shadow-sm: 0 2px 8px rgb(20 20 20 / 5%);
+  --shadow-md: 0 4px 16px rgb(20 20 20 / 15%);
+  --shadow-lg: 0 8px 24px rgb(20 20 20 / 25%);
 }

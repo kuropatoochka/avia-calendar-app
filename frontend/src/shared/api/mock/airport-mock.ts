@@ -1,4 +1,4 @@
-import type { AirportDto } from "../../types/api";
+import type { AirportDto } from '../../types/api';
 
 export const airportMock: AirportDto[] = [
   { id: 'svo', airport: 'Шереметьево', city: 'Москва' },

@@ -1,123 +1,135 @@
+import type { PassengersState, SearchFormValues, ServiceClass } from '../model/types';
+import { Button, Flex, Form } from 'antd';
 import { useState } from 'react';
 import { Search, Swap } from '@/shared/assets';
-import { useSearchForm } from '../model/use-search-form';
-import { CitySelect } from './city-select';
+import { cn } from '@/shared/utils';
+import {
+  DEFAULT_DESTINATION_AIRPORT,
+  DEFAULT_ORIGIN_AIRPORT,
+  DEFAULT_PASSENGERS,
+  DEFAULT_SERVICE_CLASS,
+  getDefaultSearchFormValues,
+} from '../model/consts';
+import { AirportSelect } from './airport-select';
 import { DateRangeSelect } from './date-range-select';
 import { PassengerSelect } from './passenger-select';
 import styles from './search-form.module.css';
 import { TripTypeSelect } from './trip-type-select';
 
+const DEFAULT_AIRPORT_OPTIONS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
+
 export const SearchForm = () => {
-  const {
-    tripType,
-    setTripType,
-    passengers,
-    setPassengers,
-    serviceClasses,
-    toggleServiceClass,
-    originValue,
-    originId,
-    setOriginValue,
-    setOriginId,
-    destValue,
-    destId,
-    setDestValue,
-    setDestId,
-    dateRange,
-    setDateRange,
-    errors,
-    setErrors,
-    handleSwap,
-    handleSearch,
-    fetchAirportOptions,
-  } = useSearchForm();
+  const [form] = Form.useForm<SearchFormValues>();
 
   const [tripTypeOpen, setTripTypeOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [passengersOpen, setPassengersOpen] = useState(false);
+  const [isSwapped, setIsSwapped] = useState(false);
+
+  const passengers = Form.useWatch('passengers', { form, preserve: true }) ?? DEFAULT_PASSENGERS;
+
+  const serviceClass =
+    Form.useWatch('serviceClass', { form, preserve: true }) ?? DEFAULT_SERVICE_CLASS;
+
+  const handleFinish = () => {
+    const values = form.getFieldsValue(true) as SearchFormValues;
+
+    console.log('Search form submit', {
+      ...values,
+      dateRange: values.dateRange?.map((date) => date.format('YYYY-MM-DD')) ?? null,
+    });
+  };
+
+  const handleSwap = () => {
+    const originAirport = form.getFieldValue('originAirport');
+    const destinationAirport = form.getFieldValue('destinationAirport');
+
+    form.setFieldsValue({
+      originAirport: destinationAirport,
+      destinationAirport: originAirport,
+    });
+
+    setIsSwapped((prev) => !prev);
+  };
+
+  const updatePassengers = (nextPassengers: PassengersState) => {
+    form.setFieldValue('passengers', nextPassengers);
+  };
+
+  const changeServiceClass = (nextServiceClass: ServiceClass) => {
+    form.setFieldValue('serviceClass', nextServiceClass);
+  };
 
   return (
-    <div className={styles.searchForm}>
-      <div className={styles.formRow}>
-        <div className={styles.cityGroup}>
-          <CitySelect
+    <Form
+      form={form}
+      className={styles.form}
+      initialValues={getDefaultSearchFormValues()}
+      onFinish={handleFinish}
+    >
+      <Flex gap={8} align="center">
+        <Form.Item
+          name="originAirport"
+          rules={[{ required: true, message: 'Выберите город вылета' }]}
+        >
+          <AirportSelect
             label="Откуда"
             placeholder="Город вылета"
-            cityName={originValue}
-            cityId={originId}
-            hasError={errors.origin}
-            fetchOptions={fetchAirportOptions}
-            onSelect={(option) => {
-              setOriginValue(option.value);
-              setOriginId(option.airportId);
-              setErrors((prev) => ({ ...prev, origin: false }));
-            }}
+            initialOption={DEFAULT_ORIGIN_AIRPORT}
+            initialOptions={DEFAULT_AIRPORT_OPTIONS}
           />
+        </Form.Item>
 
-          <button
-            type="button"
-            className={styles.swapBtn}
-            onClick={handleSwap}
-            aria-label="Поменять города"
-          >
-            <span className={styles.swapIcon} aria-hidden="true">
-              <Swap />
-            </span>
-          </button>
+        <Button
+          type="link"
+          icon={
+            <Swap
+              className={cn(styles.swapIcon, {
+                [styles.swapIconRotated]: isSwapped,
+              })}
+            />
+          }
+          onClick={handleSwap}
+        />
 
-          <CitySelect
+        <Form.Item
+          name="destinationAirport"
+          rules={[{ required: true, message: 'Выберите город назначения' }]}
+        >
+          <AirportSelect
             label="Куда"
             placeholder="Город назначения"
-            cityName={destValue}
-            cityId={destId}
-            hasError={errors.dest}
-            fetchOptions={fetchAirportOptions}
-            onSelect={(option) => {
-              setDestValue(option.value);
-              setDestId(option.airportId);
-              setErrors((prev) => ({ ...prev, dest: false }));
-            }}
+            initialOption={DEFAULT_DESTINATION_AIRPORT}
+            initialOptions={DEFAULT_AIRPORT_OPTIONS}
           />
-        </div>
+        </Form.Item>
+      </Flex>
 
-        <TripTypeSelect
-          value={tripType}
-          open={tripTypeOpen}
-          onOpenChange={setTripTypeOpen}
-          onChange={setTripType}
-        />
+      <Form.Item name="tripType" rules={[{ required: true, message: 'Выберите тип маршрута' }]}>
+        <TripTypeSelect open={tripTypeOpen} onOpenChange={setTripTypeOpen} />
+      </Form.Item>
 
-        <DateRangeSelect
-          value={dateRange}
-          open={datePickerOpen}
-          hasError={errors.dates}
-          onOpenChange={setDatePickerOpen}
-          onChange={(value) => {
-            setDateRange(value);
-            setErrors((prev) => ({ ...prev, dates: false }));
-          }}
-        />
+      <Form.Item
+        name="dateRange"
+        rules={[{ required: true, message: 'Выберите диапазон поездки' }]}
+      >
+        <DateRangeSelect open={datePickerOpen} onOpenChange={setDatePickerOpen} />
+      </Form.Item>
 
-        <PassengerSelect
-          open={passengersOpen}
-          onOpenChange={setPassengersOpen}
-          passengers={passengers}
-          setPassengers={setPassengers}
-          serviceClasses={serviceClasses}
-          toggleServiceClass={toggleServiceClass}
-        />
+      <PassengerSelect
+        open={passengersOpen}
+        onOpenChange={setPassengersOpen}
+        passengers={passengers}
+        onPassengersChange={updatePassengers}
+        serviceClass={serviceClass}
+        onServiceClassChange={changeServiceClass}
+      />
 
-        <button
-          type="button"
-          className={styles.searchBtn}
-          onClick={handleSearch}
-          aria-label="Найти"
-        >
-          <span className={styles.searchIcon} aria-hidden="true">
-            <Search />
-          </span>
-        </button>
-      </div>
-    </div>
+      <Button htmlType="submit" className={styles.searchBtn} aria-label="Найти">
+        <span className={styles.searchIcon} aria-hidden="true">
+          <Search />
+        </span>
+      </Button>
+    </Form>
   );
 };
