@@ -139,8 +139,8 @@ export const SearchForm = () => {
         onServiceClassChange={changeServiceClass}
       />
 
-      <Button htmlType="submit" style={{height: '64px'}}>
-          <Search className={styles.searchIcon} />
+      <Button htmlType="submit" style={{ height: '64px' }}>
+        <Search className={styles.searchIcon} />
       </Button>
     </Form>
   );
