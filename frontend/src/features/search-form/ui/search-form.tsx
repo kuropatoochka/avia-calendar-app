@@ -1,8 +1,7 @@
-import type { PassengersState, SearchFormValues, ServiceClass } from '../model/types';
-import { Button, Flex, Form } from 'antd';
-import { useState } from 'react';
 import { Search, Swap } from '@/shared/assets';
 import { cn } from '@/shared/utils';
+import { Button, Flex, Form } from 'antd';
+import { useState } from 'react';
 import {
   DEFAULT_DESTINATION_AIRPORT,
   DEFAULT_ORIGIN_AIRPORT,
@@ -10,6 +9,7 @@ import {
   DEFAULT_SERVICE_CLASS,
   getDefaultSearchFormValues,
 } from '../model/consts';
+import type { PassengersState, SearchFormValues, ServiceClass } from '../model/types';
 import { AirportSelect } from './airport-select';
 import { DateRangeSelect } from './date-range-select';
 import { PassengerSelect } from './passenger-select';
@@ -36,7 +36,10 @@ export const SearchForm = () => {
 
     console.log('Search form submit', {
       ...values,
-      dateRange: values.dateRange?.map((date) => date.format('YYYY-MM-DD')) ?? null,
+      dateRange: [
+        values.dateRange[0].format('YYYY-MM-DD'),
+        values.dateRange[1]?.format('YYYY-MM-DD') ?? null,
+      ],
     });
   };
 
@@ -111,7 +114,18 @@ export const SearchForm = () => {
 
       <Form.Item
         name="dateRange"
-        rules={[{ required: true, message: 'Выберите диапазон поездки' }]}
+        help={null}
+        rules={[
+          {
+            validator: (_, value) => {
+              if (!value?.[0] || !value?.[1]) {
+                return Promise.reject(new Error(''));
+              }
+
+              return Promise.resolve();
+            },
+          },
+        ]}
       >
         <DateRangeSelect open={datePickerOpen} onOpenChange={setDatePickerOpen} />
       </Form.Item>
@@ -125,10 +139,8 @@ export const SearchForm = () => {
         onServiceClassChange={changeServiceClass}
       />
 
-      <Button htmlType="submit" className={styles.searchBtn} aria-label="Найти">
-        <span className={styles.searchIcon} aria-hidden="true">
-          <Search />
-        </span>
+      <Button htmlType="submit" style={{height: '64px'}}>
+          <Search className={styles.searchIcon} />
       </Button>
     </Form>
   );

@@ -1,9 +1,9 @@
-import type { PassengersState, ServiceClass } from '../model/types';
-import { Flex, Popover } from 'antd';
 import { ArrowDown, Person } from '@/shared/assets';
 import { cn } from '@/shared/utils';
+import { Button, Divider, Flex, Popover } from 'antd';
 import { getPassengerLabel } from '../model/get-passenger-label';
 import { SERVICE_CLASS_LABELS } from '../model/labels';
+import type { PassengersState, ServiceClass } from '../model/types';
 import { PassengerCounter } from './passenger-counter';
 import styles from './search-form.module.css';
 
@@ -64,7 +64,7 @@ export const PassengerSelect = ({
         onChange={(value) => updatePassengers({ animals: value })}
       />
 
-      <div className={styles.passengersDivider} />
+      <Divider style={{ margin: 0 }} />
 
       <Flex vertical gap={8}>
         <span className={styles.serviceClassTitle}>Класс обслуживания</span>
@@ -95,30 +95,19 @@ export const PassengerSelect = ({
       open={open}
       onOpenChange={onOpenChange}
       arrow={false}
-      align={{ offset: [0, 4] }}
+      className={styles.field}
     >
-      <button
-        type="button"
-        className={cn(styles.controlBtnOuter, styles.controlBtnOuterPassengers)}
-        aria-expanded={open}
-      >
-        <span className={cn(styles.controlBtn, styles.controlBtnPassengers)}>
-          <span className={styles.personIcon} aria-hidden="true">
-            <Person />
-          </span>
+      <Button className={styles.field}>
+        <Person className={styles.personIcon} />
 
-          <span className={styles.controlBtnText}>{getPassengerLabel(passengers)}</span>
+        <span>{getPassengerLabel(passengers)}</span>
 
-          <span
-            className={cn(styles.arrowIcon, {
-              [styles.arrowIconOpen]: open,
-            })}
-            aria-hidden="true"
-          >
-            <ArrowDown />
-          </span>
-        </span>
-      </button>
+        <ArrowDown
+          className={cn(styles.arrow, {
+            [styles.arrowOpen]: open,
+          })}
+        />
+      </Button>
     </Popover>
   );
 };

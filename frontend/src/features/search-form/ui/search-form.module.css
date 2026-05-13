@@ -3,6 +3,8 @@
   padding: var(--space-xl);
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 16px;
   background-color: var(--color-primary);
   border-radius: var(--radius-lg);
@@ -11,6 +13,7 @@
 
 .field {
   min-width: 170px;
+  width: fit-content;
   height: 64px;
   padding: 8px 16px;
   background: var(--color-background-primary);
@@ -155,21 +158,6 @@
   display: block;
 }
 
-.hiddenPicker {
-  position: absolute !important;
-  bottom: 0 !important;
-  right: 0 !important;
-  left: auto !important;
-  width: 0 !important;
-  height: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  overflow: hidden !important;
-}
-
 .searchBtn {
   background: white;
   border-radius: 10px;
@@ -214,33 +202,6 @@
 .calendarPanel {
   display: flex;
   flex-direction: column;
-}
-
-.calendarResetRow {
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px 16px 10px;
-}
-
-.calendarResetBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: 'Rubik', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: #40a9ff;
-  padding: 0;
-  transition: color 0.15s;
-}
-
-.calendarResetBtn:hover:not(:disabled) {
-  color: #1677ff;
-}
-
-.calendarResetBtnDisabled {
-  color: #bbb;
-  cursor: default;
 }
 
 .passengersContent {
@@ -328,19 +289,19 @@
 }
 
 .serviceClassBtn:hover {
-  border-color: #40a9ff;
-  color: #40a9ff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .serviceClassBtnActive {
-  background: #40a9ff;
-  border-color: #40a9ff;
-  color: white;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-background-primary);
 }
 
 .serviceClassBtnActive:hover {
-  background: #40a9ff;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-background-primary);
 }
 
 .passengerCounter {
@@ -360,14 +321,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #40a9ff;
+  color: var(--color-primary);
   line-height: 1;
   transition: background-color 0.15s;
 }
 
 .counterBtn:hover:not(:disabled) {
-  background: #40a9ff;
-  color: white;
+    background: var(--color-primary);
+  color: var(--color-background-primary);
 }
 
 .counterBtn:disabled {

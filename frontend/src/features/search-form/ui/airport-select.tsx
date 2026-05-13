@@ -1,9 +1,10 @@
-import type { AirportOption } from '../model/types';
-import { Flex, Select, Spin, Typography } from 'antd';
-import { useState } from 'react';
 import { ArrowDown } from '@/shared/assets';
 import type { AirportDto } from '@/shared/types';
+import { cn } from '@/shared/utils';
+import { Flex, Select, Spin, Typography } from 'antd';
+import { useState } from 'react';
 import { fetchAirportOptions } from '../model/fetch-airport-options';
+import type { AirportOption } from '../model/types';
 import styles from './search-form.module.css';
 
 interface Props {
@@ -48,6 +49,7 @@ export const AirportSelect = ({
   const [options, setOptions] = useState<AirportOption[]>(initialSelectOptions);
   const [isInitialOptionsLoaded, setIsInitialOptionsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const selectedValue = value ?? initialOption.id;
 
@@ -79,12 +81,18 @@ export const AirportSelect = ({
     <Flex className={styles.field} vertical justify="space-around">
       <Typography.Paragraph className={styles.label}>{label}</Typography.Paragraph>
 
-      <Select
+      <Select<string, AirportOption>
         value={selectedValue}
         options={options}
         placeholder={placeholder}
         variant="borderless"
-        suffixIcon={<ArrowDown className={styles.arrow} />}
+        suffixIcon={
+          <ArrowDown
+            className={cn(styles.arrow, {
+              [styles.arrowOpen]: isOpen,
+            })}
+          />
+        }
         popupMatchSelectWidth={200}
         loading={loading}
         notFoundContent={loading ? <Spin size="small" /> : 'Ничего не найдено'}
@@ -96,6 +104,8 @@ export const AirportSelect = ({
           },
         }}
         onOpenChange={(open) => {
+          setIsOpen(open);
+
           if (open && !isInitialOptionsLoaded) {
             void getOptions();
           }
