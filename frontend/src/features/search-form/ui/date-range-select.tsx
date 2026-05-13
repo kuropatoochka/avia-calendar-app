@@ -1,115 +1,64 @@
+import type { DateRangeValue } from '../model/types';
 import type { Dayjs } from 'dayjs';
-import type { MouseEvent } from 'react';
-import { DatePicker } from 'antd';
+import { DatePicker, Flex, Form, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useRef, useState } from 'react';
-import { ArrowDown } from '@/shared/assets';
 import { cn } from '@/shared/utils';
 import styles from './search-form.module.css';
 
-interface DateRangeSelectProps {
-  value: [Dayjs, Dayjs] | null;
+const { RangePicker } = DatePicker;
+
+interface Props {
+  value?: DateRangeValue;
   open: boolean;
-  hasError?: boolean;
-  onOpenChange: (v: boolean) => void;
-  onChange: (val: [Dayjs, Dayjs] | null) => void;
+  onOpenChange: (open: boolean) => void;
+  onChange?: (value: DateRangeValue) => void;
 }
 
-export const DateRangeSelect = ({
-  value,
-  open,
-  hasError,
-  onOpenChange,
-  onChange,
-}: DateRangeSelectProps) => {
-  const [pickerValue, setPickerValue] = useState<[Dayjs, Dayjs]>([
-    dayjs(),
-    dayjs().add(1, 'month'),
-  ]);
+export const DateRangeSelect = ({ value, open, onOpenChange, onChange }: Props) => {
+  const { status } = Form.Item.useStatus();
 
-  const dateClickingRef = useRef(false);
-
-  const label = value
-    ? `${value[0].format('DD.MM')} — ${value[1].format('DD.MM')}`
-    : 'Желаемые даты';
-
-  const handleReset = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onChange(null);
+  const disablePastDates = (date: Dayjs) => {
+    return date.isBefore(dayjs().startOf('day'), 'day');
   };
 
   return (
-    <div className={styles.controlWrapper}>
-      <button
-        type="button"
-        className={styles.controlBtnOuter}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        onClick={() => onOpenChange(true)}
-      >
-        <span
-          className={cn(styles.controlBtn, {
-            [styles.controlBtnError]: hasError,
-            [styles.controlBtnEmpty]: !value && !hasError,
-          })}
-        >
-          <span className={styles.controlBtnText}>{label}</span>
+    <Flex
+      className={cn(styles.field, {
+        [styles.fieldError]: status === 'error',
+      })}
+      vertical
+      justify="space-around"
+    >
+      <Flex align="center" justify="space-between">
+        <Typography.Paragraph className={styles.label}>Туда</Typography.Paragraph>
+        <Typography.Paragraph className={styles.label}>Обратно</Typography.Paragraph>
+      </Flex>
 
-          <span
-            className={cn(styles.arrowIcon, {
-              [styles.arrowIconOpen]: open,
-            })}
-            aria-hidden="true"
-          >
-            <ArrowDown />
-          </span>
-        </span>
-      </button>
-
-      <DatePicker.RangePicker
-        className={styles.hiddenPicker}
+      <RangePicker
+        value={value}
         open={open}
         onOpenChange={onOpenChange}
-        value={value}
-        placement="bottomRight"
-        onChange={(values) => {
-          onChange(values as [Dayjs, Dayjs] | null);
-        }}
-        onCalendarChange={() => {
-          dateClickingRef.current = false;
-        }}
-        pickerValue={pickerValue}
-        onPickerValueChange={(values) => {
-          if (!dateClickingRef.current && values?.[0] && values?.[1]) {
-            setPickerValue([values[0], values[1]]);
-          }
-        }}
-        panelRender={(panel) => (
-          <div
-            className={styles.calendarPanel}
-            onMouseDown={(event) => {
-              if ((event.target as HTMLElement).closest('.ant-picker-cell')) {
-                dateClickingRef.current = true;
-              }
-            }}
-          >
-            <div className={styles.calendarResetRow}>
-              <button
-                type="button"
-                className={cn(styles.calendarResetBtn, {
-                  [styles.calendarResetBtnDisabled]: !value,
-                })}
-                disabled={!value}
-                onClick={handleReset}
-              >
-                Сбросить даты
-              </button>
-            </div>
+        disabledDate={disablePastDates}
+        variant="borderless"
+        format="DD.MM.YYYY"
+        placeholder={['', 'Выберите дату']}
+        allowClear={false}
+        allowEmpty={[false, true]}
+        suffixIcon={null}
+        onCalendarChange={(dates) => {
+          const startDate = dates?.[0] ?? value?.[0] ?? dayjs();
+          const endDate = dates?.[1] ?? null;
 
-            {panel}
-          </div>
-        )}
+          onChange?.([startDate, endDate]);
+        }}
+        onChange={(dates) => {
+          if (!dates?.[0]) {
+            return;
+          }
+
+          onChange?.([dates[0], dates[1] ?? null]);
+        }}
       />
-    </div>
+    </Flex>
   );
 };

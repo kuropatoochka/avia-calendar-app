@@ -13,4 +13,5 @@
   min-width: 0;
   flex: auto;
   justify-content: flex-end;
+  border-bottom: none;
 }
