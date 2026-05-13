@@ -30,6 +30,10 @@ h2.ant-typography {
   padding: 0 var(--space-xl);
 }
 
-.ant-form-item {
-  margin: 0;
+.ant-collapse-borderless >.ant-collapse-item>.ant-collapse-panel>.ant-collapse-body{
+  margin: 0 !important;
+}
+
+div.ant-collapse-body {
+  padding: 0;
 }

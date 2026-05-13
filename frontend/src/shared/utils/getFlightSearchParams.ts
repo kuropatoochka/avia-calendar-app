@@ -3,13 +3,9 @@ import type { FlightFilters, FlightsRequest, Passengers, PriceDynamicsRequest } 
 const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) => {
   searchParams.set('passengers_adults', String(params.adults));
 
-  if (params.children !== undefined) {
-    searchParams.set('passengers_children', String(params.children));
-  }
-
-  if (params.toddler !== undefined) {
-    searchParams.set('passengers_toddler', String(params.toddler));
-  }
+  searchParams.set('passengers_children', String(params.children));
+  searchParams.set('passengers_toddler', String(params.toddler));
+  searchParams.set('passengers_animals', String(params.animals));
 
   return searchParams;
 };
@@ -39,6 +35,10 @@ export const getFlightSearchParams = <T extends PriceDynamicsRequest | FlightsRe
 
   if ('date' in params) {
     searchParams.set('date', params.date);
+  }
+
+  if ('serviceClass' in params) {
+    searchParams.set('service_class', params.serviceClass);
   }
 
   getPassengersParams(searchParams, params.passengers);

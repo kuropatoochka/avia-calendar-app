@@ -30,8 +30,8 @@ export const DateRangeSelect = ({ value, open, onOpenChange, onChange }: Props) 
       justify="space-around"
     >
       <Flex align="center" justify="space-between">
-        <Typography.Paragraph className={styles.label}>Туда</Typography.Paragraph>
-        <Typography.Paragraph className={styles.label}>Обратно</Typography.Paragraph>
+        <Typography.Paragraph className={styles.label}>Начало</Typography.Paragraph>
+        <Typography.Paragraph className={styles.label}>Окончание</Typography.Paragraph>
       </Flex>
 
       <RangePicker

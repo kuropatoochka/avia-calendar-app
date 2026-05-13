@@ -1,40 +1,74 @@
+import type { Passengers, ServiceClass } from '@/shared/types';
 import { http, HttpResponse } from 'msw';
-import { flightsMock } from '../mock/flightMock';
+import { generateFlights, getDateRange } from '../mock/generate-flight-mocks';
 
-const getPassengerMultiplier = (url: URL) => {
-  const adults = Number(url.searchParams.get('passengers_adults') ?? 1);
-  const children = Number(url.searchParams.get('passengers_children') ?? 0);
-  const toddler = Number(url.searchParams.get('passengers_toddler') ?? 0);
+const SERVICE_CLASSES: ServiceClass[] = ['economy', 'comfort', 'business', 'first'];
 
-  return adults + children * 0.75 + toddler * 0.1;
+const getPassengers = (url: URL): Passengers => {
+  return {
+    adults: Number(url.searchParams.get('passengers_adults') ?? 1),
+    children: Number(url.searchParams.get('passengers_children') ?? 0),
+    toddler: Number(url.searchParams.get('passengers_toddler') ?? 0),
+    animals: Number(url.searchParams.get('passengers_animals') ?? 0),
+  };
 };
 
-const isDateInRange = (date: string, dateFrom: string, dateTo: string) => {
-  return date >= dateFrom && date <= dateTo;
-};
+const getServiceClass = (url: URL): ServiceClass => {
+  const serviceClass = url.searchParams.get('service_class');
 
-const getUTCDate = (date: string) => {
-  const [year, month, day] = date.split('-').map(Number);
-
-  return new Date(Date.UTC(year, month - 1, day));
-};
-
-const formatDate = (date: Date) => {
-  return date.toISOString().slice(0, 10);
-};
-
-const getDateRange = (dateFrom: string, dateTo: string) => {
-  const dates: string[] = [];
-
-  const currentDate = getUTCDate(dateFrom);
-  const endDate = getUTCDate(dateTo);
-
-  while (currentDate <= endDate) {
-    dates.push(formatDate(currentDate));
-    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+  if (serviceClass && SERVICE_CLASSES.includes(serviceClass as ServiceClass)) {
+    return serviceClass as ServiceClass;
   }
 
-  return dates;
+  return 'economy';
+};
+
+const parseNumber = (value: string | null) => {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+
+  return Number.isNaN(parsed) ? undefined : parsed;
+};
+
+const parseRange = (value: string | null) => {
+  if (!value) {
+    return undefined;
+  }
+
+  const [minRaw, maxRaw] = value.split(',');
+  const min = parseNumber(minRaw ?? null);
+  const max = parseNumber(maxRaw ?? null);
+
+  if (min === undefined || max === undefined) {
+    return undefined;
+  }
+
+  return [min, max] as const;
+};
+
+const applyFilters = (flights: ReturnType<typeof generateFlights>, url: URL) => {
+  const maxStops = parseNumber(url.searchParams.get('maxStops'));
+  const maxFlightDuration = parseNumber(url.searchParams.get('maxFlightDuration'));
+  const priceRange = parseRange(url.searchParams.get('priceRange'));
+
+  return flights.filter((flight) => {
+    if (maxStops !== undefined && flight.stopsCount > maxStops) {
+      return false;
+    }
+
+    if (maxFlightDuration !== undefined && flight.duration > maxFlightDuration) {
+      return false;
+    }
+
+    if (priceRange && (flight.price < priceRange[0] || flight.price > priceRange[1])) {
+      return false;
+    }
+
+    return true;
+  });
 };
 
 export const flightHandlers = [
@@ -50,22 +84,24 @@ export const flightHandlers = [
       return HttpResponse.json({ message: 'Некорректные параметры запроса' }, { status: 400 });
     }
 
-    const passengerMultiplier = getPassengerMultiplier(url);
+    const passengers = getPassengers(url);
+    const serviceClass = getServiceClass(url);
     const dates = getDateRange(dateFrom, dateTo);
 
-    const filteredFlights = flightsMock.filter((flight) => {
-      return (
-        flight.origin === origin &&
-        flight.destination === destination &&
-        isDateInRange(flight.date, dateFrom, dateTo)
+    const minPricesByDate = dates.reduce<Record<string, number>>((acc, date) => {
+      const flights = applyFilters(
+        generateFlights({
+          originAirportId: origin,
+          destinationAirportId: destination,
+          date,
+          passengers,
+          serviceClass,
+        }),
+        url,
       );
-    });
 
-    const minPricesByDate = filteredFlights.reduce<Record<string, number>>((acc, flight) => {
-      const totalPrice = Math.round(flight.price * passengerMultiplier);
-
-      if (!acc[flight.date] || totalPrice < acc[flight.date]) {
-        acc[flight.date] = totalPrice;
+      if (flights.length) {
+        acc[date] = Math.min(...flights.map((flight) => flight.price));
       }
 
       return acc;
@@ -90,19 +126,19 @@ export const flightHandlers = [
       return HttpResponse.json({ message: 'Некорректные параметры запроса' }, { status: 400 });
     }
 
-    const passengerMultiplier = getPassengerMultiplier(url);
+    const passengers = getPassengers(url);
+    const serviceClass = getServiceClass(url);
 
-    const response = flightsMock
-      .filter((flight) => {
-        return (
-          flight.origin === origin && flight.destination === destination && flight.date === date
-        );
-      })
-      .map((flight) => ({
-        ...flight,
-        price: Math.round(flight.price * passengerMultiplier),
-      }))
-      .sort((a, b) => a.price - b.price);
+    const response = applyFilters(
+      generateFlights({
+        originAirportId: origin,
+        destinationAirportId: destination,
+        date,
+        passengers,
+        serviceClass,
+      }),
+      url,
+    ).sort((a, b) => a.price - b.price);
 
     return HttpResponse.json(response);
   }),

@@ -6,9 +6,12 @@ export type AirportDto = {
 
 export type Passengers = {
   adults: number;
-  children?: number;
-  toddler?: number;
+  children: number;
+  toddler: number;
+  animals: number;
 };
+
+export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
 
 export type PriceDynamicsRequest = {
   originAirportId: string;
@@ -16,6 +19,7 @@ export type PriceDynamicsRequest = {
   dateFrom: string;
   dateTo: string;
   passengers: Passengers;
+  serviceClass: ServiceClass;
 };
 
 export type PriceDynamicsDto = {
@@ -41,6 +45,7 @@ export type FlightsRequest = {
   destinationAirportId: string;
   date: string;
   passengers: Passengers;
+  serviceClass: ServiceClass;
   filters?: FlightFilters;
 };
 
