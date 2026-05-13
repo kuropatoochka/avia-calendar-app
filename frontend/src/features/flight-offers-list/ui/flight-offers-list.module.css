@@ -1,0 +1,19 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.stateCard {
+  background: var(--background-section);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+  text-align: center;
+}

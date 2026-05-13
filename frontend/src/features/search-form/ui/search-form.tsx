@@ -18,7 +18,11 @@ import { TripTypeSelect } from './trip-type-select';
 
 const DEFAULT_AIRPORT_OPTIONS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
 
-export const SearchForm = () => {
+type SearchFormProps = {
+  onSearch: (values: SearchFormValues) => void;
+};
+
+export const SearchForm = ({ onSearch }: SearchFormProps) => {
   const [form] = Form.useForm<SearchFormValues>();
 
   const [tripTypeOpen, setTripTypeOpen] = useState(false);
@@ -41,6 +45,8 @@ export const SearchForm = () => {
         values.dateRange[1]?.format('YYYY-MM-DD') ?? null,
       ],
     });
+
+    onSearch(values);
   };
 
   const handleSwap = () => {
@@ -112,6 +118,15 @@ export const SearchForm = () => {
         <TripTypeSelect open={tripTypeOpen} onOpenChange={setTripTypeOpen} />
       </Form.Item>
 
+      <PassengerSelect
+        open={passengersOpen}
+        onOpenChange={setPassengersOpen}
+        passengers={passengers}
+        onPassengersChange={updatePassengers}
+        serviceClass={serviceClass}
+        onServiceClassChange={changeServiceClass}
+      />
+
       <Form.Item
         name="dateRange"
         help={null}
@@ -129,15 +144,6 @@ export const SearchForm = () => {
       >
         <DateRangeSelect open={datePickerOpen} onOpenChange={setDatePickerOpen} />
       </Form.Item>
-
-      <PassengerSelect
-        open={passengersOpen}
-        onOpenChange={setPassengersOpen}
-        passengers={passengers}
-        onPassengersChange={updatePassengers}
-        serviceClass={serviceClass}
-        onServiceClassChange={changeServiceClass}
-      />
 
       <Button htmlType="submit" style={{ height: '64px' }}>
         <Search className={styles.searchIcon} />

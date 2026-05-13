@@ -6,22 +6,26 @@ export type AirportDto = {
 
 export type Passengers = {
   adults: number;
-  children?: number;
-  toddler?: number;
+  children: number;
+  toddler: number;
+  animals: number;
 };
 
-export type BestPricesRequest = {
-  origin: string;
-  destination: string;
+export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
+
+export type PriceDynamicsRequest = {
+  originAirportId: string;
+  destinationAirportId: string;
   dateFrom: string;
   dateTo: string;
   passengers: Passengers;
+  serviceClass: ServiceClass;
 };
 
-export type BestPricesDto = {
+export type PriceDynamicsDto = {
   date: string;
-  price: number;
-}[];
+  minPrice: number | null;
+};
 
 export type FlightFilters = {
   maxStops?: number;
@@ -37,10 +41,11 @@ export type FlightFilters = {
 };
 
 export type FlightsRequest = {
-  origin: string;
-  destination: string;
+  originAirportId: string;
+  destinationAirportId: string;
   date: string;
   passengers: Passengers;
+  serviceClass: ServiceClass;
   filters?: FlightFilters;
 };
 

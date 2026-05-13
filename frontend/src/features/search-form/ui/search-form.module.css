@@ -1,19 +1,17 @@
 .form {
   margin: 0;
-  padding: var(--space-xl);
+  padding: var(--space-lg);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px;
   background-color: var(--color-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
 }
 
 .field {
-  min-width: 170px;
-  width: fit-content;
+  min-width: 160px;
   height: 64px;
   padding: 8px 16px;
   background: var(--color-background-primary);
