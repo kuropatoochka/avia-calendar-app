@@ -1,5 +1,6 @@
 export type {
   AirportDto,
+  FlightFilters,
   FlightsRequest,
   Passengers,
   PriceDynamicsDto,
