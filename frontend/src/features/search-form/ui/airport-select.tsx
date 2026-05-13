@@ -1,10 +1,10 @@
+import type { AirportOption } from '../model/types';
+import { Flex, Select, Spin, Typography } from 'antd';
+import { useState } from 'react';
 import { ArrowDown } from '@/shared/assets';
 import type { AirportDto } from '@/shared/types';
 import { cn } from '@/shared/utils';
-import { Flex, Select, Spin, Typography } from 'antd';
-import { useState } from 'react';
 import { fetchAirportOptions } from '../model/fetch-airport-options';
-import type { AirportOption } from '../model/types';
 import styles from './search-form.module.css';
 
 interface Props {

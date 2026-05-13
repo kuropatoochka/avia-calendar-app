@@ -1,6 +1,6 @@
+import type { PassengersState, SearchFormValues, ServiceClass, TripType } from './types';
 import dayjs from 'dayjs';
 import type { AirportDto } from '@/shared/types';
-import type { PassengersState, SearchFormValues, ServiceClass, TripType } from './types';
 
 export const DEFAULT_ORIGIN_AIRPORT: AirportDto = {
   id: 'led',

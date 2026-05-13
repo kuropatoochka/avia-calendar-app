@@ -1,9 +1,9 @@
+import type { PassengersState, ServiceClass } from '../model/types';
+import { Button, Divider, Flex, Popover } from 'antd';
 import { ArrowDown, Person } from '@/shared/assets';
 import { cn } from '@/shared/utils';
-import { Button, Divider, Flex, Popover } from 'antd';
 import { getPassengerLabel } from '../model/get-passenger-label';
 import { SERVICE_CLASS_LABELS } from '../model/labels';
-import type { PassengersState, ServiceClass } from '../model/types';
 import { PassengerCounter } from './passenger-counter';
 import styles from './search-form.module.css';
 

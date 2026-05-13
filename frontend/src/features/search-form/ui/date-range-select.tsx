@@ -1,9 +1,8 @@
-import { ArrowDown } from '@/shared/assets';
-import { cn } from '@/shared/utils';
-import { DatePicker, Flex, Form, Typography } from 'antd';
-import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
 import type { DateRangeValue } from '../model/types';
+import type { Dayjs } from 'dayjs';
+import { DatePicker, Flex, Form, Typography } from 'antd';
+import dayjs from 'dayjs';
+import { cn } from '@/shared/utils';
 import styles from './search-form.module.css';
 
 const { RangePicker } = DatePicker;
