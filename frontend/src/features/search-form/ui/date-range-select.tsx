@@ -1,6 +1,6 @@
 import type { DateRangeValue } from '../model/types';
 import type { Dayjs } from 'dayjs';
-import { DatePicker, Flex, Form, Typography } from 'antd';
+import { DatePicker, Flex, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { cn } from '@/shared/utils';
 import styles from './search-form.module.css';
@@ -12,11 +12,10 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onChange?: (value: DateRangeValue) => void;
+  hasError?: boolean;
 }
 
-export const DateRangeSelect = ({ value, open, onOpenChange, onChange }: Props) => {
-  const { status } = Form.Item.useStatus();
-
+export const DateRangeSelect = ({ value, open, onOpenChange, onChange, hasError }: Props) => {
   const disablePastDates = (date: Dayjs) => {
     return date.isBefore(dayjs().startOf('day'), 'day');
   };
@@ -24,7 +23,7 @@ export const DateRangeSelect = ({ value, open, onOpenChange, onChange }: Props) 
   return (
     <Flex
       className={cn(styles.field, {
-        [styles.fieldError]: status === 'error',
+        [styles.fieldError]: hasError,
       })}
       vertical
       justify="space-around"

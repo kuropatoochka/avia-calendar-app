@@ -14,6 +14,7 @@ interface Props {
   initialOptions?: AirportDto[];
   value?: string;
   onChange?: (value: string) => void;
+  hasError?: boolean;
 }
 
 const mapSelectOption = (option: AirportDto): AirportOption => ({
@@ -43,6 +44,7 @@ export const AirportSelect = ({
   initialOptions = [initialOption],
   value,
   onChange,
+  hasError = false,
 }: Props) => {
   const initialSelectOptions = initialOptions.map(mapSelectOption);
 
@@ -78,7 +80,13 @@ export const AirportSelect = ({
   };
 
   return (
-    <Flex className={styles.field} vertical justify="space-around">
+    <Flex
+      className={cn(styles.field, {
+        [styles.fieldError]: hasError,
+      })}
+      vertical
+      justify="space-around"
+    >
       <Typography.Paragraph className={styles.label}>{label}</Typography.Paragraph>
 
       <Select<string, AirportOption>

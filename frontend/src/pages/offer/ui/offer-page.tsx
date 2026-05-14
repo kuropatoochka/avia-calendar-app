@@ -8,12 +8,12 @@ import {
   PriceDynamicsBlock,
   PriceDynamicsPlaceholder,
 } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
-import { SearchForm } from '@/features/search-form';
+import type { SearchFormValues } from '@/features/search-form';
 import {
   DEFAULT_DESTINATION_AIRPORT,
   DEFAULT_ORIGIN_AIRPORT,
-} from '@/features/search-form/model/consts';
-import type { SearchFormValues } from '@/features/search-form/model/types';
+  SearchForm,
+} from '@/features/search-form';
 import { airportMock } from '@/shared/api';
 import { ArrowDown } from '@/shared/assets';
 import type {
@@ -103,8 +103,12 @@ const OfferPage = () => {
 
   const handleSearch = (values: SearchFormValues) => {
     const [dateFrom, dateTo] = values.dateRange;
+    const [originAirportId, destinationAirportId] = [
+      values.originAirport,
+      values.destinationAirport,
+    ];
 
-    if (!dateFrom || !dateTo) {
+    if (!dateFrom || !dateTo || originAirportId === destinationAirportId) {
       setActiveSearch(null);
       setActiveSelection(null);
       setHasOffersRequest(false);
@@ -113,8 +117,8 @@ const OfferPage = () => {
     }
 
     const baseParams: PriceDynamicsRequest = {
-      originAirportId: values.originAirport,
-      destinationAirportId: values.destinationAirport,
+      originAirportId,
+      destinationAirportId,
       dateFrom: dateFrom.format('YYYY-MM-DD'),
       dateTo: dateTo.format('YYYY-MM-DD'),
       passengers: {

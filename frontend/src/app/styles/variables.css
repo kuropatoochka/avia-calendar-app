@@ -10,6 +10,7 @@
   --color-background-secondary: #F5F5F5;
 
   --color-primary: #73AFFF;
+  --color-error: #FF4D4F;
 
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);

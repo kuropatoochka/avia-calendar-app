@@ -10,7 +10,6 @@ export const fetchAirportOptions = async (name?: string) => {
     }
 
     const data: AirportDto[] = await response.json();
-    console.log(data);
 
     return data;
   } catch {

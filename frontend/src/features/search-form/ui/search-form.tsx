@@ -1,5 +1,5 @@
 import type { PassengersState, SearchFormValues, ServiceClass } from '../model/types';
-import { Button, Flex, Form } from 'antd';
+import { Alert, Button, Flex, Form } from 'antd';
 import { useState } from 'react';
 import { Search, Swap } from '@/shared/assets';
 import { cn } from '@/shared/utils';
@@ -29,6 +29,7 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [passengersOpen, setPassengersOpen] = useState(false);
   const [isSwapped, setIsSwapped] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const passengers = Form.useWatch('passengers', { form, preserve: true }) ?? DEFAULT_PASSENGERS;
 
@@ -37,15 +38,6 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
 
   const handleFinish = () => {
     const values = form.getFieldsValue(true) as SearchFormValues;
-
-    console.log('Search form submit', {
-      ...values,
-      dateRange: [
-        values.dateRange[0].format('YYYY-MM-DD'),
-        values.dateRange[1]?.format('YYYY-MM-DD') ?? null,
-      ],
-    });
-
     onSearch(values);
   };
 
@@ -79,16 +71,28 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
       <Flex gap={8} align="center">
         <Form.Item
           name="originAirport"
-          rules={[{ required: true, message: 'Выберите город вылета' }]}
+          rules={[
+            { required: true, message: '' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (value && value === getFieldValue('destinationAirport')) {
+                  return Promise.reject(
+                    setFormError('Лететь туда же, откуда взлетели? Это слишком просто!'),
+                  );
+                }
+                return Promise.resolve(setFormError(null));
+              },
+            }),
+          ]}
         >
           <AirportSelect
             label="Откуда"
             placeholder="Город вылета"
             initialOption={DEFAULT_ORIGIN_AIRPORT}
             initialOptions={DEFAULT_AIRPORT_OPTIONS}
+            hasError={form.getFieldError('originAirport').length > 0}
           />
         </Form.Item>
-
         <Button
           type="link"
           icon={
@@ -100,24 +104,34 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
           }
           onClick={handleSwap}
         />
-
         <Form.Item
           name="destinationAirport"
-          rules={[{ required: true, message: 'Выберите город назначения' }]}
+          rules={[
+            { required: true, message: '' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (value && value === getFieldValue('originAirport')) {
+                  return Promise.reject(
+                    setFormError('Лететь туда же, откуда взлетели? Это слишком просто!'),
+                  );
+                }
+                return Promise.resolve(setFormError(null));
+              },
+            }),
+          ]}
         >
           <AirportSelect
             label="Куда"
             placeholder="Город назначения"
             initialOption={DEFAULT_DESTINATION_AIRPORT}
             initialOptions={DEFAULT_AIRPORT_OPTIONS}
+            hasError={form.getFieldError('destinationAirport').length > 0}
           />
         </Form.Item>
       </Flex>
-
-      <Form.Item name="tripType" rules={[{ required: true, message: 'Выберите тип маршрута' }]}>
+      <Form.Item name="tripType">
         <TripTypeSelect open={tripTypeOpen} onOpenChange={setTripTypeOpen} />
       </Form.Item>
-
       <PassengerSelect
         open={passengersOpen}
         onOpenChange={setPassengersOpen}
@@ -126,28 +140,30 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
         serviceClass={serviceClass}
         onServiceClassChange={changeServiceClass}
       />
-
       <Form.Item
         name="dateRange"
-        help={null}
         rules={[
           {
             validator: (_, value) => {
-              if (!value?.[0] || !value?.[1]) {
-                return Promise.reject(new Error(''));
+              if (!value || !value[0] || !value[1]) {
+                return Promise.reject(setFormError('Похоже, вы забыли даты… А пилот уже ждет!'));
               }
-
-              return Promise.resolve();
+              return Promise.resolve(setFormError(null));
             },
           },
         ]}
       >
-        <DateRangeSelect open={datePickerOpen} onOpenChange={setDatePickerOpen} />
+        <DateRangeSelect
+          open={datePickerOpen}
+          onOpenChange={setDatePickerOpen}
+          hasError={form.getFieldError('dateRange').length > 0}
+        />
       </Form.Item>
 
       <Button htmlType="submit" style={{ height: '64px' }}>
         <Search className={styles.searchIcon} />
       </Button>
+      {formError && <Alert type="info" showIcon title={formError} style={{ width: '100%' }} />}
     </Form>
   );
 };
