@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.tickets import TicketItem, TicketsListResponse
+from app.schemas.tickets import TicketItem, TicketRangeItem, TicketsListResponse
 from app.services.ticket_query import (
     TicketListParams,
     fetch_tickets,
@@ -15,8 +15,81 @@ from app.services.ticket_query import (
     parse_price_type,
     parse_service_class_csv,
 )
+from app.services.ticket_range_query import (
+    TicketRangeParams,
+    fetch_ticket_range,
+    parse_single_service_class,
+)
 
 router = APIRouter(tags=["tickets"])
+
+
+@router.get("/tickets/range", response_model=list[TicketRangeItem])
+def tickets_range(
+    db: Annotated[Session, Depends(get_db)],
+    airport_from: Annotated[int, Query(description="Идентификатор аэропорта вылета")],
+    airport_to: Annotated[int, Query(description="Идентификатор аэропорта прилёта")],
+    from_date: Annotated[
+        date,
+        Query(description="Начало диапазона дат вылета (включительно)"),
+    ],
+    to_date: Annotated[
+        date,
+        Query(description="Конец диапазона дат вылета (включительно)"),
+    ],
+    passengers_number: Annotated[
+        int,
+        Query(ge=1, description="Количество взрослых пассажиров"),
+    ],
+    service_class: Annotated[
+        str,
+        Query(
+            min_length=1,
+            description="Один класс: BUDGET, BUSINESS, COMFORT, FIRST_CLASS",
+        ),
+    ],
+    todlers_number: Annotated[
+        int,
+        Query(ge=0, description="Количество младенцев"),
+    ] = 0,
+    children_number: Annotated[
+        int,
+        Query(ge=0, description="Количество детей"),
+    ] = 0,
+    baggage_size: Annotated[
+        int | None,
+        Query(
+            ge=0, description="Вес багажа в килограммах (умножается на baggage_price)"
+        ),
+    ] = None,
+) -> list[TicketRangeItem]:
+    if from_date > to_date:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="from_date must be on or before to_date",
+        )
+    try:
+        class_token = parse_single_service_class(service_class)
+    except ValueError as exc:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+
+    baggage_kg = 0 if baggage_size is None else baggage_size
+    params = TicketRangeParams(
+        airport_from=airport_from,
+        airport_to=airport_to,
+        from_date=from_date,
+        to_date=to_date,
+        passengers_number=passengers_number,
+        children_number=children_number,
+        todlers_number=todlers_number,
+        baggage_kg=baggage_kg,
+        service_class=class_token,
+    )
+    rows = fetch_ticket_range(db, params)
+    return [TicketRangeItem.model_validate(r) for r in rows]
 
 
 @router.get("/tickets", response_model=TicketsListResponse)
@@ -28,7 +101,7 @@ def list_tickets(
         date,
         Query(description="Минимальная дата вылета (включительно)"),
     ],
-    from_to: Annotated[
+    to_date: Annotated[
         date,
         Query(description="Максимальная дата вылета (включительно)"),
     ],
@@ -114,10 +187,10 @@ def list_tickets(
         Query(ge=0, description="Количество детей"),
     ] = 0,
 ) -> TicketsListResponse:
-    if from_date > from_to:
+    if from_date > to_date:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="from_date must be on or before from_to",
+            detail="from_date must be on or before to_date",
         )
     if price_from is not None and price_to is not None and price_from > price_to:
         raise HTTPException(
@@ -127,9 +200,7 @@ def list_tickets(
     if animal_as_passenger and animal_as_baggage:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=(
-                "animal_as_passenger and animal_as_baggage are mutually exclusive"
-            ),
+            detail=("animal_as_passenger and animal_as_baggage are mutually exclusive"),
         )
     try:
         classes = parse_service_class_csv(service_class)
@@ -162,7 +233,7 @@ def list_tickets(
         airport_from=airport_from,
         airport_to=airport_to,
         from_date=from_date,
-        to_date=from_to,
+        to_date=to_date,
         from_time=from_time,
         to_time=to_time,
         company_ids=company_ids,

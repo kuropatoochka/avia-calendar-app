@@ -1,6 +1,17 @@
 -- Synthetic test data для схемы из database/schema.sql (PostgreSQL 16+).
 -- Перед загрузкой очищает таблицы (TRUNCATE … CASCADE); не трогайте продуктовые базы без копии.
 -- Запуск: psql … -f database/seed_synthetic_data.sql
+--
+-- Проверка GET /tickets/range (аэропорты 1 → 3, рейс 9001, август 2026):
+--   • 2026-08-01 — два экземпляра с разным budget-тарифом (4000 vs 9000 за взрослого) → min_total_price = 4000.
+--   • 2026-08-02 — один дешёвый рейс → 4000.
+--   • 2026-08-03 — нет рейсов → min_total_price null.
+--   • 2026-08-04 — только «дорогой» budget-тариф → 9000.
+--   • 2026-08-05 — снова дешёвый → 4000.
+--   • 2026-08-06 — рейс с тарифом seats=1 не попадает в выборку при party≥2; остаётся второй рейс
+--     (2 взрослых × 4000 = 8000).
+-- Пример (после загрузки сида): GET …/tickets/range?airport_from=1&airport_to=3&from_date=2026-08-01
+--   &to_date=2026-08-06&passengers_number=1&service_class=BUDGET
 
 BEGIN;
 
@@ -24,7 +35,8 @@ INSERT INTO flight (id, airport_from_id, airport_to_id, flight_number) OVERRIDIN
     (2, 2, 5, 202),
     (3, 1, 3, 303),
     (4, 4, 1, 404),
-    (5, 3, 2, 505);
+    (5, 3, 2, 505),
+    (6, 1, 3, 9001);
 
 INSERT INTO company (id, name) OVERRIDING SYSTEM VALUE VALUES
     (1, 1001),
@@ -35,7 +47,8 @@ INSERT INTO plane (id, type, number, budget_seats, business_seats, comfort_seats
 OVERRIDING SYSTEM VALUE VALUES
     (1, 'Boeing 737-800', 'RA-73001', 140, 12, 0, 0),
     (2, 'Airbus A320neo', 'VP-BTEST', 150, 8, 0, 0),
-    (3, 'Boeing 777-300ER', 'A6-TEST1', 28, 48, 24, 8);
+    (3, 'Boeing 777-300ER', 'A6-TEST1', 28, 48, 24, 8),
+    (4, 'Demo SVO-AER', 'RA-RANGE01', 200, 30, 40, 10);
 
 INSERT INTO tarif (
     id, type, seats, price, children_price, toddler_price, baggage_price
@@ -43,7 +56,10 @@ INSERT INTO tarif (
     (1, 'Budget', 180, 8500, 6200, 1500, 2500),
     (2, 'Business', 24, 42000, 32000, 8000, 0),
     (3, 'Comfort', 0, 18500, 14000, 4000, 1800),
-    (4, 'FirstClass', 8, 125000, 90000, 20000, 0);
+    (4, 'FirstClass', 8, 125000, 90000, 20000, 0),
+    (9, 'Budget', 200, 4000, 3000, 500, 200),
+    (10, 'Budget', 200, 9000, 7000, 2000, 150),
+    (11, 'Budget', 1, 100, 80, 20, 10);
 
 INSERT INTO flight_instance (
     id, flight_id, company_id, duration, departure_date, departure_time,
@@ -55,6 +71,13 @@ INSERT INTO flight_instance (
     (3, 3, 3, 150, DATE '2026-06-12', TIME '07:00', DATE '2026-06-12', TIME '10:30', 1, 1, 2, 3, 4),
     (4, 4, 2, 330, DATE '2026-06-15', TIME '02:15', DATE '2026-06-15', TIME '09:45', 3, 1, 2, 3, 4),
     (5, 5, 1,  75, DATE '2026-06-20', TIME '12:00', DATE '2026-06-20', TIME '14:15', 2, 1, 2, 3, 4),
-    (6, 1, 2, 300, DATE '2026-07-01', TIME '11:00', DATE '2026-07-01', TIME '16:30', 3, 1, 2, 3, 4);
+    (6, 1, 2, 300, DATE '2026-07-01', TIME '11:00', DATE '2026-07-01', TIME '16:30', 3, 1, 2, 3, 4),
+    (7, 6, 1, 180, DATE '2026-08-01', TIME '08:00', DATE '2026-08-01', TIME '11:00', 4, 9, 2, 3, 4),
+    (8, 6, 2, 180, DATE '2026-08-01', TIME '14:00', DATE '2026-08-01', TIME '17:00', 4, 10, 2, 3, 4),
+    (9, 6, 1, 180, DATE '2026-08-02', TIME '08:00', DATE '2026-08-02', TIME '11:00', 4, 9, 2, 3, 4),
+    (10, 6, 1, 180, DATE '2026-08-04', TIME '08:00', DATE '2026-08-04', TIME '11:00', 4, 10, 2, 3, 4),
+    (11, 6, 2, 180, DATE '2026-08-05', TIME '10:00', DATE '2026-08-05', TIME '13:00', 4, 9, 2, 3, 4),
+    (12, 6, 1, 180, DATE '2026-08-06', TIME '06:00', DATE '2026-08-06', TIME '09:00', 4, 11, 2, 3, 4),
+    (13, 6, 2, 180, DATE '2026-08-06', TIME '15:00', DATE '2026-08-06', TIME '18:00', 4, 9, 2, 3, 4);
 
 COMMIT;

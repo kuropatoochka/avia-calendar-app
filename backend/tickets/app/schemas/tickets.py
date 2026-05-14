@@ -44,3 +44,16 @@ class TicketsListResponse(BaseModel):
     total: int
     offset: int
     limit: int
+
+
+class TicketRangeItem(BaseModel):
+    """Одна дата в диапазоне GET /tickets/range."""
+
+    departure_date: date
+    min_total_price: int | None = Field(
+        default=None,
+        description=(
+            "Минимальная сумма за группу в выбранном классе за день; "
+            "null, если нет рейса с достаточным числом мест в тарифе и салоне."
+        ),
+    )

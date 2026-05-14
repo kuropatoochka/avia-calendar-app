@@ -26,9 +26,9 @@ tickets/
 │   ├── py.typed            # маркер типизируемого пакета для Mypy
 │   ├── main.py             # точка входа FastAPI (`app` приложение для ASGI-сервера)
 │   ├── config.py           # Pydantic Settings (URL БД и прочее)
-│   ├── routers/            # маршруты API (`tickets.py` — GET /tickets)
+│   ├── routers/            # маршруты API (`tickets.py` — GET /tickets, GET /tickets/range)
 │   ├── schemas/            # Pydantic-схемы (`schemas/tickets.py`)
-│   ├── services/           # запросы к данным (`ticket_query.py` — SQL списка рейсов)
+│   ├── services/           # запросы к данным (`ticket_query.py`, `ticket_range_query.py`)
 │   └── db/
 │       ├── base.py         # общий DeclarativeBase для ORM-моделей
 │       └── session.py      # Engine, SessionLocal, зависимость get_db
@@ -54,7 +54,7 @@ tickets/
 - Доступ к БД в эндпоинтах — через зависимость **`get_db`** (`Session` SQLAlchemy), без глобального размазывания сессий по коду.
 - ORM-модели наследуют **`app.db.base.Base`**; для **autogenerate** в Alembic в `alembic/env.py` нужно **импортировать все модули с моделями**, чтобы `target_metadata = Base.metadata` видел таблицы.
 
-**`database/seed_synthetic_data.sql`** — наполнение тестовыми строками: в начале выполняется **`TRUNCATE … CASCADE`** и сброс **`IDENTITY`**, затем вставляются города, аэропорты, рейсы, компании, самолёты, тарифы и экземпляры рейсов. Нужна уже применённая схема (**`database/schema.sql`** или эквивалент). Из **`backend/tickets`**: `psql … -f database/seed_synthetic_data.sql`.
+**`database/seed_synthetic_data.sql`** — наполнение тестовыми строками: в начале выполняется **`TRUNCATE … CASCADE`** и сброс **`IDENTITY`**, затем вставляются города, аэропорты, рейсы, компании, самолёты, тарифы и экземпляры рейсов. Нужна уже применённая схема (**`database/schema.sql`** или эквивалент). Из **`backend/tickets`**: `psql … -f database/seed_synthetic_data.sql`. В файле в комментариях описан сценарий для **`GET /tickets/range`** (маршрут аэропорты **1 → 3**, даты **2026-08-01 … 2026-08-06**): два рейса в один день (минимум цены), «пустой» день, фильтр по **`tarif.seats`** при группе из двух взрослых.
 
 ### Статическая типизация и стиль
 
@@ -185,7 +185,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ### Поиск рейсов и билетов
 
 - **`GET /tickets`** — паджинированный список экземпляров рейсов (`flight_instance`) с городами/аэропортами, перевозчиком, самолётом и **опциональными** блоками цен по классам обслуживания.
-  - **Query:** обязательные — `airport_from`, `airport_to`, `from_date`, `from_to`, `passengers_number` (**≥ 1**), `service_class` (непустая строка), **`offset`**, **`limit`**. **Опционально:** `todlers_number`, `children_number` (по умолчанию 0), `from_time` (минимальное время вылета, включительно), `to_time` (максимальное время прибытия, включительно), `company` (CSV-список id компаний), `price_from` (нижняя граница цены), `price_to` (верхняя граница цены), `price_type` (`PASSENGER` или `TOTAL`, по умолчанию `TOTAL`), `animal_as_passenger` (добавлять стоимость животного как пассажира в `total`), `animal_as_baggage` (добавлять стоимость животного как багажа в `total`). `animal_as_passenger` и `animal_as_baggage` — взаимоисключающие параметры (если оба `true`, ответ **422**). Идентификаторы аэропортов — целые `airport.id`; `from_date` / `from_to` — включительные границы по дате вылета; `from_time` фильтрует `departure_time >= from_time`; `to_time` фильтрует `arrival_time <= to_time`; `company` фильтрует `fi.company_id` по списку id; `service_class` — CSV, допустимые токены (регистр не важен): `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS`.
+  - **Query:** обязательные — `airport_from`, `airport_to`, `from_date`, `to_date`, `passengers_number` (**≥ 1**), `service_class` (непустая строка), **`offset`**, **`limit`**. **Опционально:** `todlers_number`, `children_number` (по умолчанию 0), `from_time` (минимальное время вылета, включительно), `to_time` (максимальное время прибытия, включительно), `company` (CSV-список id компаний), `price_from` (нижняя граница цены), `price_to` (верхняя граница цены), `price_type` (`PASSENGER` или `TOTAL`, по умолчанию `TOTAL`), `animal_as_passenger` (добавлять стоимость животного как пассажира в `total`), `animal_as_baggage` (добавлять стоимость животного как багажа в `total`). `animal_as_passenger` и `animal_as_baggage` — взаимоисключающие параметры (если оба `true`, ответ **422**). Идентификаторы аэропортов — целые `airport.id`; `from_date` / `to_date` — включительные границы по дате вылета; `from_time` фильтрует `departure_time >= from_time`; `to_time` фильтрует `arrival_time <= to_time`; `company` фильтрует `fi.company_id` по списку id; `service_class` — CSV, допустимые токены (регистр не важен): `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS`.
   - **Фильтр цен:** применяется отдельно к каждому ценовому блоку. Если конкретный блок (`budget_prices` / `business_prices` / `comfort_prices` / `first_class_prices`) не попадает в диапазон `price_from..price_to` (с учетом `price_type`), он становится `null`; попавшие в диапазон блоки остаются.
   - **Исключение строк:** если после применения фильтров все ценовые блоки у рейса `null`, такой рейс в итоговую выборку не попадает.
   - **Ответ:** объект с полями `items`, `total`, `offset`, `limit`. Каждый элемент содержит маршрут (`city_from`, `city_to`, `airport_from`, `airport_to`), `flight_number`, `company_name`, `duration` (минуты), `departure_date` / `departure_time`, `arrival_date` / `arrival_time`, `plane_type`, `plane_number`, и четыре поля цен: `budget_prices`, `business_prices`, `comfort_prices`, `first_class_prices`.
@@ -194,3 +194,9 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
   - **Сортировка:** на уровне SQL по **минимально доступному** `total` среди запрошенных в `service_class` классов (после применения фильтра цены), затем стабильно по `fi.id`.
   - **Пагинация:** `total` считается по тем же связям, что и выборка списка (`company`, `plane`, все тарифы, города). Если **`offset` ≥ `total`** (запрошена страница за концом выборки), ответ подставляет смещение **начала последней страницы** и возвращает её строки; поле **`offset`** в JSON ответа — фактическое смещение (может отличаться от query).
   - Реализация: `app/routers/tickets.py` (эндпоинт), `app/services/ticket_query.py` (SQL, разбор CSV, привязка параметров цен), `app/schemas/tickets.py` (модели ответа).
+
+- **`GET /tickets/range`** — календарь минимальных цен по дням для маршрута и одного класса обслуживания.
+  - **Query (обязательные):** `airport_from`, `airport_to`, `from_date`, `to_date` (конец диапазона дат вылета, включительно), `passengers_number` (**≥ 1**), `service_class` — ровно одно из `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS` (регистр не важен).
+  - **Query (опционально):** `todlers_number`, `children_number` (по умолчанию 0), `baggage_size` — вес багажа в кг; если не задан, в расчёте используется **0** (как `baggage_price * 0`).
+  - **Ответ:** массив объектов по **каждому** дню от `from_date` до `to_date` включительно, по возрастанию даты: `departure_date`, `min_total_price`. Сумма за день: `price * passengers_number + children_price * children_number + toddler_price * todlers_number + baggage_price * baggage_size` по тарифу выбранного класса на конкретном экземпляре рейса; в выборку попадают только рейсы, где **`tarif.seats`** и число мест соответствующего класса в **`plane`** не меньше суммы `passengers_number + children_number + todlers_number`. `min_total_price` — минимум по всем таким рейсам в этот день; если подходящих рейсов нет — **`null`**.
+  - Реализация: `app/routers/tickets.py`, `app/services/ticket_range_query.py` (`fetch_ticket_range`, `parse_single_service_class`), `app/schemas/tickets.py` (`TicketRangeItem`).
