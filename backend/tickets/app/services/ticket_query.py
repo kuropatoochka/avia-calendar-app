@@ -46,6 +46,9 @@ class TicketListParams:
     passengers_number: int
     baggage_size: int
     service_class: str
+    has_sea: bool
+    has_warm: bool
+    has_nature: bool
 
 
 def parse_company_csv(raw: str) -> tuple[int, ...]:
@@ -157,6 +160,18 @@ WHERE af.id = CAST(:airport_from AS integer)
     CAST(:company_ids AS int[]) IS NULL
     OR fi.company_id = ANY(CAST(:company_ids AS int[]))
   )
+  AND (
+    NOT CAST(:has_sea AS boolean)
+    OR c_to.has_sea
+  )
+  AND (
+    NOT CAST(:has_warm AS boolean)
+    OR c_to.has_warm
+  )
+  AND (
+    NOT CAST(:has_nature AS boolean)
+    OR c_to.has_nature
+  )
   AND ({_PRICE_FILTER_SQL})
 """.strip()
 
@@ -216,6 +231,9 @@ def _filter_bind_params(params: TicketListParams) -> dict[str, Any]:
         "baggage_size": params.baggage_size,
         "party_size": party_size,
         "service_class": params.service_class,
+        "has_sea": params.has_sea,
+        "has_warm": params.has_warm,
+        "has_nature": params.has_nature,
     }
 
 

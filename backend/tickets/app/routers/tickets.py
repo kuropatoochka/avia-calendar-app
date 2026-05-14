@@ -164,11 +164,33 @@ def list_tickets(
         int,
         Query(
             ge=0,
-            description=(
-                "Вес багажа в килограммах; в цене: baggage_price × этот вес."
-            ),
+            description=("Вес багажа в килограммах; в цене: baggage_price × этот вес."),
         ),
     ] = 0,
+    has_sea: Annotated[
+        bool,
+        Query(
+            description=(
+                "При true — только если у города прилёта has_sea."
+            ),
+        ),
+    ] = False,
+    has_warm: Annotated[
+        bool,
+        Query(
+            description=(
+                "При true — только если у города прилёта has_warm."
+            ),
+        ),
+    ] = False,
+    has_nature: Annotated[
+        bool,
+        Query(
+            description=(
+                "При true — только если у города прилёта has_nature."
+            ),
+        ),
+    ] = False,
 ) -> TicketsListResponse:
     if price_from is not None and price_to is not None and price_from > price_to:
         raise HTTPException(
@@ -217,6 +239,9 @@ def list_tickets(
         passengers_number=passengers_number,
         baggage_size=baggage_size,
         service_class=class_token,
+        has_sea=has_sea,
+        has_warm=has_warm,
+        has_nature=has_nature,
     )
     rows, total, offset_effective = fetch_tickets(db, params)
     items = [TicketItem.model_validate(r) for r in rows]

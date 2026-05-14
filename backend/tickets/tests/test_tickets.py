@@ -107,8 +107,11 @@ def test_tickets_sql_uses_typed_casts_for_nullable_filters() -> None:
         assert "CAST(:price_from AS integer) IS NULL" in sql
         assert "CAST(:price_to AS integer) IS NULL" in sql
         assert "CAST(:price_type AS text) = 'PASSENGER'" in sql
+        assert "NOT CAST(:has_sea AS boolean)" in sql
+        assert "c_to.has_sea" in sql
 
 
 def test_range_sql_uses_generate_series() -> None:
-    assert "generate_series" in str(RANGE_TICKETS_SQL)
-    assert "LEFT JOIN priced p" in str(RANGE_TICKETS_SQL)
+    sql = str(RANGE_TICKETS_SQL)
+    assert "generate_series" in sql
+    assert "LEFT JOIN priced p" in sql
