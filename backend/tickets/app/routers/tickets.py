@@ -55,15 +55,6 @@ def tickets_range(
         int,
         Query(ge=0, description="Количество детей"),
     ] = 0,
-    baggage_size: Annotated[
-        int | None,
-        Query(
-            ge=0,
-            description=(
-                "Вес багажа в килограммах; в цене: baggage_price × этот вес."
-            ),
-        ),
-    ] = None,
 ) -> list[TicketRangeItem]:
     if from_date > to_date:
         raise HTTPException(
@@ -78,7 +69,6 @@ def tickets_range(
             detail=str(exc),
         ) from exc
 
-    baggage_kg = 0 if baggage_size is None else baggage_size
     params = TicketRangeParams(
         airport_from=airport_from,
         airport_to=airport_to,
@@ -87,7 +77,6 @@ def tickets_range(
         passengers_number=passengers_number,
         children_number=children_number,
         todlers_number=todlers_number,
-        baggage_kg=baggage_kg,
         service_class=class_token,
     )
     rows = fetch_ticket_range(db, params)

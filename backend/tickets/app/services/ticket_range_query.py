@@ -17,7 +17,6 @@ class TicketRangeParams:
     passengers_number: int
     children_number: int
     todlers_number: int
-    baggage_kg: int
     service_class: str
 
 
@@ -36,7 +35,6 @@ priced AS (
       tt.price * CAST(:passengers_number AS integer)
       + tt.children_price * CAST(:children_number AS integer)
       + tt.toddler_price * CAST(:todlers_number AS integer)
-      + tt.baggage_price * CAST(:baggage_kg AS integer)
     ) AS min_total_price
   FROM flight_instance fi
   JOIN flight f ON fi.flight_id = f.id
@@ -91,7 +89,6 @@ def fetch_ticket_range(db: Session, params: TicketRangeParams) -> list[dict[str,
         "passengers_number": params.passengers_number,
         "children_number": params.children_number,
         "todlers_number": params.todlers_number,
-        "baggage_kg": params.baggage_kg,
         "service_class": params.service_class,
         "party_size": party_size,
     }
