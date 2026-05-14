@@ -7,8 +7,6 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.services.ticket_query import ALLOWED_SERVICE_CLASSES
-
 
 @dataclass(frozen=True)
 class TicketRangeParams:
@@ -21,20 +19,6 @@ class TicketRangeParams:
     todlers_number: int
     baggage_kg: int
     service_class: str
-
-
-def parse_single_service_class(raw: str) -> str:
-    """
-    Один класс обслуживания; регистр неважен.
-
-    Допустимы только BUDGET, BUSINESS, COMFORT, FIRST_CLASS.
-    """
-    token = raw.strip().upper()
-    if token not in ALLOWED_SERVICE_CLASSES:
-        allowed = ", ".join(sorted(ALLOWED_SERVICE_CLASSES))
-        msg = f"unknown service_class: {token!r}; expected one of: {allowed}"
-        raise ValueError(msg)
-    return token
 
 
 RANGE_TICKETS_SQL = text("""

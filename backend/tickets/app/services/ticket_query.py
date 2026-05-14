@@ -1,4 +1,4 @@
-"""Запрос списка рейсов и расчёт блоков цен (PostgreSQL)."""
+"""Запрос списка рейсов и расчёт блока цен (PostgreSQL)."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -14,47 +14,38 @@ ALLOWED_SERVICE_CLASSES = frozenset(
 ALLOWED_PRICE_TYPES = frozenset({"PASSENGER", "TOTAL"})
 
 
+def parse_single_service_class(raw: str) -> str:
+    """
+    Один класс обслуживания; регистр неважен.
+
+    Допустимы только BUDGET, BUSINESS, COMFORT, FIRST_CLASS.
+    """
+    token = raw.strip().upper()
+    if token not in ALLOWED_SERVICE_CLASSES:
+        allowed = ", ".join(sorted(ALLOWED_SERVICE_CLASSES))
+        msg = f"unknown service_class: {token!r}; expected one of: {allowed}"
+        raise ValueError(msg)
+    return token
+
+
 @dataclass(frozen=True)
 class TicketListParams:
     offset: int
     limit: int
     airport_from: int
     airport_to: int
-    from_date: date
-    to_date: date
-    from_time: time | None
-    to_time: time | None
+    departure_date: date
+    departure_from_time: time | None
+    departure_to_time: time | None
     company_ids: tuple[int, ...] | None
     price_from: int | None
     price_to: int | None
     price_type: str
-    animal_as_passenger: bool
-    animal_as_baggage: bool
     todlers_number: int
     children_number: int
     passengers_number: int
-    want_budget: bool
-    want_business: bool
-    want_comfort: bool
-    want_first_class: bool
-
-
-def parse_service_class_csv(raw: str) -> frozenset[str]:
-    """
-    Разбор CSV; регистр неважен.
-
-    Допустимы только BUDGET, BUSINESS, COMFORT, FIRST_CLASS.
-    Возбуждает ValueError при пустом результате или недопустимом токене.
-    """
-    parts = [p.strip().upper() for p in raw.split(",") if p.strip()]
-    if not parts:
-        msg = "service_class must contain at least one token"
-        raise ValueError(msg)
-    for p in parts:
-        if p not in ALLOWED_SERVICE_CLASSES:
-            msg = f"unknown service_class token: {p}"
-            raise ValueError(msg)
-    return frozenset(parts)
+    baggage_size: int
+    service_class: str
 
 
 def parse_company_csv(raw: str) -> tuple[int, ...]:
@@ -80,7 +71,6 @@ def parse_company_csv(raw: str) -> tuple[int, ...]:
             raise ValueError(msg)
         ids.append(company_id)
 
-    # Убираем дубли, сохраняя порядок из запроса.
     return tuple(dict.fromkeys(ids))
 
 
@@ -94,44 +84,33 @@ def parse_price_type(raw: str) -> str:
     return token
 
 
-def _total_price_expr(tarif_alias: str) -> str:
-    return (
-        f"{tarif_alias}.toddler_price * :todlers_number\n"
-        f"        + {tarif_alias}.children_price * :children_number\n"
-        f"        + {tarif_alias}.price * :passengers_number\n"
-        "        + (\n"
-        "          CASE\n"
-        "            WHEN CAST(:animal_as_passenger AS boolean)\n"
-        f"            THEN {tarif_alias}.animal_price\n"
-        "            ELSE 0\n"
-        "          END\n"
-        "        )\n"
-        "        + (\n"
-        "          CASE\n"
-        "            WHEN CAST(:animal_as_baggage AS boolean)\n"
-        f"            THEN {tarif_alias}.animal_baggage_price\n"
-        "            ELSE 0\n"
-        "          END\n"
-        "        )"
-    )
+_TOTAL_PRICE_SQL = """
+(
+  tt.toddler_price * CAST(:todlers_number AS integer)
+  + tt.children_price * CAST(:children_number AS integer)
+  + tt.price * CAST(:passengers_number AS integer)
+  + tt.baggage_price * CAST(:baggage_size AS integer)
+)
+""".strip()
 
+_PLANE_SEATS_FOR_CLASS = """
+CASE CAST(:service_class AS text)
+  WHEN 'BUDGET' THEN pl.budget_seats
+  WHEN 'BUSINESS' THEN pl.business_seats
+  WHEN 'COMFORT' THEN pl.comfort_seats
+  WHEN 'FIRST_CLASS' THEN pl.first_class_seats
+END
+""".strip()
 
-BUDGET_TOTAL_EXPR = _total_price_expr("tb")
-BUSINESS_TOTAL_EXPR = _total_price_expr("tbs")
-COMFORT_TOTAL_EXPR = _total_price_expr("tcm")
-FIRST_CLASS_TOTAL_EXPR = _total_price_expr("tfc")
-
-
-BUDGET_PRICE_FILTER_SQL = f"""
-:want_budget
-AND tb.seats >= :party_size
-AND pl.budget_seats >= :party_size
+_PRICE_FILTER_SQL = f"""
+tt.seats >= CAST(:party_size AS integer)
+AND ({_PLANE_SEATS_FOR_CLASS}) >= CAST(:party_size AS integer)
 AND (
   CAST(:price_from AS integer) IS NULL
   OR (
     CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tb.price
-      ELSE {BUDGET_TOTAL_EXPR}
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tt.price
+      ELSE {_TOTAL_PRICE_SQL}
     END
   ) >= CAST(:price_from AS integer)
 )
@@ -139,125 +118,47 @@ AND (
   CAST(:price_to AS integer) IS NULL
   OR (
     CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tb.price
-      ELSE {BUDGET_TOTAL_EXPR}
+      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tt.price
+      ELSE {_TOTAL_PRICE_SQL}
     END
   ) <= CAST(:price_to AS integer)
 )
 """.strip()
 
-BUSINESS_PRICE_FILTER_SQL = f"""
-:want_business
-AND tbs.seats >= :party_size
-AND pl.business_seats >= :party_size
-AND (
-  CAST(:price_from AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tbs.price
-      ELSE {BUSINESS_TOTAL_EXPR}
-    END
-  ) >= CAST(:price_from AS integer)
+_LIST_FROM_AND_JOINS = f"""
+FROM flight_instance fi
+JOIN flight f ON fi.flight_id = f.id
+JOIN airport af ON f.airport_from_id = af.id
+JOIN airport at ON f.airport_to_id = at.id
+JOIN city c_from ON af.city_id = c_from.id
+JOIN city c_to ON at.city_id = c_to.id
+JOIN company co ON fi.company_id = co.id
+JOIN plane pl ON fi.plane_id = pl.id
+JOIN tarif tt ON tt.id = (
+  CASE CAST(:service_class AS text)
+    WHEN 'BUDGET' THEN fi.budget_tarif_id
+    WHEN 'BUSINESS' THEN fi.business_tarif_id
+    WHEN 'COMFORT' THEN fi.comfort_tarif_id
+    WHEN 'FIRST_CLASS' THEN fi.first_class_tarif_id
+  END
 )
-AND (
-  CAST(:price_to AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tbs.price
-      ELSE {BUSINESS_TOTAL_EXPR}
-    END
-  ) <= CAST(:price_to AS integer)
-)
-""".strip()
-
-COMFORT_PRICE_FILTER_SQL = f"""
-:want_comfort
-AND tcm.seats >= :party_size
-AND pl.comfort_seats >= :party_size
-AND (
-  CAST(:price_from AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tcm.price
-      ELSE {COMFORT_TOTAL_EXPR}
-    END
-  ) >= CAST(:price_from AS integer)
-)
-AND (
-  CAST(:price_to AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tcm.price
-      ELSE {COMFORT_TOTAL_EXPR}
-    END
-  ) <= CAST(:price_to AS integer)
-)
-""".strip()
-
-FIRST_CLASS_PRICE_FILTER_SQL = f"""
-:want_first_class
-AND tfc.seats >= :party_size
-AND pl.first_class_seats >= :party_size
-AND (
-  CAST(:price_from AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tfc.price
-      ELSE {FIRST_CLASS_TOTAL_EXPR}
-    END
-  ) >= CAST(:price_from AS integer)
-)
-AND (
-  CAST(:price_to AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tfc.price
-      ELSE {FIRST_CLASS_TOTAL_EXPR}
-    END
-  ) <= CAST(:price_to AS integer)
-)
-""".strip()
-
-BUDGET_SORT_TOTAL_EXPR = f"""
-CASE
-  WHEN {BUDGET_PRICE_FILTER_SQL}
-  THEN (
-    {BUDGET_TOTAL_EXPR}
+WHERE af.id = CAST(:airport_from AS integer)
+  AND at.id = CAST(:airport_to AS integer)
+  AND fi.departure_date = CAST(:departure_date AS date)
+  AND (
+    CAST(:departure_from_time AS time) IS NULL
+    OR fi.departure_time >= CAST(:departure_from_time AS time)
   )
-  ELSE NULL
-END
-""".strip()
-
-BUSINESS_SORT_TOTAL_EXPR = f"""
-CASE
-  WHEN {BUSINESS_PRICE_FILTER_SQL}
-  THEN (
-    {BUSINESS_TOTAL_EXPR}
+  AND (
+    CAST(:departure_to_time AS time) IS NULL
+    OR fi.departure_time <= CAST(:departure_to_time AS time)
   )
-  ELSE NULL
-END
-""".strip()
-
-COMFORT_SORT_TOTAL_EXPR = f"""
-CASE
-  WHEN {COMFORT_PRICE_FILTER_SQL}
-  THEN (
-    {COMFORT_TOTAL_EXPR}
+  AND (
+    CAST(:company_ids AS int[]) IS NULL
+    OR fi.company_id = ANY(CAST(:company_ids AS int[]))
   )
-  ELSE NULL
-END
+  AND ({_PRICE_FILTER_SQL})
 """.strip()
-
-FIRST_CLASS_SORT_TOTAL_EXPR = f"""
-CASE
-  WHEN {FIRST_CLASS_PRICE_FILTER_SQL}
-  THEN (
-    {FIRST_CLASS_TOTAL_EXPR}
-  )
-  ELSE NULL
-END
-""".strip()
-
 
 LIST_TICKETS_SQL_TEMPLATE = f"""
 SELECT
@@ -275,154 +176,54 @@ SELECT
   pl.type AS plane_type,
   pl.number AS plane_number,
   COUNT(*) OVER () AS _total_count,
-  CASE
-    WHEN {BUDGET_PRICE_FILTER_SQL}
-    THEN json_build_object(
-      'total',
-        {BUDGET_TOTAL_EXPR},
-      'price', tb.price,
-      'children_price', tb.children_price,
-      'todlers_price', tb.toddler_price,
-      'animal_price', tb.animal_price,
-      'animal_baggage_price', tb.animal_baggage_price,
-      'baggage_price', tb.baggage_price
-    )::json
-    ELSE NULL
-  END AS budget_prices,
-  CASE
-    WHEN {BUSINESS_PRICE_FILTER_SQL}
-    THEN json_build_object(
-      'total',
-        {BUSINESS_TOTAL_EXPR},
-      'price', tbs.price,
-      'children_price', tbs.children_price,
-      'todlers_price', tbs.toddler_price,
-      'animal_price', tbs.animal_price,
-      'animal_baggage_price', tbs.animal_baggage_price,
-      'baggage_price', tbs.baggage_price
-    )::json
-    ELSE NULL
-  END AS business_prices,
-  CASE
-    WHEN {COMFORT_PRICE_FILTER_SQL}
-    THEN json_build_object(
-      'total',
-        {COMFORT_TOTAL_EXPR},
-      'price', tcm.price,
-      'children_price', tcm.children_price,
-      'todlers_price', tcm.toddler_price,
-      'animal_price', tcm.animal_price,
-      'animal_baggage_price', tcm.animal_baggage_price,
-      'baggage_price', tcm.baggage_price
-    )::json
-    ELSE NULL
-  END AS comfort_prices,
-  CASE
-    WHEN {FIRST_CLASS_PRICE_FILTER_SQL}
-    THEN json_build_object(
-      'total',
-        {FIRST_CLASS_TOTAL_EXPR},
-      'price', tfc.price,
-      'children_price', tfc.children_price,
-      'todlers_price', tfc.toddler_price,
-      'animal_price', tfc.animal_price,
-      'animal_baggage_price', tfc.animal_baggage_price,
-      'baggage_price', tfc.baggage_price
-    )::json
-    ELSE NULL
-  END AS first_class_prices,
-  (
-    CASE
-      WHEN {BUDGET_PRICE_FILTER_SQL}
-      THEN (
-        tb.toddler_price * :todlers_number
-        + tb.children_price * :children_number
-        + tb.price * :passengers_number
-      )
-      ELSE NULL
-    END
-  ) AS _sort_budget_total,
-  (
-    {BUSINESS_SORT_TOTAL_EXPR}
-  ) AS _sort_business_total,
-  (
-    {COMFORT_SORT_TOTAL_EXPR}
-  ) AS _sort_comfort_total,
-  (
-    {FIRST_CLASS_SORT_TOTAL_EXPR}
-  ) AS _sort_first_class_total,
-  LEAST(
-    COALESCE(({BUDGET_SORT_TOTAL_EXPR}), 2147483647),
-    COALESCE(({BUSINESS_SORT_TOTAL_EXPR}), 2147483647),
-    COALESCE(({COMFORT_SORT_TOTAL_EXPR}), 2147483647),
-    COALESCE(({FIRST_CLASS_SORT_TOTAL_EXPR}), 2147483647)
-  ) AS _sort_min_total
-FROM flight_instance fi
-JOIN flight f ON fi.flight_id = f.id
-JOIN airport af ON f.airport_from_id = af.id
-JOIN airport at ON f.airport_to_id = at.id
-JOIN city c_from ON af.city_id = c_from.id
-JOIN city c_to ON at.city_id = c_to.id
-JOIN company co ON fi.company_id = co.id
-JOIN plane pl ON fi.plane_id = pl.id
-JOIN tarif tb ON fi.budget_tarif_id = tb.id
-JOIN tarif tbs ON fi.business_tarif_id = tbs.id
-JOIN tarif tcm ON fi.comfort_tarif_id = tcm.id
-JOIN tarif tfc ON fi.first_class_tarif_id = tfc.id
-WHERE af.id = :airport_from
-  AND at.id = :airport_to
-  AND fi.departure_date >= :from_date
-  AND fi.departure_date <= :to_date
-  AND (
-    CAST(:from_time AS time) IS NULL
-    OR fi.departure_time >= CAST(:from_time AS time)
-  )
-  AND (
-    CAST(:to_time AS time) IS NULL
-    OR fi.arrival_time <= CAST(:to_time AS time)
-  )
-  AND (
-    CAST(:company_ids AS int[]) IS NULL
-    OR fi.company_id = ANY(CAST(:company_ids AS int[]))
-  )
-  AND (
-    ({BUDGET_PRICE_FILTER_SQL})
-    OR ({BUSINESS_PRICE_FILTER_SQL})
-    OR ({COMFORT_PRICE_FILTER_SQL})
-    OR ({FIRST_CLASS_PRICE_FILTER_SQL})
-  )
-ORDER BY _sort_min_total ASC, fi.id ASC
-LIMIT :limit OFFSET :offset
+  json_build_object(
+    'total',
+      {_TOTAL_PRICE_SQL},
+    'price', tt.price,
+    'children_price', tt.children_price,
+    'todlers_price', tt.toddler_price,
+    'baggage_price', tt.baggage_price
+  )::json AS prices,
+  {_TOTAL_PRICE_SQL} AS _sort_total
+{_LIST_FROM_AND_JOINS}
+ORDER BY _sort_total ASC, fi.id ASC
+LIMIT CAST(:limit AS integer) OFFSET CAST(:offset AS integer)
 """
 
+_COUNT_SQL = text(f"""
+SELECT COUNT(*)::int AS c
+{_LIST_FROM_AND_JOINS}
+""")
 
-def _list_bind_params(params: TicketListParams, offset: int) -> dict[str, Any]:
+
+def _filter_bind_params(params: TicketListParams) -> dict[str, Any]:
     party_size = (
         params.todlers_number + params.children_number + params.passengers_number
     )
     return {
-        "offset": offset,
-        "limit": params.limit,
         "airport_from": params.airport_from,
         "airport_to": params.airport_to,
-        "from_date": params.from_date,
-        "to_date": params.to_date,
-        "from_time": params.from_time,
-        "to_time": params.to_time,
+        "departure_date": params.departure_date,
+        "departure_from_time": params.departure_from_time,
+        "departure_to_time": params.departure_to_time,
         "company_ids": list(params.company_ids) if params.company_ids else None,
         "price_from": params.price_from,
         "price_to": params.price_to,
         "price_type": params.price_type,
-        "animal_as_passenger": params.animal_as_passenger,
-        "animal_as_baggage": params.animal_as_baggage,
         "todlers_number": params.todlers_number,
         "children_number": params.children_number,
         "passengers_number": params.passengers_number,
+        "baggage_size": params.baggage_size,
         "party_size": party_size,
-        "want_budget": params.want_budget,
-        "want_business": params.want_business,
-        "want_comfort": params.want_comfort,
-        "want_first_class": params.want_first_class,
+        "service_class": params.service_class,
+    }
+
+
+def _list_bind_params(params: TicketListParams, offset: int) -> dict[str, Any]:
+    return {
+        **_filter_bind_params(params),
+        "offset": offset,
+        "limit": params.limit,
     }
 
 
@@ -444,10 +245,7 @@ def _rows_to_items(rows: Sequence[Any]) -> list[dict[str, Any]]:
                 "arrival_time": row["arrival_time"],
                 "plane_type": row["plane_type"],
                 "plane_number": row["plane_number"],
-                "budget_prices": row["budget_prices"],
-                "business_prices": row["business_prices"],
-                "comfort_prices": row["comfort_prices"],
-                "first_class_prices": row["first_class_prices"],
+                "prices": row["prices"],
             },
         )
     return items
@@ -485,74 +283,11 @@ def fetch_tickets(
     return [], total, params.offset
 
 
-_COUNT_SQL = text(f"""
-SELECT COUNT(*)::int AS c
-FROM flight_instance fi
-JOIN flight f ON fi.flight_id = f.id
-JOIN airport af ON f.airport_from_id = af.id
-JOIN airport at ON f.airport_to_id = at.id
-JOIN city c_from ON af.city_id = c_from.id
-JOIN city c_to ON at.city_id = c_to.id
-JOIN company co ON fi.company_id = co.id
-JOIN plane pl ON fi.plane_id = pl.id
-JOIN tarif tb ON fi.budget_tarif_id = tb.id
-JOIN tarif tbs ON fi.business_tarif_id = tbs.id
-JOIN tarif tcm ON fi.comfort_tarif_id = tcm.id
-JOIN tarif tfc ON fi.first_class_tarif_id = tfc.id
-WHERE af.id = :airport_from
-  AND at.id = :airport_to
-  AND fi.departure_date >= :from_date
-  AND fi.departure_date <= :to_date
-  AND (
-    CAST(:from_time AS time) IS NULL
-    OR fi.departure_time >= CAST(:from_time AS time)
-  )
-  AND (
-    CAST(:to_time AS time) IS NULL
-    OR fi.arrival_time <= CAST(:to_time AS time)
-  )
-  AND (
-    CAST(:company_ids AS int[]) IS NULL
-    OR fi.company_id = ANY(CAST(:company_ids AS int[]))
-  )
-  AND (
-    ({BUDGET_PRICE_FILTER_SQL})
-    OR ({BUSINESS_PRICE_FILTER_SQL})
-    OR ({COMFORT_PRICE_FILTER_SQL})
-    OR ({FIRST_CLASS_PRICE_FILTER_SQL})
-  )
-""")
-
-
 def _count_tickets(db: Session, params: TicketListParams) -> int:
-    party_size = (
-        params.todlers_number + params.children_number + params.passengers_number
-    )
     row = (
         db.execute(
             _COUNT_SQL,
-            {
-                "airport_from": params.airport_from,
-                "airport_to": params.airport_to,
-                "from_date": params.from_date,
-                "to_date": params.to_date,
-                "from_time": params.from_time,
-                "to_time": params.to_time,
-                "company_ids": list(params.company_ids) if params.company_ids else None,
-                "price_from": params.price_from,
-                "price_to": params.price_to,
-                "price_type": params.price_type,
-                "animal_as_passenger": params.animal_as_passenger,
-                "animal_as_baggage": params.animal_as_baggage,
-                "todlers_number": params.todlers_number,
-                "children_number": params.children_number,
-                "passengers_number": params.passengers_number,
-                "party_size": party_size,
-                "want_budget": params.want_budget,
-                "want_business": params.want_business,
-                "want_comfort": params.want_comfort,
-                "want_first_class": params.want_first_class,
-            },
+            _filter_bind_params(params),
         )
         .mappings()
         .one()

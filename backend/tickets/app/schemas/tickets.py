@@ -6,16 +6,19 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ServiceClassPrices(BaseModel):
-    """Цена по одному классу обслуживания; при расширении — багаж/животные."""
+    """Цена по выбранному классу обслуживания для группы и багажа."""
 
     model_config = ConfigDict(extra="allow")
 
-    total: int = Field(description="Сумма за выбранное число пассажиров по категориям")
+    total: int = Field(
+        description=(
+            "Сумма: price×взрослые + children_price×дети + "
+            "todlers_price×младенцы + baggage_price×baggage_size (кг)"
+        ),
+    )
     price: int
     children_price: int
     todlers_price: int
-    animal_price: int
-    animal_baggage_price: int
     baggage_price: int
 
 
@@ -33,10 +36,7 @@ class TicketItem(BaseModel):
     arrival_time: time
     plane_type: str
     plane_number: str
-    budget_prices: ServiceClassPrices | None
-    business_prices: ServiceClassPrices | None
-    comfort_prices: ServiceClassPrices | None
-    first_class_prices: ServiceClassPrices | None
+    prices: ServiceClassPrices
 
 
 class TicketsListResponse(BaseModel):

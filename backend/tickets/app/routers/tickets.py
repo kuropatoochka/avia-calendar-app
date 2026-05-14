@@ -13,12 +13,11 @@ from app.services.ticket_query import (
     fetch_tickets,
     parse_company_csv,
     parse_price_type,
-    parse_service_class_csv,
+    parse_single_service_class,
 )
 from app.services.ticket_range_query import (
     TicketRangeParams,
     fetch_ticket_range,
-    parse_single_service_class,
 )
 
 router = APIRouter(tags=["tickets"])
@@ -59,7 +58,10 @@ def tickets_range(
     baggage_size: Annotated[
         int | None,
         Query(
-            ge=0, description="Вес багажа в килограммах (умножается на baggage_price)"
+            ge=0,
+            description=(
+                "Вес багажа в килограммах; в цене: baggage_price × этот вес."
+            ),
         ),
     ] = None,
 ) -> list[TicketRangeItem]:
@@ -97,13 +99,12 @@ def list_tickets(
     db: Annotated[Session, Depends(get_db)],
     airport_from: Annotated[int, Query(description="Идентификатор аэропорта вылета")],
     airport_to: Annotated[int, Query(description="Идентификатор аэропорта прилёта")],
-    from_date: Annotated[
+    departure_on: Annotated[
         date,
-        Query(description="Минимальная дата вылета (включительно)"),
-    ],
-    to_date: Annotated[
-        date,
-        Query(description="Максимальная дата вылета (включительно)"),
+        Query(
+            alias="date",
+            description="Дата вылета (только рейсы в этот день)",
+        ),
     ],
     passengers_number: Annotated[
         int,
@@ -113,26 +114,26 @@ def list_tickets(
         str,
         Query(
             min_length=1,
-            description="CSV-классы: BUDGET, BUSINESS, COMFORT, FIRST_CLASS",
+            description="Один класс: BUDGET, BUSINESS, COMFORT, FIRST_CLASS",
         ),
     ],
     offset: Annotated[int, Query(ge=0, description="Смещение пагинации")],
     limit: Annotated[int, Query(ge=1, le=500, description="Размер страницы")],
-    from_time: Annotated[
+    departure_from_time: Annotated[
         time | None,
         Query(
             description=(
                 "Минимальное время вылета (включительно). "
-                "Если задано, подбираются рейсы с departure_time не раньше значения."
+                "Если задано, departure_time не раньше этого значения."
             ),
         ),
     ] = None,
-    to_time: Annotated[
+    departure_to_time: Annotated[
         time | None,
         Query(
             description=(
-                "Максимальное время прибытия (включительно). "
-                "Если задано, подбираются рейсы с arrival_time не позже значения."
+                "Максимальное время вылета (включительно). "
+                "Если задано, departure_time не позже этого значения."
             ),
         ),
     ] = None,
@@ -158,26 +159,10 @@ def list_tickets(
         Query(
             description=(
                 "Тип применяемой цены для фильтрации: PASSENGER (за взрослого) "
-                "или TOTAL (за всю группу пассажиров)."
+                "или TOTAL (за всю группу и багаж по формуле API)."
             ),
         ),
     ] = "TOTAL",
-    animal_as_passenger: Annotated[
-        bool,
-        Query(
-            description=(
-                "Если true, добавляет стоимость животного как пассажира в total."
-            ),
-        ),
-    ] = False,
-    animal_as_baggage: Annotated[
-        bool,
-        Query(
-            description=(
-                "Если true, добавляет стоимость животного как багажа в total."
-            ),
-        ),
-    ] = False,
     todlers_number: Annotated[
         int,
         Query(ge=0, description="Количество младенцев"),
@@ -186,24 +171,23 @@ def list_tickets(
         int,
         Query(ge=0, description="Количество детей"),
     ] = 0,
+    baggage_size: Annotated[
+        int,
+        Query(
+            ge=0,
+            description=(
+                "Вес багажа в килограммах; в цене: baggage_price × этот вес."
+            ),
+        ),
+    ] = 0,
 ) -> TicketsListResponse:
-    if from_date > to_date:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="from_date must be on or before to_date",
-        )
     if price_from is not None and price_to is not None and price_from > price_to:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="price_from must be less than or equal to price_to",
         )
-    if animal_as_passenger and animal_as_baggage:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=("animal_as_passenger and animal_as_baggage are mutually exclusive"),
-        )
     try:
-        classes = parse_service_class_csv(service_class)
+        class_token = parse_single_service_class(service_class)
     except ValueError as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -232,23 +216,18 @@ def list_tickets(
         limit=limit,
         airport_from=airport_from,
         airport_to=airport_to,
-        from_date=from_date,
-        to_date=to_date,
-        from_time=from_time,
-        to_time=to_time,
+        departure_date=departure_on,
+        departure_from_time=departure_from_time,
+        departure_to_time=departure_to_time,
         company_ids=company_ids,
         price_from=price_from,
         price_to=price_to,
         price_type=parsed_price_type,
-        animal_as_passenger=animal_as_passenger,
-        animal_as_baggage=animal_as_baggage,
         todlers_number=todlers_number,
         children_number=children_number,
         passengers_number=passengers_number,
-        want_budget="BUDGET" in classes,
-        want_business="BUSINESS" in classes,
-        want_comfort="COMFORT" in classes,
-        want_first_class="FIRST_CLASS" in classes,
+        baggage_size=baggage_size,
+        service_class=class_token,
     )
     rows, total, offset_effective = fetch_tickets(db, params)
     items = [TicketItem.model_validate(r) for r in rows]
