@@ -1,33 +1,28 @@
-from __future__ import annotations
+from collections.abc import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-_engine: Engine | None = None
-session_factory: sessionmaker[Session] | None = None
+from app.settings import get_settings
 
 
-def configure_engine(database_url: str) -> None:
-    """Поднимает пул подключений к PostgreSQL. Схема БД задаётся вне приложения (без Alembic)."""
-    global _engine, session_factory
-    dispose_engine()
-    _engine = create_engine(
-        database_url,
+def _make_engine() -> Engine:
+    settings = get_settings()
+    return create_engine(
+        settings.DATABASE_URL,
         pool_pre_ping=True,
     )
-    session_factory = sessionmaker(
-        bind=_engine,
-        autoflush=False,
-        autocommit=False,
-        class_=Session,
-    )
 
 
-def dispose_engine() -> None:
-    """Освобождает пул и помечает сессии как недоступные (при завершении приложения)."""
-    global _engine, session_factory
-    if _engine is not None:
-        _engine.dispose()
-    _engine = None
-    session_factory = None
+engine = _make_engine()
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def get_db() -> Generator[Session, None, None]:
+    """FastAPI dependency: yields a database session."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

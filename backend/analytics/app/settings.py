@@ -1,7 +1,9 @@
 from functools import lru_cache
 
-from pydantic import field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_DEFAULT_DATABASE_URL = "postgresql+psycopg://postgres:postgres@db:5432/analytics"
 
 
 class Settings(BaseSettings):
@@ -13,14 +15,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str | None = None
-
-    @field_validator("database_url", mode="before")
-    @classmethod
-    def empty_database_url_to_none(cls, value: object) -> object:
-        if value == "":
-            return None
-        return value
+    DATABASE_URL: str | None = Field(default=_DEFAULT_DATABASE_URL)
+    api_title: str = "Analytics API"
+    api_version: str = "0.1.0"
 
 
 @lru_cache

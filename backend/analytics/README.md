@@ -9,15 +9,20 @@ backend/analytics/
 ├── app/                    # Основной пакет приложения (импорты вида app.*)
 │   ├── db/                 # PostgreSQL через SQLAlchemy (INSERT/UPDATE/DELETE/SELECT; без миграций)
 │   │   ├── deps.py         # Depends(get_db) и тип-псевдоним DbSession для роутеров
+│   │   ├── models.py       # ORM-модель таблицы HistoricalFlights (DDL — SQL в scripts/initdb)
 │   │   └── session.py      # Пул подключений, старт/stop через lifespan приложения
 │   ├── main.py             # Экземпляр FastAPI, точка входа ASGI
 │   ├── modeling/           # Реэкспорт и последующая логика обучения/инференса (sklearn)
+│   ├── routers/            # Роутеры API (напр. /historical-flights/count)
 │   └── settings.py         # Pydantic Settings (в т.ч. DATABASE_URL из env / .env)
+├── scripts/
+│   └── initdb/             # SQL для первичной инициализации тома Postgres (docker-entrypoint-initdb.d)
 ├── tests/
 │   └── conftest.py         # Общая фикстура TestClient (учёт lifespan)
 ├── pyproject.toml          # Зависимости и настройки Ruff / Mypy / Pytest / Coverage
 ├── Dockerfile              # Образ API (runtime-зависимости из pyproject, без dev-группы)
-├── docker-compose.yml      # Сервисы `api` и `db` (PostgreSQL 16); API на порту 5000
+├── docker-compose.yml      # Сервис `api`; DATABASE_URL задаётся из окружения
+├── docker-compose.database.yml  # Только PostgreSQL 16 + автозапуск SQL из scripts/initdb
 ├── .dockerignore           # Исключения контекста сборки
 ├── .env.example            # Шаблон переменных окружения (не коммитить секреты в .env)
 ├── .gitignore
@@ -31,6 +36,7 @@ backend/analytics/
 - Стек: **[SQLAlchemy 2](https://www.sqlalchemy.org/)** (ORM/Core) и драйвер **[psycopg 3](https://www.psycopg.org/)** (`psycopg[binary]`). Зависимости **Alembic в проект не включены**: приложение не генерирует и не применяет DDL-миграции. Создание схемы — вручную или внешними средствами; из кода поддерживаются обычные **чтение и запись данных** (`SELECT`, `INSERT`, …).
 - Подключение: переменная окружения **`DATABASE_URL`** (см. [`.env.example`](.env.example)). Для sqlalchemy + psycopg 3 строка имеет вид `postgresql+psycopg://USER:PASSWORD@HOST:5432/DBNAME`.
 - Если `DATABASE_URL` не задан, эндпоинты с зависимостью базы вернут **503**. Пример смоук-запроса при настроенной БД: `GET /db/ready` выполняет `SELECT 1`.
+- Таблица **`HistoricalFlights`** и перечисление **`flight_type`** создаются SQL-скриптом [`scripts/initdb/01_historical_flights.sql`](scripts/initdb/01_historical_flights.sql) при первом запуске контейнера из [`docker-compose.database.yml`](docker-compose.database.yml). ORM: **`app.db.models.HistoricalFlight`**; пример чтения: `GET /historical-flights/count`.
 - В типизированном роуте используйте зависимость **`DbSession`** из пакета `app.db`; после успешной записи вызывайте **`session.commit()`** явно (автоматического коммита по умолчанию нет).
 
 ## Договорённости по коду
@@ -125,8 +131,18 @@ docker compose up --build
 - OpenAPI (Swagger UI): [http://127.0.0.1:5000/docs](http://127.0.0.1:5000/docs)
 - Проверка живости приложения без БД: `GET /health`
 - Пример проверки подключения к PostgreSQL после появления схемы/таблиц (если настроены): `GET /db/ready`
-- Сервис **PostgreSQL** поднимается как `db`, с хост-портом **5433→5432** (чтобы меньше конфликтовать с локальным Postgres на `:5432`). Данные в именованном volume `postgres_data`. Для приложения задаётся `DATABASE_URL=postgresql+psycopg://analytics:analytics@db:5432/analytics`.
+- `DATABASE_URL` передаётся в сервис `api` из окружения (см. [`.env.example`](.env.example)).
 
-Фоновый режим: `docker compose up -d --build`. Остановка: `docker compose down` (volume с данными останется, пока явно не удалите его).
+Фоновый режим: `docker compose up -d --build`. Остановка: `docker compose down`.
 
-Образ основан на **Python 3.12** (`python:3.12-slim-bookworm`); это совместимо с ограничением `>=3.11,<4` в проекте. При необходимости поменяйте тег базового образа в [`Dockerfile`](Dockerfile).
+### Только PostgreSQL (схема из SQL)
+
+Чтобы поднять **отдельно** базу с таблицей `HistoricalFlights` и автозапуском [`scripts/initdb`](scripts/initdb):
+
+```bash
+docker compose -f docker-compose.database.yml up -d
+```
+
+По умолчанию на хосте публикуется порт **`5433`→`5432`** (переменная `POSTGRES_HOST_PORT`), данные — в volume `analytics_postgres_data`. Повторный запуск скриптов initdb происходит только на **пустом** томе; при смене SQL удалите volume или создайте схему вручную.
+
+Образ API основан на **Python 3.12** (`python:3.12-slim-bookworm`); это совместимо с ограничением `>=3.11,<4` в проекте. При необходимости поменяйте тег базового образа в [`Dockerfile`](Dockerfile).
