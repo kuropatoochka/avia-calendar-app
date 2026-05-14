@@ -12,7 +12,7 @@ const getPassengersParams = (searchParams: URLSearchParams, params: Passengers) 
 
 const getFiltersParams = (searchParams: URLSearchParams, params: FlightFilters) => {
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== '') {
+    if (value !== undefined) {
       searchParams.set(key, String(value));
     }
   });

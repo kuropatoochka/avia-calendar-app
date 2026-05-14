@@ -4,16 +4,16 @@
   padding: 0 var(--space-xl);
 }
 
+.priceDynamicsSection {
+  margin-top: var(--space-xl);
+}
+
 .columns {
   display: grid;
   grid-template-columns: 1fr 356px;
   gap: 23px;
   align-items: start;
   margin-top: var(--space-xl);
-}
-
-.results {
-  min-width: 0;
 }
 
 .sectionTitle {
@@ -63,7 +63,7 @@
 }
 
 .offersSection {
-  margin-top: var(--space-xl);
+  min-width: 0;
 }
 
 @media (max-width: 1280px) {
