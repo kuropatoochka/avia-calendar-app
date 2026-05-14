@@ -7,6 +7,9 @@
 ```text
 tickets/
 ├── README.md              # этот файл
+├── database/
+│   ├── schema.sql                 # DDL авиабазы, ERD v2.1 (PostgreSQL)
+│   └── seed_synthetic_data.sql    # синтетические данные для разработки (после schema.sql)
 ├── Dockerfile             # образ API (Python + зависимости из pyproject.toml)
 ├── docker-compose.yml     # PostgreSQL + API одной командой
 ├── .dockerignore          # исключения для контекста сборки
@@ -47,6 +50,8 @@ tickets/
 - URL для PostgreSQL задаётся в форме драйвера **psycopg 3**, например: `postgresql+psycopg://user:password@host:5432/dbname`.
 - Доступ к БД в эндпоинтах — через зависимость **`get_db`** (`Session` SQLAlchemy), без глобального размазывания сессий по коду.
 - ORM-модели наследуют **`app.db.base.Base`**; для **autogenerate** в Alembic в `alembic/env.py` нужно **импортировать все модули с моделями**, чтобы `target_metadata = Base.metadata` видел таблицы.
+
+**`database/seed_synthetic_data.sql`** — наполнение тестовыми строками: в начале выполняется **`TRUNCATE … CASCADE`** и сброс **`IDENTITY`**, затем вставляются города, аэропорты, рейсы, компании, самолёты, тарифы и экземпляры рейсов. Нужна уже применённая схема (**`database/schema.sql`** или эквивалент). Из **`backend/tickets`**: `psql … -f database/seed_synthetic_data.sql`.
 
 ### Статическая типизация и стиль
 

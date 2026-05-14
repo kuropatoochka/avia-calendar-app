@@ -1,37 +1,26 @@
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from app.db import DbSession, configure_engine, dispose_engine
 from app.settings import get_settings
+from app.db.session import get_db
 
 
-@asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
-    settings = get_settings()
-    if settings.database_url:
-        configure_engine(settings.database_url)
-    yield
-    dispose_engine()
+def create_app() -> FastAPI:
+    cfg = get_settings()
+    app = FastAPI(title=cfg.api_title, version=cfg.api_version)
 
+    @app.get("/health")
+    def health() -> dict[str, str]:
+        return {"status": "ok", "version": cfg.api_version}
 
-app = FastAPI(
-    title="Analytics API",
-    version="0.1.0",
-    description="API для аналитики и прогнозирования на основе исторических данных.",
-    lifespan=lifespan,
-)
+    @app.get("/health/db")
+    def health_db(db: Annotated[Session, Depends(get_db)]) -> dict[str, str]:
+        db.scalar(text("SELECT 1"))
+        return {"status": "ok", "database": "connected"}
 
+    return app
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
-
-
-@app.get("/db/ready")
-def db_ready(db: DbSession) -> dict[str, str]:
-    """Проверка подключения: один round-trip к PostgreSQL (без миграций)."""
-    db.execute(text("SELECT 1"))
-    return {"database": "ok"}
+app = create_app()
