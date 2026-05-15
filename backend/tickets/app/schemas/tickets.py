@@ -40,7 +40,12 @@ class TicketItem(BaseModel):
 
 
 class TicketsListResponse(BaseModel):
-    items: list[TicketItem]
+    items: list[list[TicketItem]] = Field(
+        description=(
+            "Список групп: каждый элемент — массив билетов одной группы "
+            "(сейчас по одному рейсу на группу)."
+        ),
+    )
     total: int
     offset: int
     limit: int

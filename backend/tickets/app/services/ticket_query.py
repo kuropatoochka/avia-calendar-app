@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 ALLOWED_SERVICE_CLASSES = frozenset(
     {"BUDGET", "BUSINESS", "COMFORT", "FIRST_CLASS"},
 )
-ALLOWED_PRICE_TYPES = frozenset({"PASSENGER", "TOTAL"})
 
 
 def parse_single_service_class(raw: str) -> str:
@@ -38,9 +37,7 @@ class TicketListParams:
     departure_from_time: time | None
     departure_to_time: time | None
     company_ids: tuple[int, ...] | None
-    price_from: int | None
     price_to: int | None
-    price_type: str
     todlers_number: int
     children_number: int
     passengers_number: int
@@ -77,16 +74,6 @@ def parse_company_csv(raw: str) -> tuple[int, ...]:
     return tuple(dict.fromkeys(ids))
 
 
-def parse_price_type(raw: str) -> str:
-    """Разбор типа фильтрации цены: PASSENGER или TOTAL."""
-    token = raw.strip().upper()
-    if token not in ALLOWED_PRICE_TYPES:
-        allowed = ", ".join(sorted(ALLOWED_PRICE_TYPES))
-        msg = f"unknown price_type: {token!r}; expected one of: {allowed}"
-        raise ValueError(msg)
-    return token
-
-
 _TOTAL_PRICE_SQL = """
 (
   tt.toddler_price * CAST(:todlers_number AS integer)
@@ -109,22 +96,8 @@ _PRICE_FILTER_SQL = f"""
 tt.seats >= CAST(:party_size AS integer)
 AND ({_PLANE_SEATS_FOR_CLASS}) >= CAST(:party_size AS integer)
 AND (
-  CAST(:price_from AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tt.price
-      ELSE {_TOTAL_PRICE_SQL}
-    END
-  ) >= CAST(:price_from AS integer)
-)
-AND (
   CAST(:price_to AS integer) IS NULL
-  OR (
-    CASE
-      WHEN CAST(:price_type AS text) = 'PASSENGER' THEN tt.price
-      ELSE {_TOTAL_PRICE_SQL}
-    END
-  ) <= CAST(:price_to AS integer)
+  OR {_TOTAL_PRICE_SQL} < CAST(:price_to AS integer)
 )
 """.strip()
 
@@ -222,9 +195,7 @@ def _filter_bind_params(params: TicketListParams) -> dict[str, Any]:
         "departure_from_time": params.departure_from_time,
         "departure_to_time": params.departure_to_time,
         "company_ids": list(params.company_ids) if params.company_ids else None,
-        "price_from": params.price_from,
         "price_to": params.price_to,
-        "price_type": params.price_type,
         "todlers_number": params.todlers_number,
         "children_number": params.children_number,
         "passengers_number": params.passengers_number,

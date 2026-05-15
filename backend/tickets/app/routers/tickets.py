@@ -12,7 +12,6 @@ from app.services.ticket_query import (
     TicketListParams,
     fetch_tickets,
     parse_company_csv,
-    parse_price_type,
     parse_single_service_class,
 )
 from app.services.ticket_range_query import (
@@ -135,23 +134,16 @@ def list_tickets(
             ),
         ),
     ] = None,
-    price_from: Annotated[
-        int | None,
-        Query(ge=0, description="Минимальная граница фильтра цены (включительно)"),
-    ] = None,
     price_to: Annotated[
         int | None,
-        Query(ge=0, description="Максимальная граница фильтра цены (включительно)"),
-    ] = None,
-    price_type: Annotated[
-        str,
         Query(
+            ge=0,
             description=(
-                "Тип применяемой цены для фильтрации: PASSENGER (за взрослого) "
-                "или TOTAL (за всю группу и багаж по формуле API)."
+                "Если задано — только рейсы, у которых итоговая стоимость "
+                "(prices.total) строго меньше этого значения."
             ),
         ),
-    ] = "TOTAL",
+    ] = None,
     todlers_number: Annotated[
         int,
         Query(ge=0, description="Количество младенцев"),
@@ -192,11 +184,6 @@ def list_tickets(
         ),
     ] = False,
 ) -> TicketsListResponse:
-    if price_from is not None and price_to is not None and price_from > price_to:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="price_from must be less than or equal to price_to",
-        )
     try:
         class_token = parse_single_service_class(service_class)
     except ValueError as exc:
@@ -214,13 +201,6 @@ def list_tickets(
                 status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=str(exc),
             ) from exc
-    try:
-        parsed_price_type = parse_price_type(price_type)
-    except ValueError as exc:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(exc),
-        ) from exc
 
     params = TicketListParams(
         offset=offset,
@@ -231,9 +211,7 @@ def list_tickets(
         departure_from_time=departure_from_time,
         departure_to_time=departure_to_time,
         company_ids=company_ids,
-        price_from=price_from,
         price_to=price_to,
-        price_type=parsed_price_type,
         todlers_number=todlers_number,
         children_number=children_number,
         passengers_number=passengers_number,
@@ -244,7 +222,7 @@ def list_tickets(
         has_nature=has_nature,
     )
     rows, total, offset_effective = fetch_tickets(db, params)
-    items = [TicketItem.model_validate(r) for r in rows]
+    items = [[TicketItem.model_validate(r)] for r in rows]
     return TicketsListResponse(
         items=items,
         total=total,

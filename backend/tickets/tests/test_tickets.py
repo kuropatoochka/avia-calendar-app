@@ -9,7 +9,6 @@ from app.main import app
 from app.services.ticket_query import (
     _COUNT_SQL,
     LIST_TICKETS_SQL_TEMPLATE,
-    parse_price_type,
     parse_single_service_class,
 )
 from app.services.ticket_range_query import RANGE_TICKETS_SQL
@@ -20,10 +19,6 @@ client = TestClient(app)
 def test_parse_single_service_class_rejects_csv_like_string() -> None:
     with pytest.raises(ValueError, match="unknown service_class"):
         parse_single_service_class(" budget , FIRST_CLASS ")
-
-
-def test_parse_price_type_case_insensitive() -> None:
-    assert parse_price_type(" passenger ") == "PASSENGER"
 
 
 def test_parse_single_service_class() -> None:
@@ -79,24 +74,6 @@ def test_tickets_unknown_service_class_returns_422() -> None:
     assert "unknown service_class" in response.json()["detail"]
 
 
-def test_tickets_invalid_price_type_returns_422() -> None:
-    response = client.get(
-        "/tickets",
-        params={
-            "airport_from": 1,
-            "airport_to": 4,
-            "date": "2026-06-01",
-            "passengers_number": 1,
-            "service_class": "BUDGET",
-            "price_type": "UNKNOWN",
-            "offset": 0,
-            "limit": 20,
-        },
-    )
-    assert response.status_code == 422
-    assert "price_type" in response.json()["detail"]
-
-
 def test_tickets_sql_uses_typed_casts_for_nullable_filters() -> None:
     count_sql = str(_COUNT_SQL)
 
@@ -104,9 +81,8 @@ def test_tickets_sql_uses_typed_casts_for_nullable_filters() -> None:
         assert "CAST(:departure_from_time AS time) IS NULL" in sql
         assert "CAST(:departure_to_time AS time) IS NULL" in sql
         assert "CAST(:company_ids AS int[]) IS NULL" in sql
-        assert "CAST(:price_from AS integer) IS NULL" in sql
         assert "CAST(:price_to AS integer) IS NULL" in sql
-        assert "CAST(:price_type AS text) = 'PASSENGER'" in sql
+        assert "< CAST(:price_to AS integer)" in sql
         assert "NOT CAST(:has_sea AS boolean)" in sql
         assert "c_to.has_sea" in sql
 
