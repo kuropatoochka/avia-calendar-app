@@ -3,11 +3,31 @@
 from datetime import date, time
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.tickets import TicketItem, TicketRangeItem, TicketsListResponse
+from app.schemas.tickets import (
+    TarifPricePatchItem,
+    TicketItem,
+    TicketNextMonthItem,
+    TicketPricesPatchResponse,
+    TicketRangeItem,
+    TicketsListResponse,
+    TicketsNextMonthResponse,
+)
+from app.services.ticket_next_month_query import (
+    TicketNextMonthParams,
+    fetch_tickets_next_month,
+)
+from app.services.ticket_prices_patch import (
+    DuplicateTarifIdError,
+    TarifIdsNotFoundError,
+    patch_tarif_prices,
+)
+from app.services.ticket_prices_patch import (
+    TarifPricePatchItem as TarifPricePatchParams,
+)
 from app.services.ticket_query import (
     TicketListParams,
     fetch_tickets,
@@ -20,6 +40,78 @@ from app.services.ticket_range_query import (
 )
 
 router = APIRouter(tags=["tickets"])
+
+
+@router.patch("/tickets/prices", response_model=TicketPricesPatchResponse)
+def patch_ticket_prices(
+    db: Annotated[Session, Depends(get_db)],
+    body: Annotated[
+        list[TarifPricePatchItem],
+        Body(
+            description=(
+                "Массив объектов с tarif_id, price, children_price, toddler_price"
+            ),
+        ),
+    ],
+) -> TicketPricesPatchResponse:
+    params = [
+        TarifPricePatchParams(
+            tarif_id=item.tarif_id,
+            price=item.price,
+            children_price=item.children_price,
+            toddler_price=item.toddler_price,
+        )
+        for item in body
+    ]
+    try:
+        updated = patch_tarif_prices(db, params)
+    except DuplicateTarifIdError as exc:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+    except TarifIdsNotFoundError as exc:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": "tarif not found",
+                "tarif_ids": sorted(exc.missing_ids),
+            },
+        ) from exc
+
+    return TicketPricesPatchResponse(
+        message="Tariff prices patched successfully",
+        updated=updated,
+    )
+
+
+@router.get("/tickets/next_month", response_model=TicketsNextMonthResponse)
+def tickets_next_month(
+    db: Annotated[Session, Depends(get_db)],
+    reference_on: Annotated[
+        date,
+        Query(
+            alias="date",
+            description=(
+                "Опорная дата: вылеты с этой даты по дату через месяц включительно"
+            ),
+        ),
+    ],
+    offset: Annotated[int, Query(ge=0, description="Смещение пагинации")],
+    limit: Annotated[int, Query(ge=1, le=500, description="Размер страницы")],
+) -> TicketsNextMonthResponse:
+    params = TicketNextMonthParams(
+        reference_date=reference_on,
+        offset=offset,
+        limit=limit,
+    )
+    rows, total, offset_effective = fetch_tickets_next_month(db, params)
+    return TicketsNextMonthResponse(
+        items=[TicketNextMonthItem.model_validate(r) for r in rows],
+        total=total,
+        offset=offset_effective,
+        limit=limit,
+    )
 
 
 @router.get("/tickets/range", response_model=list[TicketRangeItem])

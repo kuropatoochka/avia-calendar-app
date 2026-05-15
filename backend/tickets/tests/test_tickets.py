@@ -6,6 +6,14 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services.ticket_next_month_query import (
+    _NEXT_MONTH_FROM_AND_JOINS,
+    LIST_NEXT_MONTH_SQL,
+)
+from app.services.ticket_prices_patch import (
+    _EXISTING_TARIF_IDS_SQL,
+    UPDATE_TARIF_PRICES_SQL,
+)
 from app.services.ticket_query import (
     _COUNT_SQL,
     LIST_TICKETS_SQL_TEMPLATE,
@@ -91,3 +99,85 @@ def test_range_sql_uses_generate_series() -> None:
     sql = str(RANGE_TICKETS_SQL)
     assert "generate_series" in sql
     assert "LEFT JOIN priced p" in sql
+
+
+def test_next_month_sql_unpivots_tarifs_and_filters_by_month() -> None:
+    sql = LIST_NEXT_MONTH_SQL
+    assert "unnest" in sql
+    assert "ARRAY[" in sql
+    assert "budget_tarif_id" in sql
+    assert "INTERVAL '1 month'" in sql
+    assert "booking_day_range" in sql or "fi.departure_date -" in sql
+    assert _NEXT_MONTH_FROM_AND_JOINS in sql
+
+
+def test_tickets_next_month_missing_params_returns_422() -> None:
+    response = client.get("/tickets/next_month")
+    assert response.status_code == 422
+
+
+def test_tickets_next_month_invalid_limit_returns_422() -> None:
+    response = client.get(
+        "/tickets/next_month",
+        params={"date": "2026-08-01", "offset": 0, "limit": 0},
+    )
+    assert response.status_code == 422
+
+
+def test_patch_prices_sql_updates_tarif_columns() -> None:
+    sql = str(UPDATE_TARIF_PRICES_SQL)
+    assert "UPDATE tarif" in sql
+    assert "children_price" in sql
+    assert "toddler_price" in sql
+    assert "WHERE id = :tarif_id" in sql
+
+
+def test_patch_prices_existing_ids_sql_uses_any() -> None:
+    sql = str(_EXISTING_TARIF_IDS_SQL)
+    assert "FROM tarif" in sql
+    assert "ANY(CAST(:tarif_ids AS integer[]))" in sql
+
+
+def test_patch_prices_empty_body_returns_success() -> None:
+    response = client.patch("/tickets/prices", json=[])
+    assert response.status_code == 200
+    data = response.json()
+    assert data["updated"] == 0
+    assert "success" in data["message"].lower()
+
+
+def test_patch_prices_negative_price_returns_422() -> None:
+    response = client.patch(
+        "/tickets/prices",
+        json=[
+            {
+                "tarif_id": 1,
+                "price": -1,
+                "children_price": 0,
+                "toddler_price": 0,
+            },
+        ],
+    )
+    assert response.status_code == 422
+
+
+def test_patch_prices_duplicate_tarif_id_returns_422() -> None:
+    response = client.patch(
+        "/tickets/prices",
+        json=[
+            {
+                "tarif_id": 1,
+                "price": 100,
+                "children_price": 50,
+                "toddler_price": 10,
+            },
+            {
+                "tarif_id": 1,
+                "price": 200,
+                "children_price": 60,
+                "toddler_price": 20,
+            },
+        ],
+    )
+    assert response.status_code == 422
+    assert "duplicate" in response.json()["detail"]
