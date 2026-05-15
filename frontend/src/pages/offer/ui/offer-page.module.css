@@ -62,10 +62,6 @@
   width: 356px;
 }
 
-.offersSection {
-  min-width: 0;
-}
-
 @media (max-width: 1280px) {
   .page {
     padding: 0 var(--space-lg);
