@@ -5,7 +5,7 @@
 }
 
 .priceDynamicsSection {
-  margin-top: var(--space-xl);
+  margin-top: var(--space-sm);
 }
 
 .columns {
@@ -60,10 +60,6 @@
 
 .filterWrapper {
   width: 356px;
-}
-
-.offersSection {
-  min-width: 0;
 }
 
 @media (max-width: 1280px) {

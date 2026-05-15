@@ -11,6 +11,7 @@
 
   --color-primary: #73AFFF;
   --color-primary-light: #EEF5FF;
+  --color-error: #FF4D4F;
 
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);

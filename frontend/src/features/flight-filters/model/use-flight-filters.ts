@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import type { FlightFiltersState } from './types';
+import { useState } from 'react';
 import { DEFAULT_FLIGHT_FILTERS } from './defaults';
 
 export const useFlightFilters = () => {

@@ -1,4 +1,5 @@
-import { Tooltip } from 'antd';
+import { MinusOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { Button, Flex, Space, Tooltip, Typography } from 'antd';
 import styles from './search-form.module.css';
 
 interface PassengerCounterProps {
@@ -18,31 +19,37 @@ export const PassengerCounter = ({
   min,
   onChange,
 }: PassengerCounterProps) => (
-  <div className={styles.passengerRow}>
-    <div className={styles.passengerLabelGroup}>
-      <span className={styles.passengerLabel}>
-        {label}
+  <Flex align="center" justify="space-between">
+    <Space vertical size={1}>
+      <Space>
+        <Typography.Text>{label}</Typography.Text>
         {helpText && (
           <Tooltip title={helpText} placement="top">
-            <span className={styles.helpIcon}>?</span>
+            <QuestionCircleOutlined style={{ color: 'var(--color-text-secondary)' }} />
           </Tooltip>
         )}
-      </span>
+      </Space>
       {subLabel && <span className={styles.passengerSubLabel}>{subLabel}</span>}
-    </div>
-    <div className={styles.passengerCounter}>
-      <button
-        type="button"
-        className={styles.counterBtn}
+    </Space>
+    <Flex gap={12} align="center">
+      <Button
+        color="blue"
+        variant="filled"
+        shape="circle"
+        size="small"
+        icon={<MinusOutlined />}
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-      >
-        −
-      </button>
-      <span className={styles.counterValue}>{value}</span>
-      <button type="button" className={styles.counterBtn} onClick={() => onChange(value + 1)}>
-        +
-      </button>
-    </div>
-  </div>
+      />
+      <Typography.Text>{value}</Typography.Text>
+      <Button
+        color="blue"
+        variant="filled"
+        shape="circle"
+        size="small"
+        icon={<PlusOutlined />}
+        onClick={() => onChange(value + 1)}
+      />
+    </Flex>
+  </Flex>
 );

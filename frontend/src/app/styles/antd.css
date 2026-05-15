@@ -29,3 +29,7 @@ h2.ant-typography {
 .ant-layout-header {
   padding: 0 var(--space-xl);
 }
+
+.ant-form-item {
+  margin: 0;
+}

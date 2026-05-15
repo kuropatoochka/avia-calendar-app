@@ -1,26 +1,21 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
 import { useMemo, useState } from 'react';
-import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
 import type { FlightFiltersState } from '@/features/flight-filters';
-import { FlightOffersList, useFlightOffers } from '@/features/flight-offers-list';
+import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
 import type { PriceDynamicsSelection } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
 import {
   PriceDynamicsBlock,
   PriceDynamicsPlaceholder,
 } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
-import { SearchForm } from '@/features/search-form';
+import type { SearchFormValues } from '@/features/search-form';
 import {
   DEFAULT_DESTINATION_AIRPORT,
   DEFAULT_ORIGIN_AIRPORT,
-} from '@/features/search-form/model/consts';
-import type { SearchFormValues } from '@/features/search-form/model/types';
+  SearchForm,
+} from '@/features/search-form';
 import { airportMock } from '@/shared/api';
 import { ArrowDown } from '@/shared/assets';
-import type {
-  FlightFilters as FlightFiltersRequest,
-  FlightsRequest,
-  PriceDynamicsRequest,
-} from '@/shared/types';
+import type { FlightFilters as FlightFiltersRequest, PriceDynamicsRequest } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import styles from './offer-page.module.css';
 
@@ -43,11 +38,7 @@ const DEFAULT_AIRPORTS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
 const OfferPage = () => {
   const [activeSearch, setActiveSearch] = useState<ActiveSearchState | null>(null);
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
-  const [activeSelection, setActiveSelection] = useState<PriceDynamicsSelection | null>(null);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
-  const [hasOffersRequest, setHasOffersRequest] = useState(false);
-
-  const { offers, fetchOffers, isOffersLoading, offersError, resetOffers } = useFlightOffers();
 
   const airportLookup = useMemo(() => {
     const entries = [...airportMock, ...DEFAULT_AIRPORTS];
@@ -76,45 +67,21 @@ const OfferPage = () => {
     animalWeights: filters.petsEnabled ? filters.animalWeights : undefined,
   });
 
-  const buildFlightsRequest = (
-    selection: PriceDynamicsSelection,
-    filtersState: FlightFiltersState | null,
-  ): FlightsRequest | null => {
-    if (!activeSearch) {
-      return null;
-    }
-
-    const isReturn = selection.direction === 'return';
-    const filters = filtersState ? mapFiltersToRequest(filtersState) : undefined;
-
-    return {
-      originAirportId: isReturn
-        ? activeSearch.baseParams.destinationAirportId
-        : activeSearch.baseParams.originAirportId,
-      destinationAirportId: isReturn
-        ? activeSearch.baseParams.originAirportId
-        : activeSearch.baseParams.destinationAirportId,
-      date: selection.date,
-      passengers: activeSearch.baseParams.passengers,
-      serviceClass: activeSearch.baseParams.serviceClass,
-      ...(filters ? { filters } : undefined),
-    };
-  };
-
   const handleSearch = (values: SearchFormValues) => {
     const [dateFrom, dateTo] = values.dateRange;
+    const [originAirportId, destinationAirportId] = [
+      values.originAirport,
+      values.destinationAirport,
+    ];
 
-    if (!dateFrom || !dateTo) {
+    if (!dateFrom || !dateTo || originAirportId === destinationAirportId) {
       setActiveSearch(null);
-      setActiveSelection(null);
-      setHasOffersRequest(false);
-      resetOffers();
       return;
     }
 
     const baseParams: PriceDynamicsRequest = {
-      originAirportId: values.originAirport,
-      destinationAirportId: values.destinationAirport,
+      originAirportId,
+      destinationAirportId,
       dateFrom: dateFrom.format('YYYY-MM-DD'),
       dateTo: dateTo.format('YYYY-MM-DD'),
       passengers: {
@@ -132,24 +99,10 @@ const OfferPage = () => {
       originLabel: getAirportLabel(values.originAirport),
       destinationLabel: getAirportLabel(values.destinationAirport),
     });
-
-    setActiveSelection(null);
-    setHasOffersRequest(false);
-    resetOffers();
   };
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
-
-    if (!activeSelection || !hasOffersRequest) {
-      return;
-    }
-
-    const request = buildFlightsRequest(activeSelection, filters);
-
-    if (request) {
-      void fetchOffers(request);
-    }
   };
 
   const priceDynamicsCharts = useMemo<PriceDynamicsChartConfig[] | null>(() => {
@@ -183,22 +136,12 @@ const OfferPage = () => {
   }, [activeSearch]);
 
   const handleShowFlights = (selection: PriceDynamicsSelection) => {
-    const request = buildFlightsRequest(selection, activeFilters);
-
-    if (!request) {
-      return;
-    }
-
     console.log('Show flights for selected date', {
       direction: selection.direction,
       date: selection.date,
       baseSearchParams: activeSearch?.baseParams,
-      filters: activeFilters,
+      filters: activeFilters ? mapFiltersToRequest(activeFilters) : undefined,
     });
-
-    setActiveSelection(selection);
-    setHasOffersRequest(true);
-    void fetchOffers(request);
   };
 
   return (
@@ -213,61 +156,41 @@ const OfferPage = () => {
 
         <SearchForm onSearch={handleSearch} />
 
-        <div className={styles.priceDynamicsSection}>
-          <Collapse
-            className={styles.collapse}
-            bordered={false}
-            activeKey={priceDynamicsOpenKeys}
-            destroyInactivePanel={false}
-            onChange={(key) => {
-              setPriceDynamicsOpenKeys(Array.isArray(key) ? key : key ? [key] : []);
-            }}
-            expandIconPosition="end"
-            expandIcon={({ isActive }) => (
-              <ArrowDown
-                className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)}
-              />
-            )}
-            items={[
-              {
-                key: 'price-dynamics',
-                label: (
-                  <Typography.Title level={4} className={styles.sectionTitle}>
-                    Динамика цен
-                  </Typography.Title>
-                ),
-                children: (
-                  <div className={styles.collapseBody}>
-                    {priceDynamicsCharts ? (
-                      <PriceDynamicsBlock
-                        sections={priceDynamicsCharts}
-                        onShowFlights={handleShowFlights}
-                      />
-                    ) : (
-                      <PriceDynamicsPlaceholder />
-                    )}
-                  </div>
-                ),
-              },
-            ]}
-          />
-        </div>
+        <Collapse
+          className={styles.collapse}
+          bordered={false}
+          activeKey={priceDynamicsOpenKeys}
+          onChange={(key) => {
+            setPriceDynamicsOpenKeys(Array.isArray(key) ? key : key ? [key] : []);
+          }}
+          expandIcon={({ isActive }) => (
+            <ArrowDown className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)} />
+          )}
+          items={[
+            {
+              key: 'price-dynamics',
+              label: (
+                <Typography.Title level={4} className={styles.sectionTitle}>
+                  Динамика цен
+                </Typography.Title>
+              ),
+              children: (
+                <div className={styles.collapseBody}>
+                  {priceDynamicsCharts ? (
+                    <PriceDynamicsBlock
+                      sections={priceDynamicsCharts}
+                      onShowFlights={handleShowFlights}
+                    />
+                  ) : (
+                    <PriceDynamicsPlaceholder />
+                  )}
+                </div>
+              ),
+            },
+          ]}
+        />
 
         <div className={styles.columns}>
-          <section className={styles.offersSection}>
-            <Typography.Title level={4} className={styles.sectionTitle}>
-              Доступные предложения
-            </Typography.Title>
-
-            <FlightOffersList
-              offers={offers}
-              isLoading={isOffersLoading}
-              error={offersError}
-              hasRequested={hasOffersRequest}
-              resolveAirportLabel={getAirportLabel}
-            />
-          </section>
-
           <aside className={styles.filterWrapper}>
             <FlightFiltersSection
               onApply={handleApplyFilters}

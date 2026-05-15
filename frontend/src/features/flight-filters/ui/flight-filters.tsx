@@ -1,3 +1,4 @@
+import type { DepartureTime, FlightFiltersState } from '../model/types';
 import type { CollapseProps } from 'antd';
 import type { ReactNode } from 'react';
 import {
@@ -14,7 +15,6 @@ import {
 } from 'antd';
 import { ArrowRotateLeft, Cross, ExclamationMark, Search } from '@/shared/assets';
 import { AIRLINE_OPTIONS, DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../model/labels';
-import type { DepartureTime, FlightFiltersState } from '../model/types';
 import { useFlightFilters } from '../model/use-flight-filters';
 import styles from './flight-filters.module.css';
 
