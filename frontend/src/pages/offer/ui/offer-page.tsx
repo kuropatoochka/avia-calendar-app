@@ -1,7 +1,7 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
 import { useMemo, useState } from 'react';
-import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
 import type { FlightFiltersState } from '@/features/flight-filters';
+import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
 import { FlightOffersList, useFlightOffers } from '@/features/flight-offers-list';
 import type { PriceDynamicsSelection } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
 import {
@@ -217,45 +217,39 @@ const OfferPage = () => {
 
         <SearchForm onSearch={handleSearch} />
 
-        <div className={styles.priceDynamicsSection}>
-          <Collapse
-            className={styles.collapse}
-            bordered={false}
-            activeKey={priceDynamicsOpenKeys}
-            destroyInactivePanel={false}
-            onChange={(key) => {
-              setPriceDynamicsOpenKeys(Array.isArray(key) ? key : key ? [key] : []);
-            }}
-            expandIconPosition="end"
-            expandIcon={({ isActive }) => (
-              <ArrowDown
-                className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)}
-              />
-            )}
-            items={[
-              {
-                key: 'price-dynamics',
-                label: (
-                  <Typography.Title level={4} className={styles.sectionTitle}>
-                    Динамика цен
-                  </Typography.Title>
-                ),
-                children: (
-                  <div className={styles.collapseBody}>
-                    {priceDynamicsCharts ? (
-                      <PriceDynamicsBlock
-                        sections={priceDynamicsCharts}
-                        onShowFlights={handleShowFlights}
-                      />
-                    ) : (
-                      <PriceDynamicsPlaceholder />
-                    )}
-                  </div>
-                ),
-              },
-            ]}
-          />
-        </div>
+        <Collapse
+          className={styles.collapse}
+          bordered={false}
+          activeKey={priceDynamicsOpenKeys}
+          onChange={(key) => {
+            setPriceDynamicsOpenKeys(Array.isArray(key) ? key : key ? [key] : []);
+          }}
+          expandIcon={({ isActive }) => (
+            <ArrowDown className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)} />
+          )}
+          items={[
+            {
+              key: 'price-dynamics',
+              label: (
+                <Typography.Title level={4} className={styles.sectionTitle}>
+                  Динамика цен
+                </Typography.Title>
+              ),
+              children: (
+                <div className={styles.collapseBody}>
+                  {priceDynamicsCharts ? (
+                    <PriceDynamicsBlock
+                      sections={priceDynamicsCharts}
+                      onShowFlights={handleShowFlights}
+                    />
+                  ) : (
+                    <PriceDynamicsPlaceholder />
+                  )}
+                </div>
+              ),
+            },
+          ]}
+        />
 
         <div className={styles.columns}>
           <section className={styles.offersSection}>
