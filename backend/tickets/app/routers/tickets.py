@@ -162,25 +162,19 @@ def list_tickets(
     has_sea: Annotated[
         bool,
         Query(
-            description=(
-                "При true — только если у города прилёта has_sea."
-            ),
+            description=("При true — только если у города прилёта has_sea."),
         ),
     ] = False,
     has_warm: Annotated[
         bool,
         Query(
-            description=(
-                "При true — только если у города прилёта has_warm."
-            ),
+            description=("При true — только если у города прилёта has_warm."),
         ),
     ] = False,
     has_nature: Annotated[
         bool,
         Query(
-            description=(
-                "При true — только если у города прилёта has_nature."
-            ),
+            description=("При true — только если у города прилёта has_nature."),
         ),
     ] = False,
 ) -> TicketsListResponse:
