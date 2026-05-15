@@ -1,7 +1,7 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
-import type { FlightFiltersState } from '@/features/flight-filters/model/types';
+import type { FlightFiltersState } from '@/features/flight-filters';
 import { FlightOffersList, useFlightOffers } from '@/features/flight-offers-list';
 import type { PriceDynamicsSelection } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
 import {
@@ -61,19 +61,19 @@ const OfferPage = () => {
 
   const mapFiltersToRequest = (filters: FlightFiltersState): FlightFiltersRequest => ({
     maxStops: filters.maxStops,
-    // TODO: Map stop duration when backend/handlers support it.
-    stopDurationRange: filters.stopDurationRange,
+    stopDurationRange: filters.maxStops > 0 ? filters.stopDurationRange : undefined,
     maxFlightDuration: filters.maxFlightDuration,
-    // TODO: Map departure times when backend/handlers support it.
     departureTimes: filters.departureTimes,
-    // TODO: Map price mode when backend/handlers support it.
+    arrivalTimes: filters.arrivalTimes,
     pricePerPassenger: filters.pricePerPassenger,
     priceRange: filters.priceRange,
-    // TODO: Map baggage and pet filters when backend/handlers support it.
-    baggageTypes: filters.baggageTypes,
-    maxBaggageWeight: filters.maxBaggageWeight,
-    airline: filters.airline,
-    petTransport: filters.petTransport,
+    baggageEnabled: filters.baggageEnabled,
+    baggageForAll: filters.baggageEnabled ? filters.baggageForAll : undefined,
+    baggageWeights: filters.baggageEnabled ? filters.baggageWeights : undefined,
+    airlines: filters.airlines.length > 0 ? filters.airlines : undefined,
+    petsEnabled: filters.petsEnabled,
+    animalCount: filters.petsEnabled ? filters.animalCount : undefined,
+    animalWeights: filters.petsEnabled ? filters.animalWeights : undefined,
   });
 
   const buildFlightsRequest = (
@@ -217,63 +217,71 @@ const OfferPage = () => {
 
         <SearchForm onSearch={handleSearch} />
 
-        <div className={styles.columns}>
-          <div className={styles.results}>
-            <Collapse
-              className={styles.collapse}
-              bordered={false}
-              activeKey={priceDynamicsOpenKeys}
-              destroyInactivePanel={false}
-              onChange={(key) => {
-                setPriceDynamicsOpenKeys(Array.isArray(key) ? key : key ? [key] : []);
-              }}
-              expandIconPosition="end"
-              expandIcon={({ isActive }) => (
-                <ArrowDown
-                  className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)}
-                />
-              )}
-              items={[
-                {
-                  key: 'price-dynamics',
-                  label: (
-                    <Typography.Title level={4} className={styles.sectionTitle}>
-                      Динамика цен
-                    </Typography.Title>
-                  ),
-                  children: (
-                    <div className={styles.collapseBody}>
-                      {priceDynamicsCharts ? (
-                        <PriceDynamicsBlock
-                          sections={priceDynamicsCharts}
-                          onShowFlights={handleShowFlights}
-                        />
-                      ) : (
-                        <PriceDynamicsPlaceholder />
-                      )}
-                    </div>
-                  ),
-                },
-              ]}
-            />
-
-            <section className={styles.offersSection}>
-              <Typography.Title level={4} className={styles.sectionTitle}>
-                Доступные предложения
-              </Typography.Title>
-
-              <FlightOffersList
-                offers={offers}
-                isLoading={isOffersLoading}
-                error={offersError}
-                hasRequested={hasOffersRequest}
-                resolveAirportLabel={getAirportLabel}
+        <div className={styles.priceDynamicsSection}>
+          <Collapse
+            className={styles.collapse}
+            bordered={false}
+            activeKey={priceDynamicsOpenKeys}
+            destroyInactivePanel={false}
+            onChange={(key) => {
+              setPriceDynamicsOpenKeys(Array.isArray(key) ? key : key ? [key] : []);
+            }}
+            expandIconPosition="end"
+            expandIcon={({ isActive }) => (
+              <ArrowDown
+                className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)}
               />
-            </section>
-          </div>
+            )}
+            items={[
+              {
+                key: 'price-dynamics',
+                label: (
+                  <Typography.Title level={4} className={styles.sectionTitle}>
+                    Динамика цен
+                  </Typography.Title>
+                ),
+                children: (
+                  <div className={styles.collapseBody}>
+                    {priceDynamicsCharts ? (
+                      <PriceDynamicsBlock
+                        sections={priceDynamicsCharts}
+                        onShowFlights={handleShowFlights}
+                      />
+                    ) : (
+                      <PriceDynamicsPlaceholder />
+                    )}
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </div>
+
+        <div className={styles.columns}>
+          <section className={styles.offersSection}>
+            <Typography.Title level={4} className={styles.sectionTitle}>
+              Доступные предложения
+            </Typography.Title>
+
+            <FlightOffersList
+              offers={offers}
+              isLoading={isOffersLoading}
+              error={offersError}
+              hasRequested={hasOffersRequest}
+              resolveAirportLabel={getAirportLabel}
+            />
+          </section>
 
           <aside className={styles.filterWrapper}>
-            <FlightFiltersSection onApply={handleApplyFilters} />
+            <FlightFiltersSection
+              onApply={handleApplyFilters}
+              passengerCount={
+                activeSearch
+                  ? activeSearch.baseParams.passengers.adults +
+                    activeSearch.baseParams.passengers.children
+                  : 1
+              }
+            />
           </aside>
         </div>
       </Flex>

@@ -32,12 +32,16 @@ export type FlightFilters = {
   stopDurationRange?: [number, number];
   maxFlightDuration?: number;
   departureTimes?: string[];
+  arrivalTimes?: string[];
   pricePerPassenger?: boolean;
   priceRange?: [number, number];
-  baggageTypes?: string[];
-  maxBaggageWeight?: number;
-  airline?: string;
-  petTransport?: string[];
+  baggageEnabled?: boolean;
+  baggageForAll?: boolean;
+  baggageWeights?: number[];
+  airlines?: string[];
+  petsEnabled?: boolean;
+  animalCount?: number;
+  animalWeights?: number[];
 };
 
 export type FlightsRequest = {

@@ -2,44 +2,75 @@ import type { FlightFiltersState } from './types';
 import { useState } from 'react';
 import { DEFAULT_FLIGHT_FILTERS } from './defaults';
 
-const normalizeFilters = (filters: FlightFiltersState): FlightFiltersState => ({
-  ...filters,
-  baggageTypes: ['hand', ...filters.baggageTypes.filter((type) => type !== 'hand')],
-});
-
 export const useFlightFilters = () => {
-  const initialFilters = normalizeFilters(DEFAULT_FLIGHT_FILTERS);
-
-  const [filters, setFilters] = useState<FlightFiltersState>(initialFilters);
-  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(initialFilters);
+  const [filters, setFilters] = useState<FlightFiltersState>(DEFAULT_FLIGHT_FILTERS);
+  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(DEFAULT_FLIGHT_FILTERS);
 
   const updateDraftFilter = <K extends keyof FlightFiltersState>(
     key: K,
     value: FlightFiltersState[K],
   ) => {
-    setDraftFilters((prev) => {
-      const nextFilters: FlightFiltersState = { ...prev, [key]: value };
+    setDraftFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
-      return normalizeFilters(nextFilters);
+  const setBaggageMode = (forAll: boolean, passengerCount: number) => {
+    setDraftFilters((prev) => {
+      const extras = prev.baggageWeights.slice(forAll ? 1 : passengerCount);
+      const base = forAll
+        ? [prev.baggageWeights[0] ?? 20]
+        : Array.from({ length: passengerCount }, (_, i) => prev.baggageWeights[i] ?? 20);
+      return { ...prev, baggageForAll: forAll, baggageWeights: [...base, ...extras] };
+    });
+  };
+
+  const addBaggageEntry = () => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      baggageWeights: [...prev.baggageWeights, 20],
+    }));
+  };
+
+  const removeBaggageEntry = (index: number) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      baggageWeights: prev.baggageWeights.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateAnimalCount = (count: number) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      animalCount: count,
+      animalWeights: Array.from({ length: count }, (_, i) => prev.animalWeights[i] ?? 10),
+    }));
+  };
+
+  const removeAnimalEntry = (index: number) => {
+    setDraftFilters((prev) => {
+      if (prev.animalCount <= 1) return prev;
+      const newWeights = prev.animalWeights.filter((_, i) => i !== index);
+      return { ...prev, animalCount: newWeights.length, animalWeights: newWeights };
     });
   };
 
   const applyFilters = () => {
-    setFilters(normalizeFilters(draftFilters));
+    setFilters(draftFilters);
   };
 
   const resetFilters = () => {
-    const nextFilters = normalizeFilters(DEFAULT_FLIGHT_FILTERS);
-
-    setDraftFilters(nextFilters);
-    setFilters(nextFilters);
+    setDraftFilters(DEFAULT_FLIGHT_FILTERS);
+    setFilters(DEFAULT_FLIGHT_FILTERS);
   };
 
   return {
     filters,
     draftFilters,
     updateDraftFilter,
-    updateFilter: updateDraftFilter,
+    setBaggageMode,
+    addBaggageEntry,
+    removeBaggageEntry,
+    updateAnimalCount,
+    removeAnimalEntry,
     applyFilters,
     resetFilters,
   };
