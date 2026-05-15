@@ -26,9 +26,9 @@ tickets/
 │   ├── py.typed            # маркер типизируемого пакета для Mypy
 │   ├── main.py             # точка входа FastAPI (`app` приложение для ASGI-сервера)
 │   ├── config.py           # Pydantic Settings (URL БД и прочее)
-│   ├── routers/            # маршруты API (`airports.py`, `tickets.py`)
-│   ├── schemas/            # Pydantic-схемы (`schemas/airports.py`, `schemas/tickets.py`)
-│   ├── services/           # запросы к данным (`airport_query.py`, `ticket_query.py`, …)
+│   ├── routers/            # маршруты API (`airports.py`, `companies.py`, `tickets.py`)
+│   ├── schemas/            # Pydantic-схемы (`schemas/airports.py`, `schemas/companies.py`, …)
+│   ├── services/           # запросы к данным (`airport_query.py`, `company_query.py`, …)
 │   └── db/
 │       ├── base.py         # общий DeclarativeBase для ORM-моделей
 │       └── session.py      # Engine, SessionLocal, зависимость get_db
@@ -181,6 +181,13 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - **`GET /health/db`** — проверка подключения к PostgreSQL одним запросом.
 
 При отсутствии доступной базы второй эндпоинт завершится ошибкой до уровня HTTP 5xx или обрыва соединения — это ожидаемо до настройки `DATABASE_URL` и живого инстанса PostgreSQL.
+
+### Справочник компаний
+
+- **`GET /companies/`** — паджинированный список всех компаний из БД.
+  - **Query:** `offset` (≥ 0), `limit` (1…500).
+  - **Ответ:** `items` (массив `{ id, name }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /airports/`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
+  - Реализация: `app/routers/companies.py`, `app/services/company_query.py` (`fetch_companies`), `app/schemas/companies.py`.
 
 ### Справочник аэропортов
 
