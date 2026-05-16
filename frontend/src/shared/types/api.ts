@@ -5,16 +5,18 @@ type PaginatedResponse<T> = {
   limit: number;
 };
 
-type AiroprtCityDto = {
-  id: string;
+type CityDto = {
+  id: number;
   name: string;
 };
 
-export type AirportDto = AiroprtCityDto & {
-  city: AiroprtCityDto;
+export type AirportDto = {
+  id: number;
+  name: string;
+  city: CityDto;
 };
 
-export type AiroportsDto = PaginatedResponse<AirportDto>;
+export type AirportsDto = PaginatedResponse<AirportDto>;
 
 export type Passengers = {
   adults: number;
@@ -26,8 +28,8 @@ export type Passengers = {
 export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
 
 export type PriceDynamicsRequest = {
-  originAirportId: string;
-  destinationAirportId: string;
+  originAirportId: number;
+  destinationAirportId: number;
   dateFrom: string;
   dateTo: string;
   passengers: Passengers;
@@ -57,8 +59,8 @@ export type FlightFilters = {
 };
 
 export type FlightsRequest = {
-  originAirportId: string;
-  destinationAirportId: string;
+  originAirportId: number;
+  destinationAirportId: number;
   date: string;
   passengers: Passengers;
   serviceClass: ServiceClass;

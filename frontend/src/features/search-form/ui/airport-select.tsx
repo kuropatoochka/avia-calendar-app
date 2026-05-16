@@ -12,23 +12,23 @@ interface Props {
   placeholder: string;
   initialOption: AirportDto;
   initialOptions?: AirportDto[];
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: number;
+  onChange?: (value: number) => void;
   hasError?: boolean;
 }
 
 const mapSelectOption = (option: AirportDto): AirportOption => ({
   value: option.id,
-  label: option.airport,
+  label: option.name,
   option: {
-    city: option.city,
-    airport: option.airport,
-    code: option.id,
+    city: option.city.name,
+    airport: option.name,
+    code: String(option.id),
   },
 });
 
 const mergeOptions = (options: AirportOption[]) => {
-  const optionMap = new Map<string, AirportOption>();
+  const optionMap = new Map<number, AirportOption>();
 
   options.forEach((option) => {
     optionMap.set(option.value, option);
@@ -89,7 +89,7 @@ export const AirportSelect = ({
     >
       <Typography.Paragraph className={styles.label}>{label}</Typography.Paragraph>
 
-      <Select<string, AirportOption>
+      <Select<number, AirportOption>
         value={selectedValue}
         options={options}
         placeholder={placeholder}

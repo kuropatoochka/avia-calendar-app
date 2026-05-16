@@ -6,7 +6,7 @@ export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
 export type DateRangeValue = [Dayjs, Dayjs | null];
 
 export interface AirportOption {
-  value: string;
+  value: number;
   label: string;
   option: {
     city: string;
@@ -23,8 +23,8 @@ export interface PassengersState {
 }
 
 export interface SearchFormValues {
-  originAirport: string;
-  destinationAirport: string;
+  originAirport: number;
+  destinationAirport: number;
   tripType: TripType;
   dateRange: DateRangeValue;
   passengers: PassengersState;

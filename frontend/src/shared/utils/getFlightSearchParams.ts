@@ -25,8 +25,8 @@ export const getFlightSearchParams = <T extends PriceDynamicsRequest | FlightsRe
 ) => {
   const searchParams = new URLSearchParams();
 
-  searchParams.set('origin', params.originAirportId);
-  searchParams.set('destination', params.destinationAirportId);
+  searchParams.set('origin', String(params.originAirportId));
+  searchParams.set('destination', String(params.destinationAirportId));
 
   if ('dateFrom' in params) {
     searchParams.set('date_from', params.dateFrom);

@@ -46,8 +46,8 @@ const OfferPage = () => {
     return new Map(entries.map((airport) => [airport.id, airport]));
   }, []);
 
-  const getAirportLabel = (airportId: string) => {
-    return airportLookup.get(airportId)?.airport ?? airportId.toUpperCase();
+  const getAirportLabel = (airportId: number) => {
+    return airportLookup.get(airportId)?.name ?? String(airportId);
   };
 
   const mapFiltersToRequest = (filters: FlightFiltersState): FlightFiltersRequest => ({

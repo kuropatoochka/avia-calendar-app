@@ -28,7 +28,7 @@ const SEARCH_FORM_ERRORS: Record<'sameAirport' | 'sameCity' | 'emptyDates', Sear
 const airportCityById = new Map(
   [...airportMock, DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT].map((airport) => [
     airport.id,
-    airport.city,
+    airport.city.id,
   ]),
 );
 
