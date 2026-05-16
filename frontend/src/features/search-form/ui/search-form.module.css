@@ -163,15 +163,17 @@
   display: block;
 }
 
-.passengerSubLabel {
-  font-family: 'Rubik', sans-serif;
-  font-size: 12px;
-  color: #999;
+.field:global(.ant-btn):hover {
+  color: var(--text-primary) !important;
 }
 
 .passengerText {
   font-size: 14px !important;
   color: var(--color-text-primary) !important;
+}
+
+.passengerSubLabel {
+  font-size: var(--font-size-2xs);
 }
 
 .serviceClassSection {
