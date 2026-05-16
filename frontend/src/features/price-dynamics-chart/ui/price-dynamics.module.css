@@ -1,0 +1,152 @@
+.card {
+  border-radius: var(--radius-lg);
+  background: var(--background-section);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-xl);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.section + .section {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-primary);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.sectionLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.subtitle {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.meta {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.stateText {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.chartScroll {
+  overflow-x: auto;
+}
+
+.chartGrid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-sm);
+  align-items: end;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--background-page);
+  border: 1px dashed var(--border-primary);
+  min-height: 200px;
+  min-width: 100%;
+  width: max-content;
+}
+
+.barColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 52px;
+  flex: 0 0 auto;
+}
+
+.barTrack {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 140px;
+  width: 100%;
+}
+
+.barButton {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.barButton:disabled {
+  cursor: not-allowed;
+}
+
+.barButton:focus-visible .bar {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.bar {
+  width: 100%;
+  max-width: 18px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: height 0.2s ease;
+}
+
+.barSelected {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.barUnavailable {
+  background: var(--color-text-muted);
+  border: 1px dashed var(--border-primary);
+  opacity: 0.35;
+}
+
+.priceLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.priceUnavailable {
+  color: var(--text-muted);
+}
+
+.dateLabel {
+  font-size: var(--font-size-2xs);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-lg);
+}

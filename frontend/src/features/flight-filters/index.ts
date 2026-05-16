@@ -1,9 +1,3 @@
-export { FlightFilters } from './ui/FlightFilters';
-export { FlightFiltersProvider } from './lib/FlightFiltersProvider';
-export { useFlightFiltersContext } from './lib/FlightFiltersContext';
-export type {
-  FlightFiltersState,
-  DepartureTime,
-  BaggageType,
-  PetTransport,
-} from './types/flightFilters';
+export { FlightFilters } from './ui/flight-filters';
+export { useFlightFilters } from './model/use-flight-filters';
+export type { FlightFiltersState } from './model/types';
