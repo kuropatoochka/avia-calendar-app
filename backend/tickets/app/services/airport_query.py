@@ -9,11 +9,14 @@ from sqlalchemy.orm import Session
 
 LIST_AIRPORTS_SQL = """
 SELECT
-  id,
-  name,
+  a.id,
+  a.name,
+  c.id AS city_id,
+  c.name AS city_name,
   COUNT(*) OVER() AS _total_count
-FROM airport
-ORDER BY id
+FROM airport a
+JOIN city c ON a.city_id = c.id
+ORDER BY a.id
 LIMIT CAST(:limit AS integer) OFFSET CAST(:offset AS integer)
 """
 
@@ -27,7 +30,14 @@ class AirportListParams:
 
 
 def _rows_to_items(rows: Sequence[Any]) -> list[dict[str, Any]]:
-    return [{"id": int(row["id"]), "name": row["name"]} for row in rows]
+    return [
+        {
+            "id": int(row["id"]),
+            "name": row["name"],
+            "city": {"id": int(row["city_id"]), "name": row["city_name"]},
+        }
+        for row in rows
+    ]
 
 
 def fetch_airports(
