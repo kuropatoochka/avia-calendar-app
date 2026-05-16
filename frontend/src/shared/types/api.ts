@@ -1,16 +1,17 @@
 type PaginatedResponse<T> = {
   items: T[];
   total: number;
-  // Page
   offset: number;
-  // The maximum number of items on a page.
   limit: number;
 };
 
-export type AirportDto = {
+type AiroprtCityDto = {
   id: string;
   name: string;
-  city: string;
+};
+
+export type AirportDto = AiroprtCityDto & {
+  city: AiroprtCityDto;
 };
 
 export type AiroportsDto = PaginatedResponse<AirportDto>;
