@@ -29,11 +29,11 @@ export const DEFAULT_PASSENGERS: PassengersState = {
 
 export const DEFAULT_TRIP_TYPE: TripType = 'oneWay';
 
-export const DEFAULT_SERVICE_CLASS: ServiceClass = 'economy';
+export const DEFAULT_SERVICE_CLASS: ServiceClass = 'BUDGET';
 
 export const getDefaultSearchFormValues = (): SearchFormValues => ({
-  originAirport: DEFAULT_ORIGIN_AIRPORT.id,
-  destinationAirport: DEFAULT_DESTINATION_AIRPORT.id,
+  originAirportId: DEFAULT_ORIGIN_AIRPORT.id,
+  destinationAirportId: DEFAULT_DESTINATION_AIRPORT.id,
   tripType: DEFAULT_TRIP_TYPE,
   dateRange: [dayjs(), null],
   passengers: DEFAULT_PASSENGERS,
