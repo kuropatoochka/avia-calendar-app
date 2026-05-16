@@ -9,8 +9,9 @@ client = TestClient(app)
 
 
 def test_airports_list_sql_orders_by_id_with_window_count() -> None:
-    assert "FROM airport" in LIST_AIRPORTS_SQL
-    assert "ORDER BY id" in LIST_AIRPORTS_SQL
+    assert "FROM airport a" in LIST_AIRPORTS_SQL
+    assert "JOIN city c" in LIST_AIRPORTS_SQL
+    assert "ORDER BY a.id" in LIST_AIRPORTS_SQL
     assert "COUNT(*) OVER()" in LIST_AIRPORTS_SQL
 
 
