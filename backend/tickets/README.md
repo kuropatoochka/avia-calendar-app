@@ -193,7 +193,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 - **`GET /airports/`** — паджинированный список всех аэропортов из БД.
   - **Query:** `offset` (≥ 0), `limit` (1…500).
-  - **Ответ:** `items` (массив `{ id, name }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /tickets`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
+  - **Ответ:** `items` (массив `{ id, name, city: { id, name } }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /tickets`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
   - Реализация: `app/routers/airports.py`, `app/services/airport_query.py` (`fetch_airports`), `app/schemas/airports.py`.
 
 ### Поиск рейсов и билетов

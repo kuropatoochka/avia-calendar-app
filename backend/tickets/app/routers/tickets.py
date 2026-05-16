@@ -121,11 +121,15 @@ def tickets_range(
     airport_to: Annotated[int, Query(description="Идентификатор аэропорта прибытия")],
     from_date: Annotated[
         date,
-        Query(description="Начало диапазона дат вылета (включительно). Формат: YYYY-MM-DD"),
+        Query(
+            description="Начало диапазона дат вылета (включительно). Формат: YYYY-MM-DD"
+        ),
     ],
     to_date: Annotated[
         date,
-        Query(description="Конец диапазона дат вылета (включительно). Формат: YYYY-MM-DD"),
+        Query(
+            description="Конец диапазона дат вылета (включительно). Формат: YYYY-MM-DD"
+        ),
     ],
     passengers_number: Annotated[
         int,
@@ -202,34 +206,26 @@ def list_tickets(
     departure_from_time: Annotated[
         time | None,
         Query(
-            description=(
-                "Минимальное время вылета (включительно). Формат: HH:MM:SS"
-            ),
+            description=("Минимальное время вылета (включительно). Формат: HH:MM:SS"),
         ),
     ] = None,
     departure_to_time: Annotated[
         time | None,
         Query(
-            description=(
-                "Максимальное время вылета (включительно). Формат: HH:MM:SS"
-            ),
+            description=("Максимальное время вылета (включительно). Формат: HH:MM:SS"),
         ),
     ] = None,
     company: Annotated[
         str | None,
         Query(
-            description=(
-                "CSV-список id компаний. "
-            ),
+            description=("CSV-список id компаний. "),
         ),
     ] = None,
     price_to: Annotated[
         int | None,
         Query(
             ge=0,
-            description=(
-                "Верхняя граница суммарной стоимости билетов"
-            ),
+            description=("Верхняя граница суммарной стоимости билетов"),
         ),
     ] = None,
     todlers_number: Annotated[
