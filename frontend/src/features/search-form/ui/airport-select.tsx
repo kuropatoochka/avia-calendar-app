@@ -128,9 +128,6 @@ export const AirportSelect = ({
             <Flex vertical gap={4}>
               <Flex gap={6} align="baseline">
                 <Typography.Text>{airport.airport}</Typography.Text>
-                <Typography.Text className={styles.airport_select__code}>
-                  {airport.code}
-                </Typography.Text>
               </Flex>
 
               <Typography.Text type="secondary">{airport.city}</Typography.Text>

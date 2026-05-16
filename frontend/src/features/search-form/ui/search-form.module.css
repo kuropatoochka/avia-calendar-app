@@ -96,12 +96,6 @@
   transform: rotate(180deg);
 }
 
-.airport_select__code:global(.ant-typography) {
-  font-size: var(--font-size-2xs);
-  color: var(--color-primary);
-  text-transform: uppercase;
-}
-
 :global(.ant-btn-icon)>svg.swapIcon {
   width: 24px;
   height: 24px;
