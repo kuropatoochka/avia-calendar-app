@@ -185,14 +185,14 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ### Справочник компаний
 
 - **`GET /companies/`** — паджинированный список всех компаний из БД.
-  - **Query:** `offset` (≥ 0), `limit` (1…500).
+  - **Query:** `offset` (≥ 0), `limit` (1…500). **Опционально:** `search` — подстрока; при задании — ILIKE по полю `name`.
   - **Ответ:** `items` (массив `{ id, name }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /airports/`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
   - Реализация: `app/routers/companies.py`, `app/services/company_query.py` (`fetch_companies`), `app/schemas/companies.py`.
 
 ### Справочник аэропортов
 
 - **`GET /airports/`** — паджинированный список всех аэропортов из БД.
-  - **Query:** `offset` (≥ 0), `limit` (1…500).
+  - **Query:** `offset` (≥ 0), `limit` (1…500). **Опционально:** `search` — подстрока; при задании — ILIKE по `airport.name` и `city.name`.
   - **Ответ:** `items` (массив `{ id, name, city: { id, name } }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /tickets`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
   - Реализация: `app/routers/airports.py`, `app/services/airport_query.py` (`fetch_airports`), `app/schemas/airports.py`.
 

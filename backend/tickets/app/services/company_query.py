@@ -13,17 +13,29 @@ SELECT
   name,
   COUNT(*) OVER() AS _total_count
 FROM company
+WHERE (
+  CAST(:search AS text) IS NULL
+  OR name ILIKE '%' || :search || '%'
+)
 ORDER BY id
 LIMIT CAST(:limit AS integer) OFFSET CAST(:offset AS integer)
 """
 
-_COUNT_COMPANIES_SQL = text("SELECT COUNT(*) AS c FROM company")
+_COUNT_COMPANIES_SQL = text("""
+SELECT COUNT(*) AS c
+FROM company
+WHERE (
+  CAST(:search AS text) IS NULL
+  OR name ILIKE '%' || :search || '%'
+)
+""")
 
 
 @dataclass(frozen=True)
 class CompanyListParams:
     offset: int
     limit: int
+    search: str | None = None
 
 
 def _rows_to_items(rows: Sequence[Any]) -> list[dict[str, Any]]:
@@ -40,20 +52,32 @@ def fetch_companies(
     начала последней страницы, чтобы не отдавать пустой items при ненулевом total.
     """
     stmt = text(LIST_COMPANIES_SQL)
-    bind = {"offset": params.offset, "limit": params.limit}
+    bind = {
+        "offset": params.offset,
+        "limit": params.limit,
+        "search": params.search,
+    }
     rows = db.execute(stmt, bind).mappings().all()
 
     if rows:
         total = int(rows[0]["_total_count"])
         return _rows_to_items(rows), total, params.offset
 
-    total = int(db.execute(_COUNT_COMPANIES_SQL).mappings().one()["c"])
+    total = int(
+        db.execute(_COUNT_COMPANIES_SQL, {"search": params.search})
+        .mappings()
+        .one()["c"]
+    )
     if total == 0:
         return [], 0, params.offset
 
     if params.offset >= total:
         last_page_offset = max(0, ((total - 1) // params.limit) * params.limit)
-        bind2 = {"offset": last_page_offset, "limit": params.limit}
+        bind2 = {
+            "offset": last_page_offset,
+            "limit": params.limit,
+            "search": params.search,
+        }
         rows2 = db.execute(stmt, bind2).mappings().all()
         if rows2:
             total_w = int(rows2[0]["_total_count"])
