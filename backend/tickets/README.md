@@ -26,6 +26,9 @@ tickets/
 │   ├── py.typed            # маркер типизируемого пакета для Mypy
 │   ├── main.py             # точка входа FastAPI (`app` приложение для ASGI-сервера)
 │   ├── config.py           # Pydantic Settings (URL БД и прочее)
+│   ├── routers/            # маршруты API (`airports.py`, `companies.py`, `tickets.py`)
+│   ├── schemas/            # Pydantic-схемы (`schemas/airports.py`, `schemas/companies.py`, …)
+│   ├── services/           # запросы к данным (`airport_query.py`, `company_query.py`, …)
 │   └── db/
 │       ├── base.py         # общий DeclarativeBase для ORM-моделей
 │       └── session.py      # Engine, SessionLocal, зависимость get_db
@@ -51,7 +54,7 @@ tickets/
 - Доступ к БД в эндпоинтах — через зависимость **`get_db`** (`Session` SQLAlchemy), без глобального размазывания сессий по коду.
 - ORM-модели наследуют **`app.db.base.Base`**; для **autogenerate** в Alembic в `alembic/env.py` нужно **импортировать все модули с моделями**, чтобы `target_metadata = Base.metadata` видел таблицы.
 
-**`database/seed_synthetic_data.sql`** — наполнение тестовыми строками: в начале выполняется **`TRUNCATE … CASCADE`** и сброс **`IDENTITY`**, затем вставляются города, аэропорты, рейсы, компании, самолёты, тарифы и экземпляры рейсов. Нужна уже применённая схема (**`database/schema.sql`** или эквивалент). Из **`backend/tickets`**: `psql … -f database/seed_synthetic_data.sql`.
+**`database/seed_synthetic_data.sql`** — наполнение тестовыми строками: в начале выполняется **`TRUNCATE … CASCADE`** и сброс **`IDENTITY`**, затем вставляются города, аэропорты, рейсы, компании, самолёты, тарифы и экземпляры рейсов. Нужна уже применённая схема (**`database/schema.sql`** или эквивалент). Из **`backend/tickets`**: `psql … -f database/seed_synthetic_data.sql`. Связь **`tarif.id`** с полями **`budget_tarif_id` / `business_tarif_id` / `comfort_tarif_id` / `first_class_tarif_id`** в **`flight_instance`** — **1:1** (в схеме **`UNIQUE`** на каждом FK; в сиде у каждого экземпляра рейса свой набор из четырёх строк **`tarif`**). В файле в комментариях описан сценарий для **`GET /tickets/range`** (маршрут аэропорты **1 → 3**, даты **2026-08-01 … 2026-08-06**): два рейса в один день (минимум цены), «пустой» день, фильтр по **`tarif.seats`** при группе из двух взрослых.
 
 ### Статическая типизация и стиль
 
@@ -178,3 +181,47 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - **`GET /health/db`** — проверка подключения к PostgreSQL одним запросом.
 
 При отсутствии доступной базы второй эндпоинт завершится ошибкой до уровня HTTP 5xx или обрыва соединения — это ожидаемо до настройки `DATABASE_URL` и живого инстанса PostgreSQL.
+
+### Справочник компаний
+
+- **`GET /companies/`** — паджинированный список всех компаний из БД.
+  - **Query:** `offset` (≥ 0), `limit` (1…500).
+  - **Ответ:** `items` (массив `{ id, name }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /airports/`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
+  - Реализация: `app/routers/companies.py`, `app/services/company_query.py` (`fetch_companies`), `app/schemas/companies.py`.
+
+### Справочник аэропортов
+
+- **`GET /airports/`** — паджинированный список всех аэропортов из БД.
+  - **Query:** `offset` (≥ 0), `limit` (1…500).
+  - **Ответ:** `items` (массив `{ id, name }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /tickets`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
+  - Реализация: `app/routers/airports.py`, `app/services/airport_query.py` (`fetch_airports`), `app/schemas/airports.py`.
+
+### Поиск рейсов и билетов
+
+- **`GET /tickets`** — паджинированный список экземпляров рейсов (`flight_instance`) на **одну дату вылета** с городами/аэропортами, перевозчиком, самолётом и блоком цен **только для выбранного** `service_class`.
+  - **Query:** обязательные — `airport_from`, `airport_to`, **`date`** (дата вылета; только рейсы с `departure_date` = этой дате), `passengers_number` (**≥ 1**), `service_class` — ровно одно из `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS` (регистр не важен), **`offset`**, **`limit`**. **Опционально:** `todlers_number`, `children_number` (по умолчанию 0), **`baggage_size`** (кг багажа, по умолчанию 0), `departure_from_time` (минимальное время вылета, включительно → `departure_time >=`), `departure_to_time` (максимальное время вылета, включительно → `departure_time <=`), `company` (CSV id компаний), **`price_to`** (если задан — только рейсы с **`prices.total` строго меньше** этого значения), **`has_sea`**, **`has_warm`**, **`has_nature`** (по умолчанию `false`; если `true`, в выборку попадают только рейсы, у которых **город прилёта** (`city` аэропорта назначения) имеет соответствующий флаг в БД в значении `true`).
+  - **Фильтр цен:** один тариф и салон выбранного класса; опциональный **`price_to`** сравнивается с итоговой суммой **`prices.total`** (формула API). Рейс исключается, если `total` не меньше `price_to`.
+  - **Ответ:** `items`, `total`, `offset`, `limit`. Поле **`items`** — массив групп; каждая группа — массив билетов (сейчас в группе один рейс). В объекте билета: маршрут (`city_from`, `city_to`, `airport_from`, `airport_to`), `flight_number`, `company_name`, `duration`, даты/времена вылета и прилёта, `plane_type`, `plane_number`, **`prices`** (`ServiceClassPrices`): `total`, `price`, `children_price`, `todlers_price`, `baggage_price`. Поле **`total`** в `prices`: `price * passengers_number + children_price * children_number + todlers_price * todlers_number + baggage_price * baggage_size` (в JSON — `todlers_price`; в БД — `toddler_price`).
+  - **Условие попадания в список:** для выбранного класса `tarif.seats >= N` и мест в салоне `plane` ≥ `N`, где `N = passengers_number + children_number + todlers_number`.
+  - **Сортировка:** по возрастанию `prices.total`, затем по `fi.id`.
+  - **Пагинация:** как раньше — при **`offset` ≥ `total`** возвращается последняя страница, в JSON — фактический `offset`.
+  - Реализация: `app/routers/tickets.py`, `app/services/ticket_query.py` (`fetch_tickets`, `parse_single_service_class`, SQL), `app/schemas/tickets.py`.
+
+- **`GET /tickets/next_month`** — паджинированная выгрузка рейсов за месяц от опорной даты (для аналитики / синхронизации с `HistoricalFlights`).
+  - **Query:** обязательные — **`date`** (опорная дата вылета; в выборку попадают рейсы с `departure_date` от этой даты до `date + 1 месяц` включительно), **`offset`**, **`limit`** (1…500).
+  - **Ответ:** `items`, `total`, `offset`, `limit`. Каждый элемент `items` — один экземпляр рейса и один из четырёх тарифов: `tarif_id`, `type` (класс из `tarif.type`), `seats`, `city_from`, `city_to`, флаги города прилёта (`has_sea`, `has_warm`, `has_nature`), `company`, `plane_type`, `duration`, `departure_day` / `arrival_day` (ISO `YYYY-MM-DD`), `departure_time`, `arrival_time`, `booking_day_range` (дней от `date` до вылета), `price`, `children_price`, `toddler_price`.
+  - **Сортировка:** по `departure_date`, `flight_instance.id`, `tarif.id`.
+  - **Пагинация:** как у **`GET /airports/`** — при `offset` ≥ `total` возвращается последняя страница.
+  - Реализация: `app/routers/tickets.py`, `app/services/ticket_next_month_query.py` (`fetch_tickets_next_month`), `app/schemas/tickets.py` (`TicketNextMonthItem`, `TicketsNextMonthResponse`).
+
+- **`GET /tickets/range`** — календарь минимальных цен по дням для маршрута и одного класса обслуживания.
+  - **Query (обязательные):** `airport_from`, `airport_to`, `from_date`, `to_date` (конец диапазона дат вылета, включительно), `passengers_number` (**≥ 1**), `service_class` — ровно одно из `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS` (регистр не важен).
+  - **Query (опционально):** `todlers_number`, `children_number` (по умолчанию 0).
+  - **Ответ:** массив объектов по **каждому** дню от `from_date` до `to_date` включительно, по возрастанию даты: `departure_date`, `min_total_price`. Сумма за день: `price * passengers_number + children_price * children_number + toddler_price * todlers_number` по тарифу выбранного класса на конкретном экземпляре рейса; в выборку попадают только рейсы, где **`tarif.seats`** и число мест соответствующего класса в **`plane`** не меньше суммы `passengers_number + children_number + todlers_number`. `min_total_price` — минимум по всем таким рейсам в этот день; если подходящих рейсов нет — **`null`**.
+  - Реализация: `app/routers/tickets.py`, `app/services/ticket_range_query.py` (`fetch_ticket_range`), разбор класса — `parse_single_service_class` в `app/services/ticket_query.py`, `app/schemas/tickets.py` (`TicketRangeItem`).
+
+- **`PATCH /tickets/prices`** — пакетное обновление цен в таблице **`tarif`**.
+  - **Тело:** JSON-массив объектов `{ tarif_id, price, children_price, toddler_price }` (все поля обязательны, цены ≥ 0, `tarif_id` ≥ 1). Повторяющийся `tarif_id` в одном запросе → **422**.
+  - **Ответ:** `{ message, updated }` — сообщение об успехе и число обновлённых строк. Пустой массив допустим (`updated: 0`).
+  - **Ошибки:** **404**, если хотя бы один `tarif_id` не найден (`detail.tarif_ids` — список отсутствующих id).
+  - Реализация: `app/routers/tickets.py`, `app/services/ticket_prices_patch.py` (`patch_tarif_prices`), `app/schemas/tickets.py` (`TarifPricePatchItem`, `TicketPricesPatchResponse`).

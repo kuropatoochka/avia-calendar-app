@@ -66,8 +66,9 @@ CREATE TABLE flight_instance (
     arrival_date DATE NOT NULL,
     arrival_time TIME NOT NULL,
     plane_id INTEGER NOT NULL REFERENCES plane (id),
-    budget_tarif_id INTEGER NOT NULL REFERENCES tarif (id),
-    business_tarif_id INTEGER NOT NULL REFERENCES tarif (id),
-    comfort_tarif_id INTEGER NOT NULL REFERENCES tarif (id),
-    first_class_tarif_id INTEGER NOT NULL REFERENCES tarif (id)
+    -- Каждый tarif.id — ровно один слот в flight_instance (UNIQUE на FK).
+    budget_tarif_id INTEGER NOT NULL UNIQUE REFERENCES tarif (id),
+    business_tarif_id INTEGER NOT NULL UNIQUE REFERENCES tarif (id),
+    comfort_tarif_id INTEGER NOT NULL UNIQUE REFERENCES tarif (id),
+    first_class_tarif_id INTEGER NOT NULL UNIQUE REFERENCES tarif (id)
 );
