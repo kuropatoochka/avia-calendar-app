@@ -1,5 +1,6 @@
 import type { DepartureTime, FlightFiltersState } from '../model/types';
 import type { CollapseProps } from 'antd';
+import { Fragment, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   Button,
@@ -7,20 +8,45 @@ import {
   Collapse,
   Flex,
   InputNumber,
-  Radio,
   Select,
   Slider,
   Tooltip,
   Typography,
 } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
 import { ArrowRotateLeft, Cross, ExclamationMark, Search } from '@/shared/assets';
 import { AIRLINE_OPTIONS, DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../model/labels';
 import { useFlightFilters } from '../model/use-flight-filters';
 import styles from './flight-filters.module.css';
 
+type PassengerCounts = {
+  adults: number;
+  children: number;
+  toddler: number;
+};
+
+type PassengerEntry = {
+  label: string;
+  defaultWeight: number;
+};
+
+const buildPassengerEntries = (passengers?: PassengerCounts): PassengerEntry[] => {
+  const adults = passengers?.adults ?? 1;
+  const children = passengers?.children ?? 0;
+  const toddlers = passengers?.toddler ?? 0;
+  const entries: PassengerEntry[] = [];
+  for (let i = 0; i < adults; i++)
+    entries.push({ label: adults > 1 ? `Пассажир ${i + 1}` : 'Пассажир', defaultWeight: 20 });
+  for (let i = 0; i < children; i++)
+    entries.push({ label: children > 1 ? `Ребёнок ${i + 1}` : 'Ребёнок', defaultWeight: 0 });
+  for (let i = 0; i < toddlers; i++)
+    entries.push({ label: toddlers > 1 ? `Младенец ${i + 1}` : 'Младенец', defaultWeight: 0 });
+  return entries;
+};
+
 type FlightFiltersProps = {
   onApply?: (filters: FlightFiltersState) => void;
-  passengerCount?: number;
+  passengers?: PassengerCounts;
 };
 
 type FieldRowProps = {
@@ -36,22 +62,20 @@ const FieldRow = ({ label, children }: FieldRowProps) => (
 );
 
 const stopDurationTooltip = (value?: number) => {
-  if (value === 1) return 'Менее 1 ч';
-  if (value === 72) return 'Более 72 ч';
+  if (value === 0) return '< 1 ч';
+  if (value === 72) return 'Любая';
   return `${value} ч`;
 };
 
 const priceTooltip = (value?: number) => {
-  if (value === 1_000) return 'Менее 1 000 ₽';
-  if (value === 200_000) return 'Более 200 000 ₽';
-  return `${value?.toLocaleString('ru-RU')} ₽`;
+  if (value === 200_000) return 'Любая';
+  return `до ${value?.toLocaleString('ru-RU')} ₽`;
 };
 
-export const FlightFilters = ({ onApply, passengerCount = 1 }: FlightFiltersProps) => {
+export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
   const {
     draftFilters,
     updateDraftFilter,
-    setBaggageMode,
     addBaggageEntry,
     removeBaggageEntry,
     updateAnimalCount,
@@ -59,8 +83,21 @@ export const FlightFilters = ({ onApply, passengerCount = 1 }: FlightFiltersProp
     resetFilters,
   } = useFlightFilters();
 
-  const mainBaggageCount = draftFilters.baggageForAll ? 1 : passengerCount;
-  const hasExtraBaggage = draftFilters.baggageWeights.length > mainBaggageCount;
+  const [addingBaggageFor, setAddingBaggageFor] = useState(false);
+  const [passengerSelectOpen, setPassengerSelectOpen] = useState(false);
+
+  const passengerEntries = buildPassengerEntries(passengers);
+  const firstChildIndex = passengerEntries.findIndex((e) => e.defaultWeight === 0);
+
+  const [minStopDur, maxStopDur] = draftFilters.stopDurationRange;
+  const stopDurationLabel =
+    maxStopDur >= 72
+      ? minStopDur === 0
+        ? 'Любая'
+        : `от ${minStopDur} ч`
+      : minStopDur === 0
+        ? `до ${maxStopDur} ч`
+        : `${minStopDur}–${maxStopDur} ч`;
 
   const toggleDepartureTime = (value: DepartureTime, checked: boolean) => {
     if (!checked && draftFilters.departureTimes.length === 1) return;
@@ -103,21 +140,14 @@ export const FlightFilters = ({ onApply, passengerCount = 1 }: FlightFiltersProp
           </FieldRow>
 
           <Flex vertical gap={4} className={styles.fullWidth}>
-            <Typography.Text className={styles.label}>Длительность пересадки, часы</Typography.Text>
-
-            <Flex justify="space-between">
-              <Typography.Text className={styles.sliderLabel}>
-                {draftFilters.stopDurationRange[0]}
-              </Typography.Text>
-              <Typography.Text className={styles.sliderLabel}>
-                {draftFilters.stopDurationRange[1]}
-              </Typography.Text>
-            </Flex>
+            <FieldRow label="Длительность пересадки, часы">
+              <Typography.Text className={styles.sliderLabel}>{stopDurationLabel}</Typography.Text>
+            </FieldRow>
 
             <Slider
               range
               className={styles.slider}
-              min={1}
+              min={0}
               max={72}
               disabled={draftFilters.maxStops === 0}
               value={draftFilters.stopDurationRange}
@@ -178,39 +208,24 @@ export const FlightFilters = ({ onApply, passengerCount = 1 }: FlightFiltersProp
       key: 'price',
       label: <Typography.Text className={styles.sectionTitle}>Стоимость</Typography.Text>,
       children: (
-        <Flex vertical gap={16} className={styles.fullWidth}>
-          <Radio.Group
-            value={draftFilters.pricePerPassenger}
-            onChange={(event) => updateDraftFilter('pricePerPassenger', event.target.value)}
-            options={[
-              { value: false, label: 'Цена за всех' },
-              { value: true, label: 'Цена за пассажира' },
-            ]}
+        <Flex vertical gap={4} className={styles.fullWidth}>
+          <FieldRow label="Стоимость, руб.">
+            <Typography.Text className={styles.sliderLabel}>
+              {draftFilters.maxPrice >= 200_000
+                ? 'Любая'
+                : `до ${draftFilters.maxPrice.toLocaleString('ru-RU')} ₽`}
+            </Typography.Text>
+          </FieldRow>
+
+          <Slider
+            className={styles.slider}
+            min={1_000}
+            max={200_000}
+            step={100}
+            value={draftFilters.maxPrice}
+            onChange={(value) => updateDraftFilter('maxPrice', value)}
+            tooltip={{ formatter: priceTooltip }}
           />
-
-          <Flex vertical gap={4} className={styles.fullWidth}>
-            <Typography.Text className={styles.label}>Диапазон цены, руб.</Typography.Text>
-
-            <Flex justify="space-between">
-              <Typography.Text className={styles.sliderLabel}>
-                {draftFilters.priceRange[0].toLocaleString('ru-RU')}
-              </Typography.Text>
-              <Typography.Text className={styles.sliderLabel}>
-                {draftFilters.priceRange[1].toLocaleString('ru-RU')}
-              </Typography.Text>
-            </Flex>
-
-            <Slider
-              range
-              className={styles.slider}
-              min={1_000}
-              max={200_000}
-              step={100}
-              value={draftFilters.priceRange}
-              onChange={(value) => updateDraftFilter('priceRange', value as [number, number])}
-              tooltip={{ formatter: priceTooltip }}
-            />
-          </Flex>
         </Flex>
       ),
     },
@@ -221,73 +236,147 @@ export const FlightFilters = ({ onApply, passengerCount = 1 }: FlightFiltersProp
         <Flex vertical gap={16} className={styles.fullWidth}>
           {/* Багаж */}
           <Flex vertical gap={8} className={styles.fullWidth}>
-            <Checkbox
-              checked={draftFilters.baggageEnabled}
-              onChange={(e) => updateDraftFilter('baggageEnabled', e.target.checked)}
-            >
-              Багаж
-            </Checkbox>
+            <Flex align="center" gap={6}>
+              <Checkbox
+                checked={draftFilters.baggageEnabled}
+                onChange={(e) => {
+                  const enabled = e.target.checked;
+                  updateDraftFilter('baggageEnabled', enabled);
+                  if (enabled) {
+                    updateDraftFilter(
+                      'baggageWeights',
+                      passengerEntries.map(
+                        (entry, i) => draftFilters.baggageWeights[i] ?? entry.defaultWeight,
+                      ),
+                    );
+                  }
+                }}
+              >
+                Багаж
+              </Checkbox>
+              {draftFilters.baggageEnabled && firstChildIndex !== -1 && (
+                <Tooltip title="при выборе «0» кг, багаж не учитывается">
+                  <ExclamationMark className={styles.infoIcon} />
+                </Tooltip>
+              )}
+            </Flex>
 
             {draftFilters.baggageEnabled && (
               <Flex vertical gap={8} className={styles.fullWidth}>
-                <Radio.Group
-                  value={draftFilters.baggageForAll}
-                  onChange={(e) => setBaggageMode(e.target.value as boolean, passengerCount)}
-                  options={[
-                    { value: true, label: 'Для всех пассажиров' },
-                    { value: false, label: 'Для каждого пассажира' },
-                  ]}
-                />
+                {passengerEntries.map((entry, pIndex) => {
+                  const weight = draftFilters.baggageWeights[pIndex] ?? entry.defaultWeight;
+                  const passengerExtras = draftFilters.extraBaggageEntries
+                    .map((e, i) => ({ ...e, globalIndex: i }))
+                    .filter((e) => e.passengerIndex === pIndex);
 
-                {draftFilters.baggageWeights.map((weight, index) => {
-                  const isExtra = index >= mainBaggageCount;
-                  const label = isExtra ? (
-                    <>
-                      Дополнительный
-                      <br />
-                      багаж {index - mainBaggageCount + 1}
-                    </>
-                  ) : draftFilters.baggageForAll ? (
-                    'Вес багажа'
-                  ) : (
-                    `Пассажир ${index + 1}`
+                  const mainInputNode = (
+                    <Flex gap={6} align="center">
+                      <InputNumber
+                        className={styles.numberInput}
+                        min={0}
+                        value={weight}
+                        onChange={(value) => {
+                          if (value !== null) {
+                            const next = Array.from(
+                              { length: Math.max(draftFilters.baggageWeights.length, pIndex + 1) },
+                              (_, i) =>
+                                draftFilters.baggageWeights[i] ??
+                                passengerEntries[i]?.defaultWeight ??
+                                20,
+                            );
+                            next[pIndex] = value;
+                            updateDraftFilter('baggageWeights', next);
+                          }
+                        }}
+                      />
+                      <Typography.Text className={styles.unitLabel}>кг</Typography.Text>
+                    </Flex>
                   );
 
                   return (
-                    <FieldRow key={index} label={label}>
-                      <Flex gap={6} align="center">
-                        <InputNumber
-                          className={styles.numberInput}
-                          min={0}
-                          value={weight}
-                          onChange={(value) => {
-                            if (value !== null) {
-                              const next = [...draftFilters.baggageWeights];
-                              next[index] = value;
-                              updateDraftFilter('baggageWeights', next);
-                            }
-                          }}
-                        />
-                        <Typography.Text className={styles.unitLabel}>кг</Typography.Text>
-                      </Flex>
-                    </FieldRow>
+                    <Fragment key={pIndex}>
+                      <FieldRow label={entry.label}>
+                        {mainInputNode}
+                      </FieldRow>
+
+                      {passengerExtras.map((extra, extraOrder) => (
+                        <FieldRow
+                          key={extra.globalIndex}
+                          label={`Доп. багаж ${extraOrder + 1}`}
+                        >
+                          <Flex gap={6} align="center">
+                            <InputNumber
+                              className={styles.numberInput}
+                              min={0}
+                              value={extra.weight}
+                              onChange={(value) => {
+                                if (value !== null) {
+                                  const next = [...draftFilters.extraBaggageEntries];
+                                  next[extra.globalIndex] = {
+                                    ...next[extra.globalIndex],
+                                    weight: value,
+                                  };
+                                  updateDraftFilter('extraBaggageEntries', next);
+                                }
+                              }}
+                            />
+                            <Typography.Text className={styles.unitLabel}>кг</Typography.Text>
+                          </Flex>
+                        </FieldRow>
+                      ))}
+                    </Fragment>
                   );
                 })}
 
-                <Flex justify="space-between" className={styles.fullWidth}>
-                  <Button size="small" className={styles.actionButton} onClick={addBaggageEntry}>
-                    Добавить ещё багаж
-                  </Button>
-                  {hasExtraBaggage && (
+                {addingBaggageFor ? (
+                  <Select
+                    autoFocus
+                    className={styles.passengerSelect}
+                    placeholder="Выберите пассажира"
+                    open={passengerSelectOpen}
+                    onDropdownVisibleChange={setPassengerSelectOpen}
+                    options={passengerEntries.map((e, i) => ({ label: e.label, value: i }))}
+                    onSelect={(passengerIndex: number) => {
+                      addBaggageEntry(passengerIndex);
+                      setAddingBaggageFor(false);
+                      setPassengerSelectOpen(false);
+                    }}
+                    onBlur={() => {
+                      setAddingBaggageFor(false);
+                      setPassengerSelectOpen(false);
+                    }}
+                    suffixIcon={
+                      <DownOutlined
+                        className={
+                          passengerSelectOpen
+                            ? styles.passengerSelectArrowOpen
+                            : styles.passengerSelectArrow
+                        }
+                      />
+                    }
+                  />
+                ) : (
+                  <Flex justify="space-between" className={styles.fullWidth}>
                     <Button
                       size="small"
                       className={styles.actionButton}
-                      onClick={() => removeBaggageEntry(draftFilters.baggageWeights.length - 1)}
+                      onClick={() => setAddingBaggageFor(true)}
                     >
-                      Удалить багаж
+                      Добавить ещё багаж
                     </Button>
-                  )}
-                </Flex>
+                    {draftFilters.extraBaggageEntries.length > 0 && (
+                      <Button
+                        size="small"
+                        className={styles.actionButton}
+                        onClick={() =>
+                          removeBaggageEntry(draftFilters.extraBaggageEntries.length - 1)
+                        }
+                      >
+                        Удалить багаж
+                      </Button>
+                    )}
+                  </Flex>
+                )}
               </Flex>
             )}
           </Flex>

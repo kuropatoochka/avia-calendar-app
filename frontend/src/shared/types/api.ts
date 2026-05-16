@@ -27,17 +27,21 @@ export type PriceDynamicsDto = {
   minPrice: number | null;
 };
 
+export type ExtraBaggageEntry = {
+  passengerIndex: number;
+  weight: number;
+};
+
 export type FlightFilters = {
   maxStops?: number;
   stopDurationRange?: [number, number];
   maxFlightDuration?: number;
   departureTimes?: string[];
   arrivalTimes?: string[];
-  pricePerPassenger?: boolean;
-  priceRange?: [number, number];
+  maxPrice?: number;
   baggageEnabled?: boolean;
-  baggageForAll?: boolean;
   baggageWeights?: number[];
+  extraBaggageEntries?: ExtraBaggageEntry[];
   airlines?: string[];
   petsEnabled?: boolean;
   animalCount?: number;

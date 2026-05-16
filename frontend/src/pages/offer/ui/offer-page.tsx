@@ -56,11 +56,13 @@ const OfferPage = () => {
     maxFlightDuration: filters.maxFlightDuration,
     departureTimes: filters.departureTimes,
     arrivalTimes: filters.arrivalTimes,
-    pricePerPassenger: filters.pricePerPassenger,
-    priceRange: filters.priceRange,
+    maxPrice: filters.maxPrice < 200_000 ? filters.maxPrice : undefined,
     baggageEnabled: filters.baggageEnabled,
-    baggageForAll: filters.baggageEnabled ? filters.baggageForAll : undefined,
     baggageWeights: filters.baggageEnabled ? filters.baggageWeights : undefined,
+    extraBaggageEntries:
+      filters.baggageEnabled && filters.extraBaggageEntries.length > 0
+        ? filters.extraBaggageEntries
+        : undefined,
     airlines: filters.airlines.length > 0 ? filters.airlines : undefined,
     petsEnabled: filters.petsEnabled,
     animalCount: filters.petsEnabled ? filters.animalCount : undefined,
@@ -194,11 +196,14 @@ const OfferPage = () => {
           <aside className={styles.filterWrapper}>
             <FlightFiltersSection
               onApply={handleApplyFilters}
-              passengerCount={
+              passengers={
                 activeSearch
-                  ? activeSearch.baseParams.passengers.adults +
-                    activeSearch.baseParams.passengers.children
-                  : 1
+                  ? {
+                      adults: activeSearch.baseParams.passengers.adults,
+                      children: activeSearch.baseParams.passengers.children,
+                      toddler: activeSearch.baseParams.passengers.toddler,
+                    }
+                  : undefined
               }
             />
           </aside>
