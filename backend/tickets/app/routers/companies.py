@@ -17,8 +17,12 @@ def list_companies(
     db: Annotated[Session, Depends(get_db)],
     offset: Annotated[int, Query(ge=0, description="Смещение пагинации")],
     limit: Annotated[int, Query(ge=1, le=500, description="Размер страницы")],
+    search: Annotated[
+        str | None,
+        Query(description="Подстрока для ILIKE-поиска по имени компании"),
+    ] = None,
 ) -> CompaniesListResponse:
-    params = CompanyListParams(offset=offset, limit=limit)
+    params = CompanyListParams(offset=offset, limit=limit, search=search)
     rows, total, offset_effective = fetch_companies(db, params)
     return CompaniesListResponse(
         items=[CompanyItem.model_validate(r) for r in rows],

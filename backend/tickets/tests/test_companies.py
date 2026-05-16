@@ -12,6 +12,8 @@ def test_companies_list_sql_orders_by_id_with_window_count() -> None:
     assert "FROM company" in LIST_COMPANIES_SQL
     assert "ORDER BY id" in LIST_COMPANIES_SQL
     assert "COUNT(*) OVER()" in LIST_COMPANIES_SQL
+    assert "CAST(:search AS text) IS NULL" in LIST_COMPANIES_SQL
+    assert "name ILIKE" in LIST_COMPANIES_SQL
 
 
 def test_companies_list_missing_limit_returns_422() -> None:
