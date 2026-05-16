@@ -93,7 +93,7 @@ def tickets_next_month(
         Query(
             alias="date",
             description=(
-                "Опорная дата: вылеты с этой даты по дату через месяц включительно"
+                "Опорная дата: вылеты, начиная со следующей после этой даты через месяц включительно"
             ),
         ),
     ],
@@ -118,14 +118,14 @@ def tickets_next_month(
 def tickets_range(
     db: Annotated[Session, Depends(get_db)],
     airport_from: Annotated[int, Query(description="Идентификатор аэропорта вылета")],
-    airport_to: Annotated[int, Query(description="Идентификатор аэропорта прилёта")],
+    airport_to: Annotated[int, Query(description="Идентификатор аэропорта прибытия")],
     from_date: Annotated[
         date,
-        Query(description="Начало диапазона дат вылета (включительно)"),
+        Query(description="Начало диапазона дат вылета (включительно). Формат: YYYY-MM-DD"),
     ],
     to_date: Annotated[
         date,
-        Query(description="Конец диапазона дат вылета (включительно)"),
+        Query(description="Конец диапазона дат вылета (включительно). Формат: YYYY-MM-DD"),
     ],
     passengers_number: Annotated[
         int,
@@ -178,12 +178,12 @@ def tickets_range(
 def list_tickets(
     db: Annotated[Session, Depends(get_db)],
     airport_from: Annotated[int, Query(description="Идентификатор аэропорта вылета")],
-    airport_to: Annotated[int, Query(description="Идентификатор аэропорта прилёта")],
+    airport_to: Annotated[int, Query(description="Идентификатор аэропорта прибытияя")],
     departure_on: Annotated[
         date,
         Query(
             alias="date",
-            description="Дата вылета (только рейсы в этот день)",
+            description="Дата вылета (только рейсы в этот день). Формат: YYYY-MM-DD",
         ),
     ],
     passengers_number: Annotated[
@@ -203,8 +203,7 @@ def list_tickets(
         time | None,
         Query(
             description=(
-                "Минимальное время вылета (включительно). "
-                "Если задано, departure_time не раньше этого значения."
+                "Минимальное время вылета (включительно). Формат: HH:MM:SS"
             ),
         ),
     ] = None,
@@ -212,8 +211,7 @@ def list_tickets(
         time | None,
         Query(
             description=(
-                "Максимальное время вылета (включительно). "
-                "Если задано, departure_time не позже этого значения."
+                "Максимальное время вылета (включительно). Формат: HH:MM:SS"
             ),
         ),
     ] = None,
@@ -222,7 +220,6 @@ def list_tickets(
         Query(
             description=(
                 "CSV-список id компаний. "
-                "Если задано, показываются билеты только этих перевозчиков."
             ),
         ),
     ] = None,
@@ -231,8 +228,7 @@ def list_tickets(
         Query(
             ge=0,
             description=(
-                "Если задано — только рейсы, у которых итоговая стоимость "
-                "(prices.total) строго меньше этого значения."
+                "Верхняя граница суммарной стоимости билетов"
             ),
         ),
     ] = None,
@@ -248,7 +244,7 @@ def list_tickets(
         int,
         Query(
             ge=0,
-            description=("Вес багажа в килограммах; в цене: baggage_price × этот вес."),
+            description=("Вес багажа в килограммах"),
         ),
     ] = 0,
     has_sea: Annotated[
