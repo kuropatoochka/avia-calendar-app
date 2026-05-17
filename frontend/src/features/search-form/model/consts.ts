@@ -20,6 +20,8 @@ export const DEFAULT_DESTINATION_AIRPORT: AirportDto = {
   },
 };
 
+export const DEFAULT_AIRPORT_OPTIONS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
+
 export const DEFAULT_PASSENGERS: PassengersState = {
   adults: 1,
   children: 0,
@@ -39,3 +41,15 @@ export const getDefaultSearchFormValues = (): SearchFormValues => ({
   passengers: DEFAULT_PASSENGERS,
   serviceClass: DEFAULT_SERVICE_CLASS,
 });
+
+export const SERVICE_CLASS_OPTIONS: { value: ServiceClass; label: string }[] = [
+  { value: 'BUDGET', label: 'Эконом' },
+  { value: 'COMFORT', label: 'Комфорт' },
+  { value: 'BUSINESS', label: 'Бизнес' },
+  { value: 'FIRST_CLASS', label: 'Первый класс' },
+];
+
+export const TRIP_TYPE_LABELS: Record<TripType, string> = {
+  oneWay: 'В одну сторону',
+  roundTrip: 'Туда-обратно',
+};

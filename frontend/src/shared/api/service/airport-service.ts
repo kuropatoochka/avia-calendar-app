@@ -1,28 +1,39 @@
-import { API_URL } from '../../consts/api';
+import type { AirportsDto } from '@/shared/types';
+
+type Params = {
+  search?: string;
+  offset?: number;
+  limit?: number;
+};
 
 export default class AirportService {
-  static async getAirports(params?: {
-    search?: string;
-    offset?: number;
-    limit?: number;
-  }): Promise<Response> {
-    const baseUrl = API_URL?.endsWith('/') ? API_URL.slice(0, -1) : (API_URL ?? '');
+  static async getAirports(params: Params = {}): Promise<AirportsDto> {
+    const { search, offset, limit } = params;
     const searchParams = new URLSearchParams();
-    const offset = params?.offset ?? 0;
-    const limit = params?.limit ?? 10;
 
-    searchParams.set('offset', String(offset));
-    searchParams.set('limit', String(limit));
-
-    if (params?.search) {
-      searchParams.set('search', params.search.trim());
+    if (search) {
+      searchParams.set('search', search);
     }
 
-    const query = searchParams.toString();
-    const url = `${baseUrl}/airports${query ? `?${query}` : ''}`;
+    if (offset !== undefined) {
+      searchParams.set('offset', String(offset));
+    }
 
-    return fetch(url, {
+    if (limit !== undefined) {
+      searchParams.set('limit', String(limit));
+    }
+
+    const queryString = searchParams.toString();
+    const url = queryString ? `/api/airports?${queryString}` : '/api/airports';
+
+    const response = await fetch(url, {
       method: 'GET',
     });
+
+    if (!response.ok) {
+      throw new Error(`Не удалось получить список аэропортов. Код ошибки: ${response.status}`);
+    }
+
+    return response.json();
   }
 }

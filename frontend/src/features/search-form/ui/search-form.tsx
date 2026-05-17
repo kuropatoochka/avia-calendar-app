@@ -1,15 +1,19 @@
-import type { SearchFormValues, ServiceClass } from '../model/types';
-import type { SearchFormError, SearchFormErrorField } from '../model/validation';
-import { Alert, Button, Flex, Form } from 'antd';
+import type {
+  SearchFormError,
+  SearchFormErrorField,
+  SearchFormValues,
+  ServiceClass,
+} from '../model/types';
+import { Alert, Button, Flex, Form, Input } from 'antd';
 import { useState } from 'react';
 import { Search, Swap } from '@/shared/assets';
 import { cn } from '@/shared/utils';
 import {
-  DEFAULT_DESTINATION_AIRPORT,
-  DEFAULT_ORIGIN_AIRPORT,
+  DEFAULT_AIRPORT_OPTIONS,
   DEFAULT_SERVICE_CLASS,
   getDefaultSearchFormValues,
 } from '../model/consts';
+import { useAirportSelectOptions } from '../model/use-airport-select-options';
 import { validateSearchFormValues } from '../model/validation';
 import { AirportSelect } from './airport-select';
 import { DateRangeSelect } from './date-range-select';
@@ -17,13 +21,11 @@ import { PassengerSelect } from './passenger-select';
 import styles from './search-form.module.css';
 import { TripTypeSelect } from './trip-type-select';
 
-const DEFAULT_AIRPORT_OPTIONS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
-
-type SearchFormProps = {
+type Props = {
   onSearch: (values: SearchFormValues) => void;
 };
 
-export const SearchForm = ({ onSearch }: SearchFormProps) => {
+export const SearchForm = ({ onSearch }: Props) => {
   const [form] = Form.useForm<SearchFormValues>();
 
   const [tripTypeOpen, setTripTypeOpen] = useState(false);
@@ -32,15 +34,33 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
   const [isSwapped, setIsSwapped] = useState(false);
   const [formError, setFormError] = useState<SearchFormError | null>(null);
 
+  const {
+    defaultAirportOptions,
+    airportOptions,
+    isAirportOptionsLoading,
+    onAirportOptionsSearch,
+    onAirportOptionsOpenChange,
+  } = useAirportSelectOptions(DEFAULT_AIRPORT_OPTIONS);
+
   const serviceClass =
     Form.useWatch('serviceClass', { form, preserve: true }) ?? DEFAULT_SERVICE_CLASS;
+
+  const handleChangeServiceClass = (nextServiceClass: ServiceClass) => {
+    form.setFieldValue('serviceClass', nextServiceClass);
+  };
+
+  const handleValuesChange = () => {
+    if (formError) {
+      setFormError(null);
+    }
+  };
 
   const hasFieldError = (field: SearchFormErrorField) => {
     return formError?.fields.includes(field) ?? false;
   };
 
   const handleFinish = (values: SearchFormValues) => {
-    const error = validateSearchFormValues(values);
+    const error = validateSearchFormValues(values, defaultAirportOptions);
 
     if (error) {
       setFormError(error);
@@ -51,27 +71,17 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
     onSearch(values);
   };
 
-  const handleValuesChange = () => {
-    if (formError) {
-      setFormError(null);
-    }
-  };
-
   const handleSwap = () => {
-    const originAirport = form.getFieldValue('originAirport');
-    const destinationAirport = form.getFieldValue('destinationAirport');
+    const originAirportId = form.getFieldValue('originAirportId');
+    const destinationAirportId = form.getFieldValue('destinationAirportId');
 
     form.setFieldsValue({
-      originAirport: destinationAirport,
-      destinationAirport: originAirport,
+      originAirportId: destinationAirportId,
+      destinationAirportId: originAirportId,
     });
 
     setFormError(null);
     setIsSwapped((prev) => !prev);
-  };
-
-  const changeServiceClass = (nextServiceClass: ServiceClass) => {
-    form.setFieldValue('serviceClass', nextServiceClass);
   };
 
   return (
@@ -83,36 +93,33 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
       onValuesChange={handleValuesChange}
     >
       <Flex gap={8} align="center" className={styles.routeGroup}>
-        <Form.Item name="originAirport" className={styles.airportItem}>
+        <Form.Item name="originAirportId" className={styles.airportItem}>
           <AirportSelect
             label="Откуда"
             placeholder="Город вылета"
-            initialOption={DEFAULT_ORIGIN_AIRPORT}
-            initialOptions={DEFAULT_AIRPORT_OPTIONS}
-            hasError={hasFieldError('originAirport')}
+            options={airportOptions}
+            isLoading={isAirportOptionsLoading}
+            onSearch={onAirportOptionsSearch}
+            onOpenChange={onAirportOptionsOpenChange}
+            hasError={hasFieldError('originAirportId')}
           />
         </Form.Item>
 
         <Button
           type="link"
-          className={styles.swapBtn}
-          icon={
-            <Swap
-              className={cn(styles.swapIcon, {
-                [styles.swapIconRotated]: isSwapped,
-              })}
-            />
-          }
+          icon={<Swap className={cn(styles.swapIcon, { [styles.swapIconRotated]: isSwapped })} />}
           onClick={handleSwap}
         />
 
-        <Form.Item name="destinationAirport" className={styles.airportItem}>
+        <Form.Item name="destinationAirportId" className={styles.airportItem}>
           <AirportSelect
             label="Куда"
             placeholder="Город назначения"
-            initialOption={DEFAULT_DESTINATION_AIRPORT}
-            initialOptions={DEFAULT_AIRPORT_OPTIONS}
-            hasError={hasFieldError('destinationAirport')}
+            options={airportOptions}
+            isLoading={isAirportOptionsLoading}
+            onSearch={onAirportOptionsSearch}
+            onOpenChange={onAirportOptionsOpenChange}
+            hasError={hasFieldError('destinationAirportId')}
           />
         </Form.Item>
       </Flex>
@@ -126,8 +133,12 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
           open={passengersOpen}
           onOpenChange={setPassengersOpen}
           serviceClass={serviceClass}
-          onServiceClassChange={changeServiceClass}
+          onServiceClassChange={handleChangeServiceClass}
         />
+      </Form.Item>
+
+      <Form.Item name="serviceClass" hidden>
+        <Input />
       </Form.Item>
 
       <Form.Item name="dateRange" className={styles.dateItem}>
@@ -138,7 +149,7 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
         />
       </Form.Item>
 
-      <Button htmlType="submit" className={styles.searchBtn} style={{ height: '64px' }}>
+      <Button htmlType="submit" className={cn(styles.field, styles.searchBtn)}>
         <Search className={styles.searchIcon} />
       </Button>
 

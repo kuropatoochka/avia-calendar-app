@@ -49,12 +49,6 @@
   border: 1px solid var(--border-primary);
 }
 
-.searchBtn {
-  flex: 0 0 64px;
-  width: 64px;
-  height: 64px;
-}
-
 .formAlert {
   width: 100%;
 }
@@ -96,9 +90,21 @@
   transform: rotate(180deg);
 }
 
+.airportSelect {
+  padding: 0;
+}
+
+.airportSelect :global(.ant-select) {
+  padding: 8px 16px;
+}
+
+.airportSelectLabel {
+  padding: 8px 16px 0;
+}
+
 :global(.ant-btn-icon)>svg.swapIcon {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   color: var(--color-background-primary);
   transition: transform 0.2s ease;
 }
@@ -110,31 +116,11 @@
 .personIcon {
   width: 18px;
   height: 18px;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.personIcon :global(svg) {
-  width: 100%;
-  height: 100%;
-  display: block;
 }
 
 .searchBtn {
-  background: white;
-  border-radius: 10px;
-  border: 1px solid #c4c4c4;
   width: 64px;
   height: 64px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  cursor: pointer;
-  flex: 0 0 64px;
   transition:
     background-color 0.15s,
     transform 0.1s;
@@ -149,18 +135,8 @@
 }
 
 .searchIcon {
-  width: 30px;
-  height: 30px;
-  color: rgba(0, 0, 0, 0.85);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.searchIcon :global(svg) {
-  width: 100%;
-  height: 100%;
-  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 .field:global(.ant-btn):hover {
@@ -176,18 +152,8 @@
   font-size: var(--font-size-2xs);
 }
 
-.serviceClassSection {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .serviceClassBtn {
-  flex: 1;
-  padding: var(--space-2xs);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-primary);
-  background: var(--color-background-primary);
+  padding: var(--space-xs);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition:
@@ -196,19 +162,10 @@
     color 0.15s;
 }
 
-.serviceClassBtn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.serviceClassBtnActive {
+.serviceClassBtnActive, 
+.serviceClassBtnActive:global(.ant-btn-default.ant-btn):hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-background-primary);
-}
-
-.serviceClassBtnActive:hover {
-  background: var(--color-primary);
   color: var(--color-background-primary);
 }
 

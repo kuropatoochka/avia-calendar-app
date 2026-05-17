@@ -2,9 +2,8 @@ import type { PassengersState, ServiceClass } from '../model/types';
 import { Button, Divider, Flex, Popover, Space, Typography } from 'antd';
 import { ArrowDown, Person } from '@/shared/assets';
 import { cn } from '@/shared/utils';
-import { DEFAULT_PASSENGERS } from '../model/consts';
+import { DEFAULT_PASSENGERS, SERVICE_CLASS_OPTIONS } from '../model/consts';
 import { getPassengerLabel } from '../model/get-passenger-label';
-import { SERVICE_CLASS_LABELS } from '../model/labels';
 import { PassengerCounter } from './passenger-counter';
 import styles from './search-form.module.css';
 
@@ -35,7 +34,7 @@ export const PassengerSelect = ({
   };
 
   const content = (
-    <Flex vertical gap={12} className={styles.passengersContent}>
+    <Flex vertical gap={12}>
       <PassengerCounter
         label="Взрослые"
         value={passengers.adults}
@@ -74,17 +73,16 @@ export const PassengerSelect = ({
         <Typography.Text type="secondary">Класс обслуживания</Typography.Text>
 
         <Flex gap={8}>
-          {(Object.keys(SERVICE_CLASS_LABELS) as ServiceClass[]).map((item) => (
-            <button
-              key={item}
-              type="button"
+          {SERVICE_CLASS_OPTIONS.map(({ value, label }) => (
+            <Button
+              key={value}
               className={cn(styles.serviceClassBtn, {
-                [styles.serviceClassBtnActive]: serviceClass === item,
+                [styles.serviceClassBtnActive]: serviceClass === value,
               })}
-              onClick={() => onServiceClassChange(item)}
+              onClick={() => onServiceClassChange(value)}
             >
-              {SERVICE_CLASS_LABELS[item]}
-            </button>
+              {label}
+            </Button>
           ))}
         </Flex>
       </Flex>
@@ -101,7 +99,7 @@ export const PassengerSelect = ({
       arrow={false}
     >
       <Button htmlType="button" className={styles.field}>
-        <Flex gap={24} align="center">
+        <Flex align="center" justify="space-between" flex={1}>
           <Person className={styles.personIcon} />
 
           <Space vertical size={0} align="start">
@@ -110,15 +108,11 @@ export const PassengerSelect = ({
             </Typography.Text>
 
             <Typography.Text className={styles.passengerText}>
-              {SERVICE_CLASS_LABELS[serviceClass]}
+              {SERVICE_CLASS_OPTIONS.find(({ value }) => value === serviceClass)?.label}
             </Typography.Text>
           </Space>
 
-          <ArrowDown
-            className={cn(styles.arrow, {
-              [styles.arrowOpen]: open,
-            })}
-          />
+          <ArrowDown className={cn(styles.arrow, { [styles.arrowOpen]: open })} />
         </Flex>
       </Button>
     </Popover>
