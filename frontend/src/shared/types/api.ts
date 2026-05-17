@@ -1,8 +1,22 @@
-export type AirportDto = {
-  id: string;
-  airport: string;
-  city: string;
+type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  offset: number;
+  limit: number;
 };
+
+type CityDto = {
+  id: number;
+  name: string;
+};
+
+export type AirportDto = {
+  id: number;
+  name: string;
+  city: CityDto;
+};
+
+export type AirportsDto = PaginatedResponse<AirportDto>;
 
 export type Passengers = {
   adults: number;
@@ -11,11 +25,11 @@ export type Passengers = {
   animals: number;
 };
 
-export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
+export type ServiceClass = 'BUDGET' | 'COMFORT' | 'BUSINESS' | 'FIRST_CLASS';
 
 export type PriceDynamicsRequest = {
-  originAirportId: string;
-  destinationAirportId: string;
+  originAirportId: number;
+  destinationAirportId: number;
   dateFrom: string;
   dateTo: string;
   passengers: Passengers;
@@ -45,8 +59,8 @@ export type FlightFilters = {
 };
 
 export type FlightsRequest = {
-  originAirportId: string;
-  destinationAirportId: string;
+  originAirportId: number;
+  destinationAirportId: number;
   date: string;
   passengers: Passengers;
   serviceClass: ServiceClass;

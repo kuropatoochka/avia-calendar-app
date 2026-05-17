@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 import type { Passengers, ServiceClass } from '@/shared/types';
 import { generateFlights, getDateRange } from '../mock/generate-flight-mocks';
 
-const SERVICE_CLASSES: ServiceClass[] = ['economy', 'comfort', 'business', 'first'];
+const SERVICE_CLASSES: ServiceClass[] = ['BUDGET', 'COMFORT', 'BUSINESS', 'FIRST_CLASS'];
 
 const getPassengers = (url: URL): Passengers => {
   return {
@@ -20,7 +20,7 @@ const getServiceClass = (url: URL): ServiceClass => {
     return serviceClass as ServiceClass;
   }
 
-  return 'economy';
+  return 'BUDGET';
 };
 
 const parseNumber = (value: string | null) => {

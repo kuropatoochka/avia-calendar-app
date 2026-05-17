@@ -46,8 +46,8 @@ const OfferPage = () => {
     return new Map(entries.map((airport) => [airport.id, airport]));
   }, []);
 
-  const getAirportLabel = (airportId: string) => {
-    return airportLookup.get(airportId)?.airport ?? airportId.toUpperCase();
+  const getAirportLabel = (airportId: number) => {
+    return airportLookup.get(airportId)?.name ?? String(airportId);
   };
 
   const mapFiltersToRequest = (filters: FlightFiltersState): FlightFiltersRequest => ({
@@ -70,8 +70,8 @@ const OfferPage = () => {
   const handleSearch = (values: SearchFormValues) => {
     const [dateFrom, dateTo] = values.dateRange;
     const [originAirportId, destinationAirportId] = [
-      values.originAirport,
-      values.destinationAirport,
+      values.originAirportId,
+      values.destinationAirportId,
     ];
 
     if (!dateFrom || !dateTo || originAirportId === destinationAirportId) {
@@ -96,8 +96,8 @@ const OfferPage = () => {
     setActiveSearch({
       baseParams,
       tripType: values.tripType,
-      originLabel: getAirportLabel(values.originAirport),
-      destinationLabel: getAirportLabel(values.destinationAirport),
+      originLabel: getAirportLabel(values.originAirportId),
+      destinationLabel: getAirportLabel(values.destinationAirportId),
     });
   };
 
