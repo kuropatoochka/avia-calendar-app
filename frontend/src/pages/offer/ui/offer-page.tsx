@@ -1,5 +1,5 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
 import type {
@@ -38,17 +38,18 @@ const OfferPage = () => {
     animalWeights: filters.petsEnabled ? filters.animalWeights : undefined,
   });
 
-  console.log(mapFiltersToRequest);
-
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
-    console.log('Applied filters:', activeFilters);
+
+    const requestFilters = mapFiltersToRequest(filters);
+
+    console.log('Apply filters request params', requestFilters);
   };
 
   const handleShowFlights = (selection: PriceDynamicsSelection) => {
     setSelectedPriceDate(selection);
 
-    console.log('Show flights for selected date', selectedPriceDate);
+    console.log('Show flights for selected date');
   };
 
   const handleSearch = (values: SearchFormValues) => {
@@ -83,6 +84,13 @@ const OfferPage = () => {
       (searchParams.toddlersNumber ?? 0)
     : 1;
 
+  useEffect(() => {
+    console.log('Offer page search state', {
+      selectedPriceDate,
+      activeFilters,
+    });
+  }, [selectedPriceDate, activeFilters]);
+
   return (
     <div className={styles.page}>
       <Flex vertical gap={32}>
@@ -105,10 +113,12 @@ const OfferPage = () => {
           expandIcon={({ isActive }) => (
             <ArrowDown className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)} />
           )}
+          expandIconPlacement="end"
           items={[
             {
               key: 'price-dynamics',
-              label: <Typography.Title level={2}>Динамика цен</Typography.Title>,
+
+              label: <Typography.Title level={2}>График цен</Typography.Title>,
               children: (
                 <PriceDynamicsContainer params={searchParams} onSelect={handleShowFlights} />
               ),

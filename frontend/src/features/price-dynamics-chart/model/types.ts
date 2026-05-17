@@ -13,8 +13,17 @@ export type PriceDynamicsSearchParams = {
   toddlersNumber?: number;
 };
 
+export type PriceDynamicsDirection = 'outbound' | 'inbound';
+
 export type PriceDynamicsSelection = {
   airportFromId: number;
   airportToId: number;
   date: string;
+
+  direction: PriceDynamicsDirection;
+};
+
+export type PriceDynamicsChartItem = {
+  date: string;
+  minTotalPrice: number;
 };
