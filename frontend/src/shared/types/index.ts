@@ -6,5 +6,6 @@ export type {
   Passengers,
   PriceDynamicsDto,
   PriceDynamicsRequest,
+  PriceDynamicsResponse,
   ServiceClass,
 } from './api';

@@ -18,28 +18,25 @@ export type AirportDto = {
 
 export type AirportsDto = PaginatedResponse<AirportDto>;
 
-export type Passengers = {
-  adults: number;
-  children: number;
-  toddler: number;
-  animals: number;
-};
-
 export type ServiceClass = 'BUDGET' | 'COMFORT' | 'BUSINESS' | 'FIRST_CLASS';
 
 export type PriceDynamicsRequest = {
-  originAirportId: number;
-  destinationAirportId: number;
-  dateFrom: string;
-  dateTo: string;
-  passengers: Passengers;
-  serviceClass: ServiceClass;
+  airport_from: number;
+  airport_to: number;
+  from_date: string;
+  to_date: string;
+  service_class: ServiceClass;
+  passengers_number: number;
+  children_number?: number;
+  toddlers_number?: number;
 };
 
 export type PriceDynamicsDto = {
-  date: string;
-  minPrice: number | null;
+  departure_date: string;
+  min_total_price: number;
 };
+
+export type PriceDynamicsResponse = PriceDynamicsDto[];
 
 export type FlightFilters = {
   maxStops?: number;
@@ -56,6 +53,13 @@ export type FlightFilters = {
   petsEnabled?: boolean;
   animalCount?: number;
   animalWeights?: number[];
+};
+
+export type Passengers = {
+  adults: number;
+  children: number;
+  toddler: number;
+  animals: number;
 };
 
 export type FlightsRequest = {

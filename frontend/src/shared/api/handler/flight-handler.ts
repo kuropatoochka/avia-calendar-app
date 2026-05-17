@@ -72,13 +72,13 @@ const applyFilters = (flights: ReturnType<typeof generateFlights>, url: URL) => 
 };
 
 export const flightHandlers = [
-  http.get('/api/flights/best-prices', ({ request }) => {
+  http.get('/api/tickets/range', ({ request }) => {
     const url = new URL(request.url);
 
-    const origin = url.searchParams.get('origin');
-    const destination = url.searchParams.get('destination');
-    const dateFrom = url.searchParams.get('date_from');
-    const dateTo = url.searchParams.get('date_to');
+    const origin = url.searchParams.get('airport_from');
+    const destination = url.searchParams.get('airport_to');
+    const dateFrom = url.searchParams.get('from_date');
+    const dateTo = url.searchParams.get('to_date');
 
     if (!origin || !destination || !dateFrom || !dateTo) {
       return HttpResponse.json({ message: 'Некорректные параметры запроса' }, { status: 400 });
@@ -108,8 +108,8 @@ export const flightHandlers = [
     }, {});
 
     const response = dates.map((date) => ({
-      date,
-      minPrice: minPricesByDate[date] ?? null,
+      departure_date: date,
+      min_total_price: minPricesByDate[date] ?? null,
     }));
 
     return HttpResponse.json(response);
