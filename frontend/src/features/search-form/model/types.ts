@@ -1,8 +1,7 @@
 import type { Dayjs } from 'dayjs';
+import type { ServiceClass } from '@/shared/types';
 
 export type TripType = 'oneWay' | 'roundTrip';
-
-export type ServiceClass = 'BUDGET' | 'COMFORT' | 'BUSINESS' | 'FIRST_CLASS';
 
 export type DateRangeValue = [Dayjs, Dayjs | null];
 

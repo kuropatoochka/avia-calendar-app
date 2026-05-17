@@ -25,7 +25,7 @@ export type Passengers = {
   animals: number;
 };
 
-export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
+export type ServiceClass = 'BUDGET' | 'COMFORT' | 'BUSINESS' | 'FIRST_CLASS';
 
 export type PriceDynamicsRequest = {
   originAirportId: number;

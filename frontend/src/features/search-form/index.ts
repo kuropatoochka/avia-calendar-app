@@ -4,6 +4,6 @@ export {
   DEFAULT_ORIGIN_AIRPORT,
 } from './model/consts';
 
-export type { PassengersState, SearchFormValues, ServiceClass, TripType } from './model/types';
+export type { PassengersState, SearchFormValues, TripType } from './model/types';
 
 export { SearchForm } from './ui/search-form';

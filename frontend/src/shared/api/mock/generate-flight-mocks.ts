@@ -30,10 +30,10 @@ const MINUTES_IN_DAY = 24 * 60;
 const WEEKEND = new Set([0, 6]);
 
 const SERVICE_CLASS_MULTIPLIERS: Record<ServiceClass, number> = {
-  economy: 1,
-  comfort: 1.2,
-  business: 1.6,
-  first: 2.1,
+  BUDGET: 1,
+  COMFORT: 1.2,
+  BUSINESS: 1.6,
+  FIRST_CLASS: 2.1,
 };
 
 const hashString = (value: string) => {
@@ -98,7 +98,7 @@ const formatTime = (minutes: number) => {
 const getStopCount = (seed: number, serviceClass: ServiceClass) => {
   const stops = seed % 3;
 
-  if (serviceClass === 'business' || serviceClass === 'first') {
+  if (serviceClass === 'BUSINESS' || serviceClass === 'FIRST_CLASS') {
     return Math.min(stops, 1);
   }
 
@@ -150,7 +150,7 @@ export const generateFlights = ({
       airline,
       departureTime: formatTime(departureMinutes),
       arrivalTime: formatTime(arrivalMinutes),
-      baggageIncluded: serviceClass !== 'economy' || seed % 2 === 0,
+      baggageIncluded: serviceClass !== 'BUDGET' || seed % 2 === 0,
       stopsCount,
       serviceClass,
     });

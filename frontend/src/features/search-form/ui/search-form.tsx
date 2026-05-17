@@ -1,12 +1,8 @@
-import type {
-  SearchFormError,
-  SearchFormErrorField,
-  SearchFormValues,
-  ServiceClass,
-} from '../model/types';
+import type { SearchFormError, SearchFormErrorField, SearchFormValues } from '../model/types';
 import { Alert, Button, Flex, Form, Input } from 'antd';
 import { useState } from 'react';
 import { Search, Swap } from '@/shared/assets';
+import type { ServiceClass } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import {
   DEFAULT_AIRPORT_OPTIONS,
