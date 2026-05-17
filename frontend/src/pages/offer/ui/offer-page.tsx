@@ -40,8 +40,6 @@ const OfferPage = () => {
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
-  console.log('Active search', activeSearch);
-
   const airportLookup = useMemo(() => {
     const entries = [...airportMock, ...DEFAULT_AIRPORTS];
 
