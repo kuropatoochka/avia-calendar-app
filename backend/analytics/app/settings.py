@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     )
 
     DATABASE_URL: str | None = Field(default=_DEFAULT_DATABASE_URL)
+    TICKETS_URL: str | None = Field(
+        default=None,
+        description="Базовый URL сервиса tickets (синхронизация GET /tickets/next_month)",
+    )
+    TICKETS_SYNC_ENABLED: bool = Field(
+        default=True,
+        description="Запускать суточную синхронизацию tickets → HistoricalFlights при старте API",
+    )
     api_title: str = "Analytics API"
     api_version: str = "0.1.0"
 
