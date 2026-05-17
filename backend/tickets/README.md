@@ -216,8 +216,8 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 - **`GET /tickets/range`** — календарь минимальных цен по дням для маршрута и одного класса обслуживания.
   - **Query (обязательные):** `airport_from`, `airport_to`, `from_date`, `to_date` (конец диапазона дат вылета, включительно), `passengers_number` (**≥ 1**), `service_class` — ровно одно из `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS` (регистр не важен).
-  - **Query (опционально):** `todlers_number`, `children_number` (по умолчанию 0).
-  - **Ответ:** массив объектов по **каждому** дню от `from_date` до `to_date` включительно, по возрастанию даты: `departure_date`, `min_total_price`. Сумма за день: `price * passengers_number + children_price * children_number + toddler_price * todlers_number` по тарифу выбранного класса на конкретном экземпляре рейса; в выборку попадают только рейсы, где **`tarif.seats`** и число мест соответствующего класса в **`plane`** не меньше суммы `passengers_number + children_number + todlers_number`. `min_total_price` — минимум по всем таким рейсам в этот день; если подходящих рейсов нет — **`null`**.
+  - **Query (опционально):** `toddlers_number`, `children_number` (по умолчанию 0).
+  - **Ответ:** массив объектов по **каждому** дню от `from_date` до `to_date` включительно, по возрастанию даты: `departure_date`, `min_total_price`. Сумма за день: `price * passengers_number + children_price * children_number + toddler_price * toddlers_number` по тарифу выбранного класса на конкретном экземпляре рейса; в выборку попадают только рейсы, где **`tarif.seats`** и число мест соответствующего класса в **`plane`** не меньше суммы `passengers_number + children_number + toddlers_number`. `min_total_price` — минимум по всем таким рейсам в этот день; если подходящих рейсов нет — **`null`**.
   - Реализация: `app/routers/tickets.py`, `app/services/ticket_range_query.py` (`fetch_ticket_range`), разбор класса — `parse_single_service_class` в `app/services/ticket_query.py`, `app/schemas/tickets.py` (`TicketRangeItem`).
 
 - **`PATCH /tickets/prices`** — пакетное обновление цен в таблице **`tarif`**.

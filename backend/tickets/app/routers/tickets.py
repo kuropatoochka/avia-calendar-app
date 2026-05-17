@@ -142,7 +142,7 @@ def tickets_range(
             description="Один класс: BUDGET, BUSINESS, COMFORT, FIRST_CLASS",
         ),
     ],
-    todlers_number: Annotated[
+    toddlers_number: Annotated[
         int,
         Query(ge=0, description="Количество младенцев"),
     ] = 0,
@@ -171,7 +171,7 @@ def tickets_range(
         to_date=to_date,
         passengers_number=passengers_number,
         children_number=children_number,
-        todlers_number=todlers_number,
+        toddlers_number=toddlers_number,
         service_class=class_token,
     )
     rows = fetch_ticket_range(db, params)

@@ -11,6 +11,7 @@ CREATE TYPE flight_type AS ENUM (
 
 CREATE TABLE "HistoricalFlights" (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    row_hash CHAR(64) NOT NULL,
     "type" flight_type NOT NULL,
     seats INTEGER NOT NULL,
     city_from VARCHAR(255) NOT NULL,
@@ -28,5 +29,6 @@ CREATE TABLE "HistoricalFlights" (
     booking_day_range INTEGER NOT NULL,
     price INTEGER NOT NULL,
     children_price INTEGER NOT NULL,
-    toddler_price INTEGER NOT NULL
+    toddler_price INTEGER NOT NULL,
+    CONSTRAINT uq_historical_flights_row_hash UNIQUE (row_hash)
 );
