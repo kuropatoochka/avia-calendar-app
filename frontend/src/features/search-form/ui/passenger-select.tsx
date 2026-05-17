@@ -1,6 +1,7 @@
-import type { PassengersState, ServiceClass } from '../model/types';
+import type { PassengersState } from '../model/types';
 import { Button, Divider, Flex, Popover, Space, Typography } from 'antd';
 import { ArrowDown, Person } from '@/shared/assets';
+import type { ServiceClass } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import { DEFAULT_PASSENGERS, SERVICE_CLASS_OPTIONS } from '../model/consts';
 import { getPassengerLabel } from '../model/get-passenger-label';
