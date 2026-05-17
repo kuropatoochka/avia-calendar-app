@@ -41,3 +41,12 @@ class TicketsNextMonthResponse(BaseModel):
     total: int
     offset: int
     limit: int = Field(default=100)
+
+
+class TarifPricePatchItem(BaseModel):
+    """Элемент тела PATCH /tickets/prices."""
+
+    tarif_id: int = Field(ge=1)
+    price: int = Field(ge=0)
+    children_price: int = Field(ge=0)
+    toddler_price: int = Field(ge=0)

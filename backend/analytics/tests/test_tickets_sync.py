@@ -4,9 +4,14 @@ from unittest.mock import MagicMock, patch
 import httpx
 
 from app.db.models import FlightType
-from app.schemas.tickets import TicketNextMonthItem, TicketsNextMonthResponse
+from app.modeling.price_xgb import InsufficientTrainingDataError, PriceModelBundle
+from app.schemas.tickets import TicketNextMonthItem
 from app.sync.tickets_historical import (
+    HistoricalImportResult,
+    TicketsSyncResult,
     fetch_all_tickets_next_month,
+    import_historical_flights_from_tickets,
+    sync_tickets_to_historical_flights,
     ticket_item_to_historical_flight,
 )
 from app.sync.time_parsing import parse_api_time
@@ -103,36 +108,113 @@ def test_fetch_all_tickets_next_month_paginates() -> None:
     assert items[-1].tarif_id == 2
 
 
+@patch("app.sync.tickets_historical._sync_pages")
+@patch("app.sync.tickets_historical.train_price_models")
+@patch("app.sync.tickets_historical.load_historical_flights_last_year")
 @patch("app.sync.tickets_historical.SessionLocal")
 @patch("app.sync.tickets_historical.httpx.Client")
-def test_sync_tickets_to_historical_flights_persists(
+def test_sync_tickets_runs_train_then_paginated_sync(
     mock_client_cls: MagicMock,
     mock_session_local: MagicMock,
+    mock_load_history: MagicMock,
+    mock_train: MagicMock,
+    mock_sync_pages: MagicMock,
 ) -> None:
-    from app.sync.tickets_historical import sync_tickets_to_historical_flights
-
     mock_session = MagicMock()
     mock_session_local.return_value.__enter__.return_value = mock_session
-
-    response = TicketsNextMonthResponse(
-        items=[TicketNextMonthItem.model_validate(_sample_item(1))],
-        total=1,
-        offset=0,
-        limit=100,
-    )
-    mock_http = MagicMock()
-    mock_http_response = MagicMock()
-    mock_http_response.json.return_value = response.model_dump(mode="json")
-    mock_http.get.return_value = mock_http_response
-    mock_client_cls.return_value.__enter__.return_value = mock_http
+    mock_load_history.return_value = [MagicMock()] * 12
+    mock_train.return_value = MagicMock(spec=PriceModelBundle)
+    mock_sync_pages.return_value = (2, 2)
+    mock_client_cls.return_value.__enter__.return_value = MagicMock()
 
     from app.settings import Settings
 
-    inserted = sync_tickets_to_historical_flights(
+    result = sync_tickets_to_historical_flights(
         reference_date=date(2026, 5, 17),
         settings=Settings(TICKETS_URL="http://tickets.test", DATABASE_URL="postgresql://x"),
     )
 
-    assert inserted == 1
-    mock_session.add_all.assert_called_once()
+    assert result == TicketsSyncResult(
+        inserted=2,
+        prices_patched=2,
+        training_samples=12,
+        reference_date=date(2026, 5, 17),
+    )
+    mock_train.assert_called_once()
+    mock_sync_pages.assert_called_once()
+
+
+@patch("app.sync.tickets_historical._import_historical_pages")
+@patch("app.sync.tickets_historical._sync_pages")
+@patch("app.sync.tickets_historical.train_price_models")
+@patch("app.sync.tickets_historical.load_historical_flights_last_year")
+@patch("app.sync.tickets_historical.SessionLocal")
+@patch("app.sync.tickets_historical.httpx.Client")
+def test_sync_tickets_imports_history_when_training_data_insufficient(
+    mock_client_cls: MagicMock,
+    mock_session_local: MagicMock,
+    mock_load_history: MagicMock,
+    mock_train: MagicMock,
+    mock_sync_pages: MagicMock,
+    mock_import_pages: MagicMock,
+) -> None:
+    mock_session_local.return_value.__enter__.return_value = MagicMock()
+    mock_client_cls.return_value.__enter__.return_value = MagicMock()
+    mock_load_history.return_value = [MagicMock()] * 3
+    mock_train.side_effect = InsufficientTrainingDataError("too few")
+    mock_import_pages.return_value = 5
+
+    from app.settings import Settings
+
+    result = sync_tickets_to_historical_flights(
+        reference_date=date(2026, 5, 17),
+        settings=Settings(TICKETS_URL="http://tickets.test", DATABASE_URL="postgresql://x"),
+    )
+
+    assert result == TicketsSyncResult(
+        inserted=5,
+        prices_patched=0,
+        training_samples=3,
+        reference_date=date(2026, 5, 17),
+    )
+    mock_import_pages.assert_called_once()
+    mock_sync_pages.assert_not_called()
+
+
+@patch("app.sync.tickets_historical._import_historical_pages")
+@patch("app.sync.tickets_historical.SessionLocal")
+@patch("app.sync.tickets_historical.httpx.Client")
+def test_import_historical_skips_modeling_and_patch(
+    mock_client_cls: MagicMock,
+    mock_session_local: MagicMock,
+    mock_import_pages: MagicMock,
+) -> None:
+    mock_session_local.return_value.__enter__.return_value = MagicMock()
+    mock_client_cls.return_value.__enter__.return_value = MagicMock()
+    mock_import_pages.return_value = 3
+
+    from app.settings import Settings
+
+    result = import_historical_flights_from_tickets(
+        reference_date=date(2026, 5, 17),
+        settings=Settings(TICKETS_URL="http://tickets.test", DATABASE_URL="postgresql://x"),
+    )
+
+    assert result == HistoricalImportResult(inserted=3, reference_date=date(2026, 5, 17))
+    mock_import_pages.assert_called_once()
+
+
+@patch("app.sync.tickets_historical.SessionLocal")
+def test_persist_historical_flights_upserts_by_row_hash(mock_session_local: MagicMock) -> None:
+    from app.sync.tickets_historical import persist_historical_flights
+
+    mock_session = MagicMock()
+    mock_session_local.return_value.__enter__.return_value = mock_session
+
+    item = TicketNextMonthItem.model_validate(_sample_item(1))
+    count = persist_historical_flights(mock_session, [item])
+
+    assert count == 1
+    mock_session.execute.assert_called_once()
     mock_session.commit.assert_called_once()
+    mock_session.add_all.assert_not_called()

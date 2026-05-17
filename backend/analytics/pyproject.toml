@@ -16,6 +16,7 @@ dependencies = [
     "pandas>=2.2.0",
     "numpy>=2.0.0",
     "scikit-learn>=1.5.0",
+    "xgboost>=2.1.0",
     "httpx>=0.28.0",
 ]
 
@@ -77,6 +78,10 @@ explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = "sklearn.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "xgboost.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

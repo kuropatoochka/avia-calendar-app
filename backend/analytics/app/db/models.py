@@ -44,6 +44,7 @@ class HistoricalFlight(Base):
     __tablename__ = "HistoricalFlights"
 
     id: Mapped[int] = mapped_column(Integer, Identity(always=True), primary_key=True)
+    row_hash: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
     flight_type: Mapped[FlightType] = mapped_column("type", _flight_type_enum)
     seats: Mapped[int] = mapped_column(Integer)
     city_from: Mapped[str] = mapped_column(String(255))
