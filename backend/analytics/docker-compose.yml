@@ -8,4 +8,5 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
       DATABASE_URL: ${DATABASE_URL}
+      TICKETS_URL: ${TICKETS_URL:-}
     restart: unless-stopped

@@ -24,7 +24,18 @@ _flight_type_enum = SAEnum(
     name="flight_type",
     native_enum=True,
     create_type=False,
+    values_callable=lambda enum: [member.value for member in enum],
 )
+
+
+def parse_flight_type(raw: str) -> FlightType:
+    """Сопоставляет строку из tickets/БД к FlightType (значения enum PostgreSQL)."""
+    normalized = raw.strip()
+    for member in FlightType:
+        if member.value == normalized or member.name == normalized.upper():
+            return member
+    msg = f"Unknown flight type: {raw!r}"
+    raise ValueError(msg)
 
 
 class HistoricalFlight(Base):

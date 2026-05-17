@@ -11,10 +11,12 @@ backend/analytics/
 │   │   ├── deps.py         # Depends(get_db) и тип-псевдоним DbSession для роутеров
 │   │   ├── models.py       # ORM-модель таблицы HistoricalFlights (DDL — SQL в scripts/initdb)
 │   │   └── session.py      # Пул подключений, старт/stop через lifespan приложения
-│   ├── main.py             # Экземпляр FastAPI, точка входа ASGI
+│   ├── main.py             # Экземпляр FastAPI, lifespan, фоновая синхронизация tickets
 │   ├── modeling/           # Реэкспорт и последующая логика обучения/инференса (sklearn)
 │   ├── routers/            # Роутеры API (напр. /historical-flights/count)
-│   └── settings.py         # Pydantic Settings (в т.ч. DATABASE_URL из env / .env)
+│   ├── schemas/            # Pydantic-схемы внешних API (ответ GET /tickets/next_month)
+│   ├── sync/               # Синхронизация tickets → HistoricalFlights и суточный планировщик
+│   └── settings.py         # Pydantic Settings (DATABASE_URL, TICKETS_URL из env / .env)
 ├── scripts/
 │   └── initdb/             # SQL для первичной инициализации тома Postgres (docker-entrypoint-initdb.d)
 ├── tests/
@@ -38,6 +40,13 @@ backend/analytics/
 - Если `DATABASE_URL` не задан, эндпоинты с зависимостью базы вернут **503**. Пример смоук-запроса при настроенной БД: `GET /db/ready` выполняет `SELECT 1`.
 - Таблица **`HistoricalFlights`** и перечисление **`flight_type`** создаются SQL-скриптом [`scripts/initdb/01_historical_flights.sql`](scripts/initdb/01_historical_flights.sql) при первом запуске контейнера из [`docker-compose.database.yml`](docker-compose.database.yml). ORM: **`app.db.models.HistoricalFlight`**; пример чтения: `GET /historical-flights/count`.
 - В типизированном роуте используйте зависимость **`DbSession`** из пакета `app.db`; после успешной записи вызывайте **`session.commit()`** явно (автоматического коммита по умолчанию нет).
+
+### Синхронизация с сервисом tickets
+
+- Переменная окружения **`TICKETS_URL`** — базовый URL сервиса tickets (см. [`.env.example`](.env.example)). Если не задана, фоновая задача только пишет предупреждение в лог и не обращается к API.
+- При старте приложения в **lifespan** запускается цикл **`app.sync.scheduler.run_daily_tickets_sync_loop`**: сразу выполняется первая выгрузка, затем повтор каждые 24 часа.
+- Логика выгрузки: **`app.sync.tickets_historical.sync_tickets_to_historical_flights`** — `GET {TICKETS_URL}/tickets/next_month` с параметрами `date` (сегодня, ISO `YYYY-MM-DD`), `offset` (пагинация с шагом 100), `limit=100`; при `total > 100` запрашиваются следующие страницы. Поле `tarif_id` в БД не сохраняется; остальные поля `items` маппятся в **`HistoricalFlights`**.
+- Принудительный запуск вне расписания: **`POST /sync/tickets`** (опционально `?date=YYYY-MM-DD`). Ответ: `{ "inserted": N, "reference_date": "..." }`. Без `TICKETS_URL` — **503**.
 
 ## Договорённости по коду
 
@@ -131,7 +140,7 @@ docker compose up --build
 - OpenAPI (Swagger UI): [http://127.0.0.1:5000/docs](http://127.0.0.1:5000/docs)
 - Проверка живости приложения без БД: `GET /health`
 - Пример проверки подключения к PostgreSQL после появления схемы/таблиц (если настроены): `GET /db/ready`
-- `DATABASE_URL` передаётся в сервис `api` из окружения (см. [`.env.example`](.env.example)).
+- `DATABASE_URL` и `TICKETS_URL` передаются в сервис `api` из окружения (см. [`.env.example`](.env.example)).
 
 Фоновый режим: `docker compose up -d --build`. Остановка: `docker compose down`.
 
