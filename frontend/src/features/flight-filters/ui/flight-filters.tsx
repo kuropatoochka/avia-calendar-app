@@ -1,7 +1,7 @@
 import type { DepartureTime, FlightFiltersState } from '../model/types';
 import type { CollapseProps } from 'antd';
-import { Fragment, useState } from 'react';
 import type { ReactNode } from 'react';
+import { DownOutlined } from '@ant-design/icons';
 import {
   Button,
   Checkbox,
@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { DownOutlined } from '@ant-design/icons';
+import { Fragment, useState } from 'react';
 import { ArrowRotateLeft, Cross, ExclamationMark, Search } from '@/shared/assets';
 import { AIRLINE_OPTIONS, DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../model/labels';
 import { useFlightFilters } from '../model/use-flight-filters';
@@ -295,15 +295,10 @@ export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
 
                   return (
                     <Fragment key={pIndex}>
-                      <FieldRow label={entry.label}>
-                        {mainInputNode}
-                      </FieldRow>
+                      <FieldRow label={entry.label}>{mainInputNode}</FieldRow>
 
                       {passengerExtras.map((extra, extraOrder) => (
-                        <FieldRow
-                          key={extra.globalIndex}
-                          label={`Доп. багаж ${extraOrder + 1}`}
-                        >
+                        <FieldRow key={extra.globalIndex} label={`Доп. багаж ${extraOrder + 1}`}>
                           <Flex gap={6} align="center">
                             <InputNumber
                               className={styles.numberInput}
