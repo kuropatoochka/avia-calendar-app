@@ -55,8 +55,8 @@ export const buildLegs = (flight: FlightDto): Leg[] => {
   });
 
   const lastStop = flight.stops[flight.stops.length - 1];
-  const totalLayovers = flight.stops.reduce((s, st) => s + st.durationMinutes, 0);
-  const totalLegFlying = flight.stops.reduce((s, st) => s + st.legDurationMinutes, 0);
+  const totalLayovers = flight.stops.reduce((acc, stop) => acc + stop.durationMinutes, 0);
+  const totalLegFlying = flight.stops.reduce((acc, stop) => acc + stop.legDurationMinutes, 0);
   legs.push({
     from: lastStop.city,
     fromAirport: lastStop.airport,
@@ -117,19 +117,16 @@ export const hourToTimeOfDay = (hour: number): DepartureTime => {
 export const applyFilters = (flights: FlightDto[], filters: FlightFiltersState): FlightDto[] =>
   flights.filter((flight) => {
     if (flight.stopsCount > filters.maxStops) return false;
-    if (flight.duration > filters.maxFlightDuration * 60) return false;
+    if (filters.maxFlightDuration > 0 && flight.duration > filters.maxFlightDuration * 60) return false;
 
     const hour = parseInt(flight.departureTime.split(':')[0], 10);
     if (!filters.departureTimes.includes(hourToTimeOfDay(hour))) return false;
 
     if (flight.price < filters.priceRange[0] || flight.price > filters.priceRange[1]) return false;
 
-    if (filters.baggageTypes.length > 0) {
-      const bagType = flight.baggageIncluded ? 'checked' : 'hand';
-      if (!filters.baggageTypes.includes(bagType)) return false;
-    }
+    if (filters.baggageEnabled && !flight.baggageIncluded) return false;
 
-    if (filters.airline && flight.airline !== filters.airline) return false;
+    if (filters.airlines.length > 0 && !filters.airlines.includes(flight.airline)) return false;
 
     if (flight.stops && flight.stops.length > 0) {
       for (const stop of flight.stops) {

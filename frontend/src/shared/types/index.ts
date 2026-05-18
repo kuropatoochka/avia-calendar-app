@@ -8,6 +8,4 @@ export type {
   ServiceClass,
   FlightStop,
   FlightDto,
-  ServiceClass,
 } from './api';
-export { CLASS_DELTAS, CLASS_NAMES } from './api';

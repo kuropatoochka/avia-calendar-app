@@ -14,8 +14,8 @@ import {
   Typography,
 } from 'antd';
 import { ArrowRotateLeft, Cross, ExclamationMark, Search } from '@/shared/assets';
+import { useFlightFiltersShared } from '../lib/FlightFiltersContext';
 import { AIRLINE_OPTIONS, DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../model/labels';
-import { useFlightFilters } from '../model/use-flight-filters';
 import styles from './flight-filters.module.css';
 
 type FlightFiltersProps = {
@@ -57,7 +57,7 @@ export const FlightFilters = ({ onApply, passengerCount = 1 }: FlightFiltersProp
     updateAnimalCount,
     applyFilters,
     resetFilters,
-  } = useFlightFilters();
+  } = useFlightFiltersShared();
 
   const mainBaggageCount = draftFilters.baggageForAll ? 1 : passengerCount;
   const hasExtraBaggage = draftFilters.baggageWeights.length > mainBaggageCount;

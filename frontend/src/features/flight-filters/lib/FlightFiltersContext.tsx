@@ -1,7 +1,7 @@
-import type { useFlightFilters } from '../hooks/useFlightFilters';
-import type { FlightFiltersState } from '../types/flightFilters';
+import type { FlightFiltersState } from '../model/types';
+import type { useFlightFilters } from '../model/use-flight-filters';
 import { createContext, useContext } from 'react';
-import { DEFAULT_FLIGHT_FILTERS } from '../consts/defaults';
+import { DEFAULT_FLIGHT_FILTERS } from '../model/defaults';
 
 type FlightFiltersContextValue = ReturnType<typeof useFlightFilters>;
 
@@ -11,15 +11,19 @@ export const FlightFiltersContext = createContext<FlightFiltersContextValue>({
   filters: DEFAULT_FLIGHT_FILTERS,
   draftFilters: DEFAULT_FLIGHT_FILTERS,
   updateDraftFilter: noop as FlightFiltersContextValue['updateDraftFilter'],
-  updateFilter: noop as FlightFiltersContextValue['updateFilter'],
+  setBaggageMode: noop as FlightFiltersContextValue['setBaggageMode'],
+  addBaggageEntry: noop,
+  removeBaggageEntry: noop as FlightFiltersContextValue['removeBaggageEntry'],
+  updateAnimalCount: noop as FlightFiltersContextValue['updateAnimalCount'],
+  removeAnimalEntry: noop as FlightFiltersContextValue['removeAnimalEntry'],
   applyFilters: noop,
   resetFilters: noop,
 });
 
-/** Feature 5's <FlightFilters /> calls this to get the shared state it can update. */
+/** <FlightFilters /> calls this to read/write the shared filter state. */
 export const useFlightFiltersShared = (): FlightFiltersContextValue =>
   useContext(FlightFiltersContext);
 
-/** Feature 9 calls this to read the current filter state (read-only is enough). */
+/** <FlightResultsBlock /> calls this to read the current applied filter state. */
 export const useFlightFiltersContext = (): FlightFiltersState =>
   useContext(FlightFiltersContext).filters;

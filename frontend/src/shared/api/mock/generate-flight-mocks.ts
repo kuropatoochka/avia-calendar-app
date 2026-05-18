@@ -1,4 +1,5 @@
-import type { Passengers, ServiceClass } from '@/shared/types';
+import type { FlightDto, FlightStop, Passengers, ServiceClass } from '@/shared/types';
+import { airportMock } from './airport-mock';
 
 type GenerateFlightsParams = {
   originAirportId: string;
@@ -8,24 +9,7 @@ type GenerateFlightsParams = {
   serviceClass: ServiceClass;
 };
 
-export type MockFlight = {
-  id: string;
-  origin: string;
-  destination: string;
-  originAirportId: string;
-  destinationAirportId: string;
-  date: string;
-  price: number;
-  duration: number;
-  airline: string;
-  departureTime: string;
-  arrivalTime: string;
-  baggageIncluded: boolean;
-  stopsCount: number;
-  serviceClass: ServiceClass;
-};
-
-const AIRLINES = ['Aeroflot', 'S7 Airlines', 'Pobeda', 'Rossiya', 'Utair'];
+const AIRLINES = ['Аэрофлот', 'S7 Airlines', 'Победа', 'Россия', 'Уральские авиалинии'];
 const MINUTES_IN_DAY = 24 * 60;
 const WEEKEND = new Set([0, 6]);
 
@@ -35,6 +19,19 @@ const SERVICE_CLASS_MULTIPLIERS: Record<ServiceClass, number> = {
   business: 1.6,
   first: 2.1,
 };
+
+// Airports suitable as layover points
+const LAYOVER_AIRPORTS = [
+  { id: 'svo', airport: 'Шереметьево', city: 'Москва' },
+  { id: 'led', airport: 'Пулково', city: 'Санкт-Петербург' },
+  { id: 'svx', airport: 'Кольцово', city: 'Екатеринбург' },
+  { id: 'ovb', airport: 'Толмачёво', city: 'Новосибирск' },
+];
+
+const airportLookup = new Map(airportMock.map((a) => [a.id, a]));
+
+const getAirportInfo = (id: string) =>
+  airportLookup.get(id) ?? { id, airport: id.toUpperCase(), city: id.toUpperCase() };
 
 const hashString = (value: string) => {
   let hash = 0;
@@ -105,13 +102,57 @@ const getStopCount = (seed: number, serviceClass: ServiceClass) => {
   return stops;
 };
 
+const generateStops = (
+  seed: number,
+  stopsCount: number,
+  originId: string,
+  destinationId: string,
+  totalDuration: number,
+  airline: string,
+): FlightStop[] => {
+  if (stopsCount === 0) return [];
+
+  const stops: FlightStop[] = [];
+  const layoverDuration = 60 + (seed % 60); // 60–120 min layover
+  const legDuration = Math.floor((totalDuration - stopsCount * layoverDuration) / (stopsCount + 1));
+
+  for (let i = 0; i < stopsCount; i++) {
+    const layoverSeed = hashString(`${seed}-layover-${i}`);
+    // Pick a layover airport that's neither origin nor destination
+    const candidates = LAYOVER_AIRPORTS.filter((a) => a.id !== originId && a.id !== destinationId);
+    const layover = candidates[layoverSeed % candidates.length] ?? LAYOVER_AIRPORTS[0];
+    const nextAirline =
+      i < stopsCount - 1 && layoverSeed % 3 === 0
+        ? AIRLINES[(layoverSeed >> 2) % AIRLINES.length]
+        : undefined;
+
+    stops.push({
+      airport: layover.airport,
+      city: layover.city,
+      code: layover.id.toUpperCase(),
+      durationMinutes: layoverDuration,
+      legDurationMinutes: legDuration,
+      legAirline: nextAirline !== airline ? nextAirline : undefined,
+    });
+  }
+
+  return stops;
+};
+
+const generateSeats = (seed: number) => ({
+  economy: 2 + (seed % 8),
+  comfort: 1 + ((seed >> 1) % 6),
+  business: 1 + ((seed >> 2) % 4),
+  first: 1 + ((seed >> 3) % 3),
+});
+
 export const generateFlights = ({
   originAirportId,
   destinationAirportId,
   date,
   passengers,
   serviceClass,
-}: GenerateFlightsParams) => {
+}: GenerateFlightsParams): FlightDto[] => {
   const baseSeed = hashString(`${originAirportId}-${destinationAirportId}-${date}-${serviceClass}`);
   const routeSeed = hashString(`${originAirportId}-${destinationAirportId}`);
   const dateSeed = hashString(date);
@@ -121,7 +162,9 @@ export const generateFlights = ({
   const weekendMultiplier = isWeekend ? 1.08 : 1;
 
   const flightsCount = getFlightCount(baseSeed);
-  const flights: MockFlight[] = [];
+  const originInfo = getAirportInfo(originAirportId);
+  const destinationInfo = getAirportInfo(destinationAirportId);
+  const flights: FlightDto[] = [];
 
   for (let index = 0; index < flightsCount; index += 1) {
     const seed = hashString(`${baseSeed}-${index}`);
@@ -133,26 +176,51 @@ export const generateFlights = ({
     const price = Math.round(
       basePrice * weekendMultiplier * serviceMultiplier * passengerMultiplier,
     );
+    // Add 0–15% original price markup for discount display
+    const discountSeed = hashString(`${seed}-discount`);
+    const originalPrice = Math.round(price * (1 + (discountSeed % 4) * 0.05));
 
     const duration = 75 + (routeSeed % 90) + stopsCount * 25 + index * 8;
     const departureMinutes = getDepartureMinutes(seed);
     const arrivalMinutes = departureMinutes + duration + stopsCount * 15;
 
+    const baggageIncluded = serviceClass !== 'economy' || seed % 2 === 0;
+    const baggageWeight = baggageIncluded ? 20 + (seed % 3) * 5 : 0;
+
+    const stops = generateStops(
+      seed,
+      stopsCount,
+      originAirportId,
+      destinationAirportId,
+      duration,
+      airline,
+    );
+
+    const seatsSeed = hashString(`${seed}-seats`);
+    const seatsLeft = generateSeats(seatsSeed);
+    const seatsLeftAlt = generateSeats(hashString(`${seed}-seats-alt`));
+
     flights.push({
       id: `flight-${hashString(`${originAirportId}-${destinationAirportId}-${date}-${index}`)}`,
       origin: originAirportId,
       destination: destinationAirportId,
-      originAirportId,
-      destinationAirportId,
       date,
       price,
+      originalPrice,
       duration,
       airline,
       departureTime: formatTime(departureMinutes),
       arrivalTime: formatTime(arrivalMinutes),
-      baggageIncluded: serviceClass !== 'economy' || seed % 2 === 0,
+      originAirport: originInfo.airport,
+      destinationAirport: destinationInfo.airport,
+      originCity: originInfo.city,
+      destinationCity: destinationInfo.city,
+      baggageIncluded,
+      baggageWeight,
       stopsCount,
-      serviceClass,
+      stops: stops.length > 0 ? stops : undefined,
+      seatsLeft,
+      seatsLeftAlt,
     });
   }
 

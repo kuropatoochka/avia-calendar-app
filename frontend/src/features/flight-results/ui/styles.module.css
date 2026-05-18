@@ -21,7 +21,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  width: 826px;
+  width: 100%;
   padding: 0 40px 0 10px;
 }
 
@@ -47,23 +47,19 @@
   color: var(--color-primary-500);
 }
 
+.viewAll:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+  pointer-events: none;
+}
+
 /* ── Cards container ── */
 .cardsContainer {
   background: var(--color-neutral-100);
   border-radius: 30px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
   padding: 35px 25px;
-  width: 826px;
-}
-
-.cardsList {
-  height: 480px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 4px 5px 10px;
-  transition: height 0.3s ease;
+  width: 100%;
 }
 
 .cardsListExpanded {
@@ -104,7 +100,7 @@
 }
 
 .bookedText {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   line-height: 30px;
@@ -144,7 +140,7 @@
 }
 
 .stopsLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   font-family: 'Inter', sans-serif;
   padding: 3px 10px;
@@ -176,7 +172,7 @@
 .tooltipDuration {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-secondary);
   text-align: center;
@@ -360,7 +356,7 @@
 }
 
 .detailMain {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   color: var(--text-primary);
@@ -388,7 +384,7 @@
 }
 
 .routeCity {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   color: var(--text-primary);
@@ -781,7 +777,7 @@
 /* ── Seats remaining ── */
 /* ── Seats remaining badge — same size/shape as stops badge ── */
 .seatsLeftBadge {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   font-family: 'Inter', sans-serif;
   padding: 3px 10px;

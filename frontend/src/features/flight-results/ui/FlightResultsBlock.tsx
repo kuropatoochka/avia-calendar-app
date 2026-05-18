@@ -1,8 +1,8 @@
 import { Skeleton, Typography } from 'antd';
 import { useState } from 'react';
 import { useFlightFiltersContext } from '@/features/flight-filters';
+import { CLASS_DELTAS } from '@/shared/consts';
 import type { FlightDto, FlightsRequest, ServiceClass } from '@/shared/types';
-import { CLASS_DELTAS } from '@/shared/types';
 import { applyFilters } from '../lib/flightUtils';
 import { useFlightResults } from '../lib/useFlightResults';
 import { FlightCard } from './FlightCard';
@@ -81,6 +81,8 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
     return baseFare + CLASS_DELTAS[cls];
   };
 
+  const PREVIEW_COUNT = 3;
+
   const filteredFlights = applyFilters(flights, filters);
 
   const sortedFlights = [...filteredFlights].sort((a, b) => {
@@ -89,6 +91,9 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
     if (aBooked !== bBooked) return aBooked ? -1 : 1;
     return getEffectivePrice(a) - getEffectivePrice(b);
   });
+
+  const canExpand = sortedFlights.length > PREVIEW_COUNT;
+  const visibleFlights = expanded ? sortedFlights : sortedFlights.slice(0, PREVIEW_COUNT);
 
   return (
     <div className={styles.resultsBlock}>
@@ -102,17 +107,21 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
             <Typography.Title level={3} className={styles.sectionTitle}>
               Доступные предложения
             </Typography.Title>
-            <button className={styles.viewAll} onClick={() => setExpanded((v) => !v)}>
+            <button
+              className={styles.viewAll}
+              onClick={() => setExpanded((v) => !v)}
+              disabled={!canExpand}
+            >
               {expanded ? 'Свернуть' : 'Посмотреть все'}
             </button>
           </div>
 
           <div className={styles.cardsContainer}>
-            <div className={expanded ? styles.cardsListExpanded : styles.cardsList}>
+            <div className={styles.cardsListExpanded}>
               {sortedFlights.length === 0 ? (
                 <p className={styles.empty}>Рейсы не найдены</p>
               ) : (
-                sortedFlights.map((flight) => (
+                visibleFlights.map((flight) => (
                   <FlightCard
                     key={flight.id}
                     flight={flight}

@@ -1,9 +1,9 @@
-import type { BestPricesDto } from '@/shared/types';
+import type { PriceDynamicsDto } from '@/shared/types';
 import { formatDateShort } from '@/shared/utils';
 import styles from './styles.module.css';
 
 type Props = {
-  data: BestPricesDto;
+  data: PriceDynamicsDto[];
   cityName: string;
   selectedDate?: string;
   onDateSelect?: (date: string) => void;
@@ -12,7 +12,11 @@ type Props = {
 const niceMax = (value: number) => Math.ceil(value / 1000) * 1000;
 
 export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props) => {
-  if (data.length === 0) return null;
+  const validData = data.filter(
+    (d): d is PriceDynamicsDto & { minPrice: number } => d.minPrice !== null,
+  );
+
+  if (validData.length === 0) return null;
 
   const W = 740;
   const H = 200;
@@ -24,26 +28,28 @@ export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props
   const chartW = W - paddingLeft - paddingRight;
   const chartH = H - paddingTop - paddingBottom;
 
-  const prices = data.map((d) => d.price);
+  const prices = validData.map((d) => d.minPrice);
   const minPrice = 0;
   const maxPrice = niceMax(Math.max(...prices));
 
   const yLevels = 5;
   const yStep = maxPrice / (yLevels - 1);
 
-  const xScale = (i: number) => (data.length === 1 ? chartW / 2 : (i / (data.length - 1)) * chartW);
+  const xScale = (i: number) =>
+    validData.length === 1 ? chartW / 2 : (i / (validData.length - 1)) * chartW;
 
   const yScale = (price: number) => chartH - ((price - minPrice) / (maxPrice - minPrice)) * chartH;
 
-  const points = data.map((d, i) => ({
+  const points = validData.map((d, i) => ({
     x: paddingLeft + xScale(i),
-    y: paddingTop + yScale(d.price),
-    ...d,
+    y: paddingTop + yScale(d.minPrice),
+    date: d.date,
+    minPrice: d.minPrice,
   }));
 
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 
-  const minPricePoint = points.reduce((min, p) => (p.price < min.price ? p : min), points[0]);
+  const minPricePoint = points.reduce((min, p) => (p.minPrice < min.minPrice ? p : min), points[0]);
 
   return (
     <div className={styles.chartCard}>
@@ -111,7 +117,7 @@ export const PriceChart = ({ data, cityName, selectedDate, onDateSelect }: Props
                 fill={isCheapest ? '#52c41a' : '#1890ff'}
                 fontWeight={isCheapest ? 700 : 400}
               >
-                {(p.price / 1000).toFixed(1)}к
+                {(p.minPrice / 1000).toFixed(1)}к
               </text>
 
               {/* Dot */}

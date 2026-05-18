@@ -9,8 +9,8 @@ import {
 } from '@ant-design/icons';
 import { Popover } from 'antd';
 import { useRef } from 'react';
+import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/consts';
 import type { FlightDto, ServiceClass } from '@/shared/types';
-import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/types';
 import { AirlineCircle } from '@/shared/ui';
 import {
   formatFlightDate,

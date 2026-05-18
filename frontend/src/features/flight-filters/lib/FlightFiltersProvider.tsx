@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react';
-import { useFlightFilters } from '../hooks/useFlightFilters';
+import { useFlightFilters } from '../model/use-flight-filters';
 import { FlightFiltersContext } from './FlightFiltersContext';
 
-/** Wrap the page with this provider so that both <FlightFilters /> (Feature 5)
- *  and <FlightResultsBlock /> (Feature 9) share exactly the same filter state
- *  without either component needing to receive it as props. */
+/** Wrap a page section with this so that both <FlightFilters /> and
+ *  <FlightResultsBlock /> share exactly the same filter state. */
 export const FlightFiltersProvider = ({ children }: { children: ReactNode }) => {
   const value = useFlightFilters();
   return <FlightFiltersContext.Provider value={value}>{children}</FlightFiltersContext.Provider>;

@@ -1,7 +1,10 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
 import { useMemo, useState } from 'react';
-import type { FlightFiltersState } from '@/features/flight-filters';
-import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
+import {
+  FlightFilters as FlightFiltersSection,
+  FlightFiltersProvider,
+} from '@/features/flight-filters';
+import { FlightResultsBlock } from '@/features/flight-results';
 import type { PriceDynamicsSelection } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
 import {
   PriceDynamicsBlock,
@@ -15,7 +18,7 @@ import {
 } from '@/features/search-form';
 import { airportMock } from '@/shared/api';
 import { ArrowDown } from '@/shared/assets';
-import type { FlightFilters as FlightFiltersRequest, PriceDynamicsRequest } from '@/shared/types';
+import type { FlightsRequest, PriceDynamicsRequest } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import styles from './offer-page.module.css';
 
@@ -37,7 +40,7 @@ const DEFAULT_AIRPORTS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
 
 const OfferPage = () => {
   const [activeSearch, setActiveSearch] = useState<ActiveSearchState | null>(null);
-  const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
+  const [flightSearchParams, setFlightSearchParams] = useState<FlightsRequest | null>(null);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
   const airportLookup = useMemo(() => {
@@ -50,23 +53,6 @@ const OfferPage = () => {
     return airportLookup.get(airportId)?.airport ?? airportId.toUpperCase();
   };
 
-  const mapFiltersToRequest = (filters: FlightFiltersState): FlightFiltersRequest => ({
-    maxStops: filters.maxStops,
-    stopDurationRange: filters.maxStops > 0 ? filters.stopDurationRange : undefined,
-    maxFlightDuration: filters.maxFlightDuration,
-    departureTimes: filters.departureTimes,
-    arrivalTimes: filters.arrivalTimes,
-    pricePerPassenger: filters.pricePerPassenger,
-    priceRange: filters.priceRange,
-    baggageEnabled: filters.baggageEnabled,
-    baggageForAll: filters.baggageEnabled ? filters.baggageForAll : undefined,
-    baggageWeights: filters.baggageEnabled ? filters.baggageWeights : undefined,
-    airlines: filters.airlines.length > 0 ? filters.airlines : undefined,
-    petsEnabled: filters.petsEnabled,
-    animalCount: filters.petsEnabled ? filters.animalCount : undefined,
-    animalWeights: filters.petsEnabled ? filters.animalWeights : undefined,
-  });
-
   const handleSearch = (values: SearchFormValues) => {
     const [dateFrom, dateTo] = values.dateRange;
     const [originAirportId, destinationAirportId] = [
@@ -76,6 +62,7 @@ const OfferPage = () => {
 
     if (!dateFrom || !dateTo || originAirportId === destinationAirportId) {
       setActiveSearch(null);
+      setFlightSearchParams(null);
       return;
     }
 
@@ -99,10 +86,7 @@ const OfferPage = () => {
       originLabel: getAirportLabel(values.originAirport),
       destinationLabel: getAirportLabel(values.destinationAirport),
     });
-  };
-
-  const handleApplyFilters = (filters: FlightFiltersState) => {
-    setActiveFilters(filters);
+    setFlightSearchParams(null);
   };
 
   const priceDynamicsCharts = useMemo<PriceDynamicsChartConfig[] | null>(() => {
@@ -136,11 +120,22 @@ const OfferPage = () => {
   }, [activeSearch]);
 
   const handleShowFlights = (selection: PriceDynamicsSelection) => {
-    console.log('Show flights for selected date', {
-      direction: selection.direction,
+    if (!activeSearch) return;
+
+    const isReturn = selection.direction === 'return';
+    const originAirportId = isReturn
+      ? activeSearch.baseParams.destinationAirportId
+      : activeSearch.baseParams.originAirportId;
+    const destinationAirportId = isReturn
+      ? activeSearch.baseParams.originAirportId
+      : activeSearch.baseParams.destinationAirportId;
+
+    setFlightSearchParams({
+      originAirportId,
+      destinationAirportId,
       date: selection.date,
-      baseSearchParams: activeSearch?.baseParams,
-      filters: activeFilters ? mapFiltersToRequest(activeFilters) : undefined,
+      passengers: activeSearch.baseParams.passengers,
+      serviceClass: activeSearch.baseParams.serviceClass,
     });
   };
 
@@ -190,19 +185,21 @@ const OfferPage = () => {
           ]}
         />
 
-        <div className={styles.columns}>
-          <aside className={styles.filterWrapper}>
-            <FlightFiltersSection
-              onApply={handleApplyFilters}
-              passengerCount={
-                activeSearch
-                  ? activeSearch.baseParams.passengers.adults +
-                    activeSearch.baseParams.passengers.children
-                  : 1
-              }
-            />
-          </aside>
-        </div>
+        <FlightFiltersProvider>
+          <div className={styles.columns}>
+            {flightSearchParams && <FlightResultsBlock searchParams={flightSearchParams} />}
+            <aside className={styles.filterWrapper}>
+              <FlightFiltersSection
+                passengerCount={
+                  activeSearch
+                    ? activeSearch.baseParams.passengers.adults +
+                      activeSearch.baseParams.passengers.children
+                    : 1
+                }
+              />
+            </aside>
+          </div>
+        </FlightFiltersProvider>
       </Flex>
     </div>
   );
