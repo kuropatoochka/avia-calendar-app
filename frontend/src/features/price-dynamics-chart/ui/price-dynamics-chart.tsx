@@ -12,17 +12,36 @@ const priceFormatter = new Intl.NumberFormat('ru-RU', {
 });
 
 const CHART_HEIGHT = 200;
-const BAR_WIDTH = 48;
+const BAR_WIDTH = 56;
 const BAR_GAP = 16;
 
-// const TOP_LABEL_Y = 16;
-const BAR_TOP_OFFSET = 24;
-const BAR_BASE_Y = 150;
+const BOTTOM_OFFSET = 56;
+const BAR_BASE_Y = CHART_HEIGHT - BOTTOM_OFFSET;
 
 const PRICE_LABEL_Y = 170;
 const DATE_LABEL_Y = 190;
 
 const MIN_BAR_HEIGHT = 4;
+
+const MIN_PRICE_BAR_HEIGHT = 56;
+const MAX_PRICE_BAR_HEIGHT = 108;
+
+type RenderChartItem =
+  | {
+      type: 'active';
+      item: PriceDynamicsChartItem;
+    }
+  | {
+      type: 'disabled';
+      date: string;
+    };
+
+interface Props {
+  items: PriceDynamicsChartItem[];
+  selectedItem: PriceDynamicsChartItem | null;
+  highlightBestPrices?: boolean;
+  onSelect: (item: PriceDynamicsChartItem) => void;
+}
 
 const formatDateLabel = (date: string) => {
   return dayjs(date).format('DD.MM');
@@ -37,19 +56,21 @@ const getChartWidth = (itemsCount: number) => {
 };
 
 const getBarHeight = (price: number, minPrice: number, maxPrice: number) => {
-  const availableHeight = BAR_BASE_Y - BAR_TOP_OFFSET;
-
-  if (price <= 0) {
+  if (price <= 0 || minPrice <= 0 || maxPrice <= 0) {
     return MIN_BAR_HEIGHT;
   }
 
-  if (maxPrice === minPrice) {
-    return Math.round(availableHeight * 0.65);
+  if (minPrice === maxPrice) {
+    return Math.round((MIN_PRICE_BAR_HEIGHT + MAX_PRICE_BAR_HEIGHT) / 2);
   }
 
   const ratio = (price - minPrice) / (maxPrice - minPrice);
+  const normalizedRatio = Math.min(Math.max(ratio, 0), 1);
 
-  return Math.round(MIN_BAR_HEIGHT + ratio * (availableHeight - MIN_BAR_HEIGHT));
+  const height =
+    MIN_PRICE_BAR_HEIGHT + normalizedRatio * (MAX_PRICE_BAR_HEIGHT - MIN_PRICE_BAR_HEIGHT);
+
+  return Math.round(height);
 };
 
 const getDisabledBarsCount = (itemsCount: number, containerWidth: number) => {
@@ -64,20 +85,9 @@ const getDisabledBarsCount = (itemsCount: number, containerWidth: number) => {
   }
 
   const emptyWidth = containerWidth - chartWidth;
-  const disabledBarFullWidth = BAR_WIDTH + BAR_GAP;
 
-  return Math.floor(emptyWidth / disabledBarFullWidth);
+  return Math.floor((emptyWidth + BAR_GAP) / (BAR_WIDTH + BAR_GAP));
 };
-
-type RenderChartItem =
-  | {
-      type: 'active';
-      item: PriceDynamicsChartItem;
-    }
-  | {
-      type: 'disabled';
-      date: string;
-    };
 
 const getRenderItems = (
   items: PriceDynamicsChartItem[],
@@ -86,11 +96,13 @@ const getRenderItems = (
   const disabledBarsCount = getDisabledBarsCount(items.length, containerWidth);
   const lastDate = items.at(-1)?.date;
 
+  const activeItems: RenderChartItem[] = items.map((item) => ({
+    type: 'active',
+    item,
+  }));
+
   if (!lastDate || disabledBarsCount === 0) {
-    return items.map((item) => ({
-      type: 'active',
-      item,
-    }));
+    return activeItems;
   }
 
   const disabledItems: RenderChartItem[] = Array.from(
@@ -103,21 +115,8 @@ const getRenderItems = (
     }),
   );
 
-  return [
-    ...items.map((item) => ({
-      type: 'active' as const,
-      item,
-    })),
-    ...disabledItems,
-  ];
+  return [...activeItems, ...disabledItems];
 };
-
-interface Props {
-  items: PriceDynamicsChartItem[];
-  selectedItem: PriceDynamicsChartItem | null;
-  highlightBestPrices?: boolean;
-  onSelect: (item: PriceDynamicsChartItem) => void;
-}
 
 export const PriceDynamicsChart = ({
   items,
@@ -129,34 +128,40 @@ export const PriceDynamicsChart = ({
   const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
-    if (!chartScrollRef.current) {
+    if (!items.length || !chartScrollRef.current) {
       return;
     }
 
-    const observer = new ResizeObserver(([entry]) => {
-      console.log(entry.contentRect.width);
+    const element = chartScrollRef.current;
 
+    const updateWidth = () => {
+      setContainerWidth(element.clientWidth);
+    };
+
+    updateWidth();
+
+    const observer = new ResizeObserver(([entry]) => {
       setContainerWidth(entry.contentRect.width);
     });
 
-    observer.observe(chartScrollRef.current);
+    observer.observe(element);
 
     return () => {
       observer.disconnect();
     };
   }, [items.length]);
 
-  const priceHighlightMap = useMemo(() => {
-    return getPriceHighlightMap(items, highlightBestPrices);
-  }, [items, highlightBestPrices]);
-
   const renderItems = useMemo(() => {
     return getRenderItems(items, containerWidth);
   }, [items, containerWidth]);
 
   const prices = useMemo(() => {
-    return items.map((item) => item.minTotalPrice);
+    return items.filter((item) => item.minTotalPrice > 0).map((item) => item.minTotalPrice);
   }, [items]);
+
+  const priceHighlightMap = useMemo(() => {
+    return getPriceHighlightMap(items, highlightBestPrices);
+  }, [items, highlightBestPrices]);
 
   const minPrice = prices.length ? Math.min(...prices) : 0;
   const maxPrice = prices.length ? Math.max(...prices) : 0;
@@ -199,7 +204,7 @@ export const PriceDynamicsChart = ({
                     x={x + BAR_WIDTH / 2}
                     y={DATE_LABEL_Y}
                     textAnchor="middle"
-                    className={cn(styles.dateText, styles.dateTextDisabled)}
+                    className={styles.dateText}
                   >
                     {dateLabel}
                   </text>
@@ -210,6 +215,7 @@ export const PriceDynamicsChart = ({
             const { item } = renderItem;
 
             const isUnavailable = item.minTotalPrice <= 0;
+
             const height = getBarHeight(item.minTotalPrice, minPrice, maxPrice);
             const y = BAR_BASE_Y - height;
 
@@ -245,17 +251,6 @@ export const PriceDynamicsChart = ({
                   }
                 }}
               >
-                {/* {isBestPrice && (
-                  <text
-                    x={x + BAR_WIDTH / 2}
-                    y={TOP_LABEL_Y}
-                    textAnchor="middle"
-                    className={styles.bestPriceText}
-                  >
-                    дешево
-                  </text>
-                )} */}
-
                 <rect
                   x={x}
                   y={y}
@@ -263,20 +258,16 @@ export const PriceDynamicsChart = ({
                   height={height}
                   rx={4}
                   className={cn(styles.bar, {
-                    [styles.barUnavailable]: isUnavailable,
+                    [styles.barSelected]: isSelected,
                     [styles.barRecommendedPrice]: isRecommendedPrice,
                     [styles.barBestPrice]: isBestPrice,
-                    [styles.barSelected]: isSelected,
                   })}
                 />
-
                 <text
                   x={x + BAR_WIDTH / 2}
                   y={PRICE_LABEL_Y}
                   textAnchor="middle"
-                  className={cn(styles.priceText, {
-                    [styles.priceTextUnavailable]: isUnavailable,
-                  })}
+                  className={styles.priceText}
                 >
                   {priceLabel}
                 </text>
