@@ -4,10 +4,6 @@
   padding: 0 var(--space-xl);
 }
 
-.priceDynamicsSection {
-  margin-top: var(--space-sm);
-}
-
 .columns {
   display: grid;
   grid-template-columns: 1fr 356px;
@@ -16,41 +12,17 @@
   margin-top: var(--space-xl);
 }
 
-.sectionTitle {
-  margin: 0;
-}
-
 .collapse {
   background: transparent;
 }
 
-.collapse :global(.ant-collapse-item) {
-  border: none;
-}
-
-.collapse :global(.ant-collapse-header) {
-  padding: 0 !important;
-  align-items: center !important;
-}
-
-.collapse :global(.ant-collapse-content) {
-  background: transparent;
-  border-top: none;
-}
-
-.collapse :global(.ant-collapse-content-box) {
-  padding: 0;
-}
-
-.collapseBody {
-  margin-top: var(--space-md);
+.collapse :global(.ant-collapse-item > .ant-collapse-header) {
+  padding: 0 var(--space-md) var(--space-lg) 0;
 }
 
 .collapseArrow {
-  width: 12px;
-  height: 12px;
-  display: block;
-  color: var(--text-secondary);
+  width: 17px;
+  height: 17px;
   transition: transform 0.2s ease;
 }
 

@@ -6,6 +6,7 @@ type GenerateFlightsParams = {
   date: string;
   passengers: Passengers;
   serviceClass: ServiceClass;
+  forceAvailable?: boolean;
 };
 
 export type MockFlight = {
@@ -30,10 +31,10 @@ const MINUTES_IN_DAY = 24 * 60;
 const WEEKEND = new Set([0, 6]);
 
 const SERVICE_CLASS_MULTIPLIERS: Record<ServiceClass, number> = {
-  economy: 1,
-  comfort: 1.2,
-  business: 1.6,
-  first: 2.1,
+  BUDGET: 1,
+  COMFORT: 1.2,
+  BUSINESS: 1.6,
+  FIRST_CLASS: 2.1,
 };
 
 const hashString = (value: string) => {
@@ -76,8 +77,14 @@ const getPassengerMultiplier = (passengers: Passengers) => {
   return adults + children * 0.75 + toddler * 0.1 + animals * 0.2;
 };
 
-const getFlightCount = (seed: number) => {
-  return seed % 4;
+const getFlightCount = (seed: number, forceAvailable = false) => {
+  const count = seed % 4;
+
+  if (forceAvailable && count === 0) {
+    return 1;
+  }
+
+  return count;
 };
 
 const getDepartureMinutes = (seed: number) => {
@@ -98,7 +105,7 @@ const formatTime = (minutes: number) => {
 const getStopCount = (seed: number, serviceClass: ServiceClass) => {
   const stops = seed % 3;
 
-  if (serviceClass === 'business' || serviceClass === 'first') {
+  if (serviceClass === 'BUSINESS' || serviceClass === 'FIRST_CLASS') {
     return Math.min(stops, 1);
   }
 
@@ -111,6 +118,7 @@ export const generateFlights = ({
   date,
   passengers,
   serviceClass,
+  forceAvailable = false,
 }: GenerateFlightsParams) => {
   const baseSeed = hashString(`${originAirportId}-${destinationAirportId}-${date}-${serviceClass}`);
   const routeSeed = hashString(`${originAirportId}-${destinationAirportId}`);
@@ -120,7 +128,7 @@ export const generateFlights = ({
   const isWeekend = WEEKEND.has(getUTCDate(date).getUTCDay());
   const weekendMultiplier = isWeekend ? 1.08 : 1;
 
-  const flightsCount = getFlightCount(baseSeed);
+  const flightsCount = getFlightCount(baseSeed, forceAvailable);
   const flights: MockFlight[] = [];
 
   for (let index = 0; index < flightsCount; index += 1) {
@@ -150,7 +158,7 @@ export const generateFlights = ({
       airline,
       departureTime: formatTime(departureMinutes),
       arrivalTime: formatTime(arrivalMinutes),
-      baggageIncluded: serviceClass !== 'economy' || seed % 2 === 0,
+      baggageIncluded: serviceClass !== 'BUDGET' || seed % 2 === 0,
       stopsCount,
       serviceClass,
     });

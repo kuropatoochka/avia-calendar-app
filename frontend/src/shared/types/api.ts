@@ -1,31 +1,42 @@
+type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  offset: number;
+  limit: number;
+};
+
+type CityDto = {
+  id: number;
+  name: string;
+};
+
 export type AirportDto = {
-  id: string;
-  airport: string;
-  city: string;
+  id: number;
+  name: string;
+  city: CityDto;
 };
 
-export type Passengers = {
-  adults: number;
-  children: number;
-  toddler: number;
-  animals: number;
-};
+export type AirportsDto = PaginatedResponse<AirportDto>;
 
-export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
+export type ServiceClass = 'BUDGET' | 'COMFORT' | 'BUSINESS' | 'FIRST_CLASS';
 
 export type PriceDynamicsRequest = {
-  originAirportId: string;
-  destinationAirportId: string;
-  dateFrom: string;
-  dateTo: string;
-  passengers: Passengers;
-  serviceClass: ServiceClass;
+  airport_from: number;
+  airport_to: number;
+  from_date: string;
+  to_date: string;
+  service_class: ServiceClass;
+  passengers_number: number;
+  children_number?: number;
+  toddlers_number?: number;
 };
 
 export type PriceDynamicsDto = {
-  date: string;
-  minPrice: number | null;
+  departure_date: string;
+  min_total_price: number;
 };
+
+export type PriceDynamicsResponse = PriceDynamicsDto[];
 
 export type ExtraBaggageEntry = {
   passengerIndex: number;
@@ -48,9 +59,16 @@ export type FlightFilters = {
   animalWeights?: number[];
 };
 
+export type Passengers = {
+  adults: number;
+  children: number;
+  toddler: number;
+  animals: number;
+};
+
 export type FlightsRequest = {
-  originAirportId: string;
-  destinationAirportId: string;
+  originAirportId: number;
+  destinationAirportId: number;
   date: string;
   passengers: Passengers;
   serviceClass: ServiceClass;

@@ -1,17 +1,18 @@
 import type { Dayjs } from 'dayjs';
+import type { ServiceClass } from '@/shared/types';
 
 export type TripType = 'oneWay' | 'roundTrip';
-export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
 
 export type DateRangeValue = [Dayjs, Dayjs | null];
 
-export interface AirportOption {
-  value: string;
+export interface SelectOption {
+  value: number;
   label: string;
   option: {
-    city: string;
+    id: number;
     airport: string;
-    code: string;
+    cityId: number;
+    city: string;
   };
 }
 
@@ -23,10 +24,17 @@ export interface PassengersState {
 }
 
 export interface SearchFormValues {
-  originAirport: string;
-  destinationAirport: string;
+  originAirportId: number;
+  destinationAirportId: number;
   tripType: TripType;
   dateRange: DateRangeValue;
   passengers: PassengersState;
   serviceClass: ServiceClass;
 }
+
+export type SearchFormErrorField = 'originAirportId' | 'destinationAirportId' | 'dateRange';
+
+export type SearchFormError = {
+  message: string;
+  fields: SearchFormErrorField[];
+};

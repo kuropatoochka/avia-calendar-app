@@ -1,3 +1,7 @@
+import os
+
+os.environ["TICKETS_SYNC_ENABLED"] = "false"
+
 from collections.abc import Iterator
 
 import pytest

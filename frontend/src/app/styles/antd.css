@@ -22,6 +22,13 @@ h2.ant-typography {
   line-height: var(--line-height-sm);
 }
 
+h3.ant-typography {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-sm);
+}
+
 .ant-layout-content {
   padding: var(--space-xl);
 }
@@ -32,4 +39,8 @@ h2.ant-typography {
 
 .ant-form-item {
   margin: 0;
+}
+
+.ant-collapse-borderless >.ant-collapse-item>.ant-collapse-panel>.ant-collapse-body {
+  padding: 0;
 }

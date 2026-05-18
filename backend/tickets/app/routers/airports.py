@@ -17,8 +17,14 @@ def list_airports(
     db: Annotated[Session, Depends(get_db)],
     offset: Annotated[int, Query(ge=0, description="Смещение пагинации")],
     limit: Annotated[int, Query(ge=1, le=500, description="Размер страницы")],
+    search: Annotated[
+        str | None,
+        Query(
+            description="Подстрока для ILIKE-поиска по имени аэропорта или города",
+        ),
+    ] = None,
 ) -> AirportsListResponse:
-    params = AirportListParams(offset=offset, limit=limit)
+    params = AirportListParams(offset=offset, limit=limit, search=search)
     rows, total, offset_effective = fetch_airports(db, params)
     return AirportsListResponse(
         items=[AirportItem.model_validate(r) for r in rows],

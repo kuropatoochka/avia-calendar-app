@@ -1,48 +1,39 @@
-import type { SearchFormValues } from './types';
-import { airportMock } from '@/shared/api';
-import { DEFAULT_DESTINATION_AIRPORT, DEFAULT_ORIGIN_AIRPORT } from './consts';
-
-export type SearchFormErrorField = 'originAirport' | 'destinationAirport' | 'dateRange';
-
-export type SearchFormError = {
-  message: string;
-  fields: SearchFormErrorField[];
-};
+import type { SearchFormError, SearchFormValues, SelectOption } from './types';
 
 const SEARCH_FORM_ERRORS: Record<'sameAirport' | 'sameCity' | 'emptyDates', SearchFormError> = {
   sameAirport: {
-    fields: ['originAirport', 'destinationAirport'],
-    message:
-      'Маршрут получился слишком коротким: аэропорты совпадают. Выберите другой пункт назначения.',
+    fields: ['originAirportId', 'destinationAirportId'],
+    message: 'Маршрут получился слишком коротким. Выберите разные аэропорты',
   },
   sameCity: {
-    fields: ['originAirport', 'destinationAirport'],
-    message: 'Кажется, это один город. Давайте выберем направление подальше — там интереснее.',
+    fields: ['originAirportId', 'destinationAirportId'],
+    message: 'Кажется, это один город. Давайте выберем направление подальше — там интереснее',
   },
   emptyDates: {
     fields: ['dateRange'],
-    message: 'Без дат самолёты немного теряются. Выберите даты поездки, и мы покажем варианты.',
+    message: 'Без дат самолёты немного теряются. Выберите даты поездки, и мы покажем варианты',
   },
 };
 
-const airportCityById = new Map(
-  [...airportMock, DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT].map((airport) => [
-    airport.id,
-    airport.city,
-  ]),
-);
+export const validateSearchFormValues = (
+  values: SearchFormValues,
+  airportOptions: SelectOption[],
+): SearchFormError | null => {
+  const { originAirportId, destinationAirportId, dateRange } = values;
+  const [startDate, endDate] = dateRange ?? [];
 
-export const validateSearchFormValues = (values: SearchFormValues): SearchFormError | null => {
-  const [startDate, endDate] = values.dateRange ?? [];
-
-  if (values.originAirport === values.destinationAirport) {
+  if (originAirportId === destinationAirportId) {
     return SEARCH_FORM_ERRORS.sameAirport;
   }
 
-  const originCity = airportCityById.get(values.originAirport);
-  const destinationCity = airportCityById.get(values.destinationAirport);
+  const originOption = airportOptions.find((option) => option.value === originAirportId);
+  const destinationOption = airportOptions.find((option) => option.value === destinationAirportId);
 
-  if (originCity && destinationCity && originCity === destinationCity) {
+  if (
+    originAirportId &&
+    destinationAirportId &&
+    originOption?.option.city === destinationOption?.option.city
+  ) {
     return SEARCH_FORM_ERRORS.sameCity;
   }
 
