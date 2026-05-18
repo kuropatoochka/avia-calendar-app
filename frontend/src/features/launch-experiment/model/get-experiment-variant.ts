@@ -15,7 +15,7 @@ export function getExperimentVariant(): ExperimentVariant {
     return savedVariant;
   }
 
-  const variant = Math.random() < 0.3 ? 'A' : 'B';
+  const variant = Math.random() < 0.5 ? 'A' : 'B';
 
   localStorage.setItem(EXPERIMENT_STORAGE_KEY, variant);
 

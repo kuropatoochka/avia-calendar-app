@@ -117,7 +117,6 @@ const OfferPage = () => {
           items={[
             {
               key: 'price-dynamics',
-
               label: <Typography.Title level={2}>График цен</Typography.Title>,
               children: (
                 <PriceDynamicsContainer params={searchParams} onSelect={handleShowFlights} />

@@ -27,6 +27,17 @@ export default class FlightService {
       throw new Error(`Не удалось получить график цен. Код ошибки: ${response.status}`);
     }
 
-    return response.json();
+    const contentType = response.headers.get('content-type');
+
+    if (!contentType?.includes('application/json')) {
+      console.error('Price dynamics response has invalid content type', {
+        contentType,
+        url: response.url,
+      });
+
+      throw new Error('Не удалось загрузить график цен. Попробуйте обновить страницу.');
+    }
+
+    return response.json() as Promise<PriceDynamicsResponse>;
   }
 }

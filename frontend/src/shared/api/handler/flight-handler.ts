@@ -13,6 +13,15 @@ const getPassengers = (url: URL): Passengers => {
   };
 };
 
+const getPriceDynamicsPassengers = (url: URL): Passengers => {
+  return {
+    adults: Number(url.searchParams.get('passengers_number') ?? 1),
+    children: Number(url.searchParams.get('children_number') ?? 0),
+    toddler: Number(url.searchParams.get('toddlers_number') ?? 0),
+    animals: 0,
+  };
+};
+
 const getServiceClass = (url: URL): ServiceClass => {
   const serviceClass = url.searchParams.get('service_class');
 
@@ -71,9 +80,19 @@ const applyFilters = (flights: ReturnType<typeof generateFlights>, url: URL) => 
   });
 };
 
+const getMinFlightPrice = (flights: ReturnType<typeof generateFlights>) => {
+  if (!flights.length) {
+    return 0;
+  }
+
+  return Math.min(...flights.map((flight) => flight.price));
+};
+
 export const flightHandlers = [
   http.get('/api/tickets/range', ({ request }) => {
     const url = new URL(request.url);
+
+    console.log('[MSW] /api/tickets/range matched', url.search);
 
     const origin = url.searchParams.get('airport_from');
     const destination = url.searchParams.get('airport_to');
@@ -84,7 +103,7 @@ export const flightHandlers = [
       return HttpResponse.json({ message: 'Некорректные параметры запроса' }, { status: 400 });
     }
 
-    const passengers = getPassengers(url);
+    const passengers = getPriceDynamicsPassengers(url);
     const serviceClass = getServiceClass(url);
     const dates = getDateRange(dateFrom, dateTo);
 
@@ -100,16 +119,31 @@ export const flightHandlers = [
         url,
       );
 
-      if (flights.length) {
-        acc[date] = Math.min(...flights.map((flight) => flight.price));
-      }
+      acc[date] = getMinFlightPrice(flights);
 
       return acc;
     }, {});
 
+    const hasAvailablePrice = Object.values(minPricesByDate).some((price) => price > 0);
+
+    if (!hasAvailablePrice && dates.length) {
+      const fallbackDate = dates[Math.floor(dates.length / 2)];
+
+      const fallbackFlights = generateFlights({
+        originAirportId: origin,
+        destinationAirportId: destination,
+        date: fallbackDate,
+        passengers,
+        serviceClass,
+        forceAvailable: true,
+      });
+
+      minPricesByDate[fallbackDate] = getMinFlightPrice(fallbackFlights);
+    }
+
     const response = dates.map((date) => ({
       departure_date: date,
-      min_total_price: minPricesByDate[date] ?? null,
+      min_total_price: minPricesByDate[date] ?? 0,
     }));
 
     return HttpResponse.json(response);
