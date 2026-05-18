@@ -2,29 +2,21 @@ import type { PriceDynamicsChartItem } from '../model/types';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/shared/utils';
+import {
+  BAR_BASE_Y,
+  BAR_GAP,
+  BAR_WIDTH,
+  CHART_HEIGHT,
+  DATE_LABEL_Y,
+  DISABLED_BAR_HEIGHT,
+  MAX_PRICE_BAR_HEIGHT,
+  MAX_VISIBLE_PRICE_DIFF_PERCENT,
+  MIN_PRICE_BAR_HEIGHT,
+  PRICE_LABEL_Y,
+} from '../model/consts';
 import { getPriceHighlightMap } from '../model/get-price-highlight-map';
+import { priceFormatter } from '../model/price-formatter';
 import styles from './price-dynamics.module.css';
-
-const priceFormatter = new Intl.NumberFormat('ru-RU', {
-  style: 'currency',
-  currency: 'RUB',
-  maximumFractionDigits: 0,
-});
-
-const CHART_HEIGHT = 200;
-const BAR_WIDTH = 56;
-const BAR_GAP = 16;
-
-const BOTTOM_OFFSET = 56;
-const BAR_BASE_Y = CHART_HEIGHT - BOTTOM_OFFSET;
-
-const PRICE_LABEL_Y = 170;
-const DATE_LABEL_Y = 190;
-
-const MIN_BAR_HEIGHT = 4;
-
-const MIN_PRICE_BAR_HEIGHT = 56;
-const MAX_PRICE_BAR_HEIGHT = 108;
 
 type RenderChartItem =
   | {
@@ -35,13 +27,6 @@ type RenderChartItem =
       type: 'disabled';
       date: string;
     };
-
-interface Props {
-  items: PriceDynamicsChartItem[];
-  selectedItem: PriceDynamicsChartItem | null;
-  highlightBestPrices?: boolean;
-  onSelect: (item: PriceDynamicsChartItem) => void;
-}
 
 const formatDateLabel = (date: string) => {
   return dayjs(date).format('DD.MM');
@@ -55,20 +40,20 @@ const getChartWidth = (itemsCount: number) => {
   return itemsCount * BAR_WIDTH + (itemsCount - 1) * BAR_GAP;
 };
 
-const getBarHeight = (price: number, minPrice: number, maxPrice: number) => {
-  if (price <= 0 || minPrice <= 0 || maxPrice <= 0) {
-    return MIN_BAR_HEIGHT;
+const getBarHeight = (price: number, minPrice: number) => {
+  if (price <= 0 || minPrice <= 0) {
+    return DISABLED_BAR_HEIGHT;
   }
 
-  if (minPrice === maxPrice) {
-    return Math.round((MIN_PRICE_BAR_HEIGHT + MAX_PRICE_BAR_HEIGHT) / 2);
-  }
+  const priceDiffPercent = (price - minPrice) / minPrice;
+  const clampedDiffPercent = Math.min(
+    Math.max(priceDiffPercent, 0),
+    MAX_VISIBLE_PRICE_DIFF_PERCENT,
+  );
 
-  const ratio = (price - minPrice) / (maxPrice - minPrice);
-  const normalizedRatio = Math.min(Math.max(ratio, 0), 1);
+  const visualRatio = clampedDiffPercent / MAX_VISIBLE_PRICE_DIFF_PERCENT;
 
-  const height =
-    MIN_PRICE_BAR_HEIGHT + normalizedRatio * (MAX_PRICE_BAR_HEIGHT - MIN_PRICE_BAR_HEIGHT);
+  const height = MIN_PRICE_BAR_HEIGHT + visualRatio * (MAX_PRICE_BAR_HEIGHT - MIN_PRICE_BAR_HEIGHT);
 
   return Math.round(height);
 };
@@ -118,6 +103,13 @@ const getRenderItems = (
   return [...activeItems, ...disabledItems];
 };
 
+interface Props {
+  items: PriceDynamicsChartItem[];
+  selectedItem: PriceDynamicsChartItem | null;
+  onSelect: (item: PriceDynamicsChartItem) => void;
+  highlightBestPrices?: boolean;
+}
+
 export const PriceDynamicsChart = ({
   items,
   selectedItem,
@@ -155,16 +147,30 @@ export const PriceDynamicsChart = ({
     return getRenderItems(items, containerWidth);
   }, [items, containerWidth]);
 
-  const prices = useMemo(() => {
-    return items.filter((item) => item.minTotalPrice > 0).map((item) => item.minTotalPrice);
-  }, [items]);
-
   const priceHighlightMap = useMemo(() => {
     return getPriceHighlightMap(items, highlightBestPrices);
   }, [items, highlightBestPrices]);
 
-  const minPrice = prices.length ? Math.min(...prices) : 0;
-  const maxPrice = prices.length ? Math.max(...prices) : 0;
+  const priceRange = useMemo(() => {
+    return items.reduce(
+      (acc, item) => {
+        if (item.minTotalPrice <= 0) {
+          return acc;
+        }
+
+        return {
+          minPrice: Math.min(acc.minPrice, item.minTotalPrice),
+          maxPrice: Math.max(acc.maxPrice, item.minTotalPrice),
+        };
+      },
+      {
+        minPrice: Infinity,
+        maxPrice: 0,
+      },
+    );
+  }, [items]);
+
+  const minPrice = priceRange.minPrice === Infinity ? 0 : priceRange.minPrice;
 
   const chartWidth = getChartWidth(renderItems.length);
 
@@ -186,7 +192,7 @@ export const PriceDynamicsChart = ({
             const x = index * (BAR_WIDTH + BAR_GAP);
 
             if (renderItem.type === 'disabled') {
-              const y = BAR_BASE_Y - MIN_BAR_HEIGHT;
+              const y = BAR_BASE_Y - DISABLED_BAR_HEIGHT;
               const dateLabel = formatDateLabel(renderItem.date);
 
               return (
@@ -195,7 +201,7 @@ export const PriceDynamicsChart = ({
                     x={x}
                     y={y}
                     width={BAR_WIDTH}
-                    height={MIN_BAR_HEIGHT}
+                    height={DISABLED_BAR_HEIGHT}
                     rx={4}
                     className={styles.barDisabled}
                   />
@@ -216,7 +222,7 @@ export const PriceDynamicsChart = ({
 
             const isUnavailable = item.minTotalPrice <= 0;
 
-            const height = getBarHeight(item.minTotalPrice, minPrice, maxPrice);
+            const height = getBarHeight(item.minTotalPrice, minPrice);
             const y = BAR_BASE_Y - height;
 
             const isSelected = selectedItem?.date === item.date;

@@ -1,5 +1,6 @@
 .container {
   padding: var(--space-lg);
+  margin: var(--space-sm);
   gap: var(--space-sm);
   border-radius: var(--radius-md);
   background-color: var(--background-section);
