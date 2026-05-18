@@ -9,7 +9,9 @@ tickets/
 ├── README.md              # этот файл
 ├── database/
 │   ├── schema.sql                 # DDL авиабазы, ERD v2.1 (PostgreSQL)
-│   └── seed_synthetic_data.sql    # синтетические данные для разработки (после schema.sql)
+│   ├── seed_data.sql              # полный датасет: 20 городов, 44 маршрута, ~11 500 рейсов (май–ноябрь 2026)
+│   ├── generate_seed.py           # скрипт-генератор seed_data.sql (python3 generate_seed.py > seed_data.sql)
+│   └── seed_synthetic_data.sql    # минимальные данные для unit-тестов (таргетированные сценарии range/filter)
 ├── Dockerfile             # образ API (Python + зависимости из pyproject.toml)
 ├── docker-compose.yml     # PostgreSQL + API одной командой
 ├── .dockerignore          # исключения для контекста сборки
@@ -54,7 +56,9 @@ tickets/
 - Доступ к БД в эндпоинтах — через зависимость **`get_db`** (`Session` SQLAlchemy), без глобального размазывания сессий по коду.
 - ORM-модели наследуют **`app.db.base.Base`**; для **autogenerate** в Alembic в `alembic/env.py` нужно **импортировать все модули с моделями**, чтобы `target_metadata = Base.metadata` видел таблицы.
 
-**`database/seed_synthetic_data.sql`** — наполнение тестовыми строками: в начале выполняется **`TRUNCATE … CASCADE`** и сброс **`IDENTITY`**, затем вставляются города, аэропорты, рейсы, компании, самолёты, тарифы и экземпляры рейсов. Нужна уже применённая схема (**`database/schema.sql`** или эквивалент). Из **`backend/tickets`**: `psql … -f database/seed_synthetic_data.sql`. Связь **`tarif.id`** с полями **`budget_tarif_id` / `business_tarif_id` / `comfort_tarif_id` / `first_class_tarif_id`** в **`flight_instance`** — **1:1** (в схеме **`UNIQUE`** на каждом FK; в сиде у каждого экземпляра рейса свой набор из четырёх строк **`tarif`**). В файле в комментариях описан сценарий для **`GET /tickets/range`** (маршрут аэропорты **1 → 3**, даты **2026-08-01 … 2026-08-06**): два рейса в один день (минимум цены), «пустой» день, фильтр по **`tarif.seats`** при группе из двух взрослых.
+**`database/seed_data.sql`** — основной набор данных для разработки и демонстрации: **20 городов**, **22 аэропорта**, **5 авиакомпаний** (Аэрофлот, S7, Уральские авиалинии, Победа, Россия), **8 типов самолётов**, **44 маршрута**, **~11 500 экземпляров рейсов** (май–ноябрь 2026 г.). В начале файла — `TRUNCATE … CASCADE` и сброс `IDENTITY`. Нужна применённая схема (`schema.sql`). Применить: `psql "$DATABASE_URL" -f database/seed_data.sql`. Файл автоматически монтируется в Docker-образ БД (`docker-compose.database.yml`) как `02-seed.sql` и выполняется сразу после `01-schema.sql`. Регенерировать: `python3 database/generate_seed.py > database/seed_data.sql`.
+
+**`database/seed_synthetic_data.sql`** — минимальные тестовые данные для точечных сценариев: в начале выполняется **`TRUNCATE … CASCADE`** и сброс **`IDENTITY`**, затем вставляются 13 экземпляров рейсов для проверки **`GET /tickets/range`** (маршрут аэропорты **1 → 3**, даты **2026-08-01 … 2026-08-06**). Связь **`tarif.id`** с полями **`budget_tarif_id` / `business_tarif_id` / `comfort_tarif_id` / `first_class_tarif_id`** в **`flight_instance`** — **1:1** (в схеме **`UNIQUE`** на каждом FK).
 
 ### Статическая типизация и стиль
 
