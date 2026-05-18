@@ -25,5 +25,6 @@ export type PriceDynamicsSelection = {
 
 export type PriceDynamicsChartItem = {
   date: string;
-  minTotalPrice: number;
+  /** null means no flights are available on this date */
+  minTotalPrice: number | null;
 };

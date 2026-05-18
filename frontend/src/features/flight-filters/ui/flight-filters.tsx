@@ -7,6 +7,7 @@ import {
   Checkbox,
   Collapse,
   Flex,
+  Form,
   InputNumber,
   Select,
   Slider,
@@ -15,7 +16,8 @@ import {
 } from 'antd';
 import { Fragment, useState } from 'react';
 import { ArrowRotateLeft, Cross, ExclamationMark, Search } from '@/shared/assets';
-import { AIRLINE_OPTIONS, DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../model/labels';
+import { DEPARTURE_TIME_LABELS, DEPARTURE_TIMES } from '../model/labels';
+import { useCompaniesQuery } from '../model/use-companies-query';
 import { useFlightFilters } from '../model/use-flight-filters';
 import styles from './flight-filters.module.css';
 
@@ -82,6 +84,10 @@ export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
     applyFilters,
     resetFilters,
   } = useFlightFilters();
+
+  const { companies, isLoading: isCompaniesLoading } = useCompaniesQuery();
+
+  const airlineOptions = companies.map((c) => ({ value: c.id, label: c.name }));
 
   const [addingBaggageFor, setAddingBaggageFor] = useState(false);
   const [passengerSelectOpen, setPassengerSelectOpen] = useState(false);
@@ -187,7 +193,7 @@ export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
             </div>
           </Flex>
 
-          <Flex vertical gap={8} className={styles.fullWidth}>
+          <Flex vertical gap={8} className={`${styles.fullWidth} ${styles.timeSectionLast}`}>
             <Typography.Text className={styles.label}>Удобное время прилёта</Typography.Text>
             <div className={styles.timeGrid}>
               {DEPARTURE_TIMES.map((value) => (
@@ -357,19 +363,24 @@ export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
                       className={styles.actionButton}
                       onClick={() => setAddingBaggageFor(true)}
                     >
-                      Добавить ещё багаж
+                      <span className={styles.btnLabelFull}>Добавить ещё багаж</span>
+                      <span className={styles.btnLabelShort}>Добавить ещё</span>
                     </Button>
-                    {draftFilters.extraBaggageEntries.length > 0 && (
-                      <Button
-                        size="small"
-                        className={styles.actionButton}
-                        onClick={() =>
-                          removeBaggageEntry(draftFilters.extraBaggageEntries.length - 1)
-                        }
-                      >
-                        Удалить багаж
-                      </Button>
-                    )}
+                    <Button
+                      size="small"
+                      className={styles.actionButton}
+                      style={
+                        draftFilters.extraBaggageEntries.length === 0
+                          ? { visibility: 'hidden', pointerEvents: 'none' }
+                          : undefined
+                      }
+                      onClick={() =>
+                        removeBaggageEntry(draftFilters.extraBaggageEntries.length - 1)
+                      }
+                    >
+                      <span className={styles.btnLabelFull}>Удалить багаж</span>
+                      <span className={styles.btnLabelShort}>Удалить</span>
+                    </Button>
                   </Flex>
                 )}
               </Flex>
@@ -437,7 +448,8 @@ export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
               placeholder="Выберите авиакомпанию"
               value={draftFilters.airlines}
               onChange={(value) => updateDraftFilter('airlines', value)}
-              options={AIRLINE_OPTIONS}
+              options={airlineOptions}
+              loading={isCompaniesLoading}
               suffixIcon={
                 draftFilters.airlines.length > 0 ? (
                   <span
@@ -477,7 +489,7 @@ export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
         </Tooltip>
       </Flex>
 
-      <Flex vertical gap={0} className={styles.panel}>
+      <Form onFinish={handleApplyFilters} className={styles.panel}>
         <Collapse
           className={styles.collapse}
           bordered={false}
@@ -486,11 +498,11 @@ export const FlightFilters = ({ onApply, passengers }: FlightFiltersProps) => {
         />
 
         <Flex justify="flex-end" className={styles.actions}>
-          <Button type="primary" className={styles.applyButton} onClick={handleApplyFilters}>
+          <Button type="primary" htmlType="submit" className={styles.applyButton}>
             Применить фильтры
           </Button>
         </Flex>
-      </Flex>
+      </Form>
     </Flex>
   );
 };

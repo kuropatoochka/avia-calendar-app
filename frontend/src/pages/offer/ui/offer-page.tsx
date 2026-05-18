@@ -1,5 +1,5 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
 import type {
@@ -9,49 +9,82 @@ import type {
 import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
 import type { SearchFormValues } from '@/features/search-form';
 import { SearchForm } from '@/features/search-form';
+import { FlightService } from '@/shared/api';
 import { ArrowDown } from '@/shared/assets';
-import type { FlightFilters as FlightFiltersRequest } from '@/shared/types';
+import type { FlightFilters, FlightsRequest, TicketsListDto } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import styles from './offer-page.module.css';
 
 const OfferPage = () => {
   const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(null);
-  const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
+  const [, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
+  const [filterKey, setFilterKey] = useState(0);
 
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
-  const mapFiltersToRequest = (filters: FlightFiltersState): FlightFiltersRequest => ({
-    maxStops: filters.maxStops,
-    stopDurationRange: filters.maxStops > 0 ? filters.stopDurationRange : undefined,
-    maxFlightDuration: filters.maxFlightDuration,
-    departureTimes: filters.departureTimes,
-    arrivalTimes: filters.arrivalTimes,
-    maxPrice: filters.maxPrice < 200_000 ? filters.maxPrice : undefined,
-    baggageEnabled: filters.baggageEnabled,
-    baggageWeights: filters.baggageEnabled ? filters.baggageWeights : undefined,
-    extraBaggageEntries:
-      filters.baggageEnabled && filters.extraBaggageEntries.length > 0
-        ? filters.extraBaggageEntries
-        : undefined,
-    airlines: filters.airlines.length > 0 ? filters.airlines : undefined,
-    petsEnabled: filters.petsEnabled,
-    animalCount: filters.petsEnabled ? filters.animalCount : undefined,
-    animalWeights: filters.petsEnabled ? filters.animalWeights : undefined,
-  });
+  const [, setFlights] = useState<TicketsListDto | null>(null);
+  const [isFlightsLoading, setIsFlightsLoading] = useState(false);
+
+  /**
+   * Maps the UI filter state to backend-compatible query params.
+   * Fields not supported by the backend (maxStops, departureTimes, etc.)
+   * are intentionally omitted — they are applied client-side when needed.
+   */
+  const mapFiltersToRequest = (filters: FlightFiltersState): FlightFilters => {
+    const result: FlightFilters = {};
+
+    if (filters.maxPrice < 200_000) {
+      result.price_to = filters.maxPrice;
+    }
+
+    if (filters.airlines.length > 0) {
+      result.company = filters.airlines.join(',');
+    }
+
+    if (filters.baggageEnabled) {
+      const mainBaggage = filters.baggageWeights.reduce((sum, w) => sum + w, 0);
+      const extraBaggage = filters.extraBaggageEntries.reduce((sum, e) => sum + e.weight, 0);
+      const totalBaggage = mainBaggage + extraBaggage;
+      if (totalBaggage > 0) result.baggage_size = totalBaggage;
+    }
+
+    return result;
+  };
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
-
-    const requestFilters = mapFiltersToRequest(filters);
-
-    console.log('Apply filters request params', requestFilters);
   };
 
-  const handleShowFlights = (selection: PriceDynamicsSelection) => {
+  const handleShowFlights = async (selection: PriceDynamicsSelection) => {
     setSelectedPriceDate(selection);
 
-    console.log('Show flights for selected date');
+    if (!searchParams) return;
+
+    const request: FlightsRequest = {
+      airportFromId: selection.airportFromId,
+      airportToId: selection.airportToId,
+      date: selection.date,
+      passengers: {
+        adults: searchParams.passengersNumber,
+        children: searchParams.childrenNumber ?? 0,
+        toddler: searchParams.toddlersNumber ?? 0,
+        animals: 0,
+      },
+      serviceClass: searchParams.serviceClass,
+      filters: activeFilters ? mapFiltersToRequest(activeFilters) : undefined,
+    };
+
+    try {
+      setIsFlightsLoading(true);
+      const data = await FlightService.getFlights(request);
+      setFlights(data);
+      console.log('Fetched flights', data);
+    } catch (err) {
+      console.error('Failed to fetch flights', err);
+    } finally {
+      setIsFlightsLoading(false);
+    }
   };
 
   const handleSearch = (values: SearchFormValues) => {
@@ -77,15 +110,10 @@ const OfferPage = () => {
     };
 
     setSelectedPriceDate(null);
+    setFlights(null);
     setSearchParams(params);
+    setFilterKey((k) => k + 1);
   };
-
-  useEffect(() => {
-    console.log('Offer page search state', {
-      selectedPriceDate,
-      activeFilters,
-    });
-  }, [selectedPriceDate, activeFilters]);
 
   return (
     <div className={styles.page}>
@@ -124,6 +152,7 @@ const OfferPage = () => {
         <div className={styles.columns}>
           <aside className={styles.filterWrapper}>
             <FlightFiltersSection
+              key={filterKey}
               onApply={handleApplyFilters}
               passengers={
                 searchParams
@@ -136,6 +165,9 @@ const OfferPage = () => {
               }
             />
           </aside>
+
+          {/* Flight results will be rendered here once FlightResultsBlock is built */}
+          {isFlightsLoading && <div>Загрузка рейсов…</div>}
         </div>
       </Flex>
     </div>

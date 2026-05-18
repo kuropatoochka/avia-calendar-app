@@ -1,6 +1,8 @@
 export type {
   AirportDto,
   AirportsDto,
+  CompanyDto,
+  CompaniesDto,
   FlightFilters,
   FlightsRequest,
   Passengers,
@@ -8,4 +10,7 @@ export type {
   PriceDynamicsRequest,
   PriceDynamicsResponse,
   ServiceClass,
+  TicketItemDto,
+  TicketServiceClassPricesDto,
+  TicketsListDto,
 } from './api';

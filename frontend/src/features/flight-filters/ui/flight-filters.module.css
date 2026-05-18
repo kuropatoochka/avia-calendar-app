@@ -1,5 +1,6 @@
 .container {
   width: 100%;
+  overflow-x: hidden;
 }
 
 .header {
@@ -46,7 +47,7 @@
 }
 
 .collapse :global(.ant-collapse-content-box) {
-  padding: 0 0 var(--space-md) !important;
+  padding: 0 0 var(--space-lg) !important;
 }
 
 .sectionTitle {
@@ -62,6 +63,8 @@
   font-size: var(--font-size-xs);
   color: var(--text-primary);
   line-height: var(--line-height-md);
+  min-width: 0;
+  word-break: break-word;
 }
 
 .sliderLabel {
@@ -127,6 +130,14 @@
   box-shadow: 0 0 0 2px var(--color-primary) !important;
 }
 
+.slider:hover :global(.ant-slider-track) {
+  background-color: var(--ant-color-primary-hover) !important;
+}
+
+.slider:hover :global(.ant-slider-handle::after) {
+  box-shadow: 0 0 0 2px var(--ant-color-primary-hover) !important;
+}
+
 .slider:global(.ant-slider-disabled) :global(.ant-slider-track) {
   background-color: var(--border-primary) !important;
 }
@@ -141,8 +152,13 @@
   gap: var(--space-xs) var(--space-sm);
 }
 
+.timeSectionLast {
+  margin-bottom: var(--space-sm);
+}
+
 .actions {
-  padding-top: 0;
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-sm);
 }
 
 .applyButton {
@@ -161,6 +177,7 @@
 .infoIcon:hover {
   color: var(--color-primary);
 }
+
 
 .actionButton {
   color: var(--text-secondary) !important;
@@ -198,4 +215,86 @@
 .passengerSelectArrowOpen {
   transform: rotate(180deg);
   transition: transform 0.2s ease;
+}
+
+.btnLabelFull {
+  display: inline;
+}
+
+.btnLabelShort {
+  display: none;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
+/* Narrow sidebar (960 px breakpoint matches the page grid change) */
+@media (max-width: 960px) {
+  .panel {
+    padding: var(--space-sm);
+    border-radius: 20px;
+  }
+
+  .collapse :global(.ant-collapse-content-box) {
+    padding: 0 0 var(--space-md) !important;
+  }
+
+  .numberInput {
+    width: 76px;
+  }
+
+  .applyButton {
+    min-width: 140px;
+  }
+}
+
+/* Full-width filter (single-column page layout at 768 px) */
+@media (max-width: 768px) {
+  .panel {
+    border-radius: 16px;
+  }
+
+  .actions {
+    padding-top: var(--space-sm);
+  }
+
+  .applyButton {
+    min-width: unset;
+    width: 100%;
+  }
+}
+
+/* Very narrow screens */
+@media (max-width: 480px) {
+  .panel {
+    padding: var(--space-xs);
+    border-radius: 12px;
+  }
+
+  .collapse :global(.ant-collapse-header) {
+    padding: var(--space-xs) 0 !important;
+  }
+
+  .collapse :global(.ant-collapse-content-box) {
+    padding: 0 0 var(--space-sm) !important;
+  }
+
+  .numberInput {
+    width: 68px;
+  }
+
+  /* Stack time-of-day checkboxes into a single column */
+  .timeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Shorten baggage button labels so the row doesn't expand the block */
+@media (max-width: 400px) {
+  .btnLabelFull {
+    display: none;
+  }
+
+  .btnLabelShort {
+    display: inline;
+  }
 }

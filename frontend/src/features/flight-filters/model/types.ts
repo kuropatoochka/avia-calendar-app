@@ -18,7 +18,8 @@ export type FlightFiltersState = {
   baggageEnabled: boolean;
   baggageWeights: number[];
   extraBaggageEntries: ExtraBaggageEntry[];
-  airlines: string[];
+  /** Company IDs selected by the user */
+  airlines: number[];
   petsEnabled: boolean;
   animalCount: number;
   animalWeights: number[];

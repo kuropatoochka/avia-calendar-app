@@ -32,6 +32,7 @@
 
 .filterWrapper {
   width: 356px;
+  max-width: 100%;
 }
 
 @media (max-width: 1280px) {
@@ -43,5 +44,32 @@
 @media (max-width: 960px) {
   .page {
     padding: 0 var(--space-md);
+  }
+
+  .columns {
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
+  }
+
+  .filterWrapper {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 0 var(--space-sm);
+  }
+}
+
+@media (max-width: 420px) {
+  .filterWrapper {
+    width: 100%;
   }
 }
