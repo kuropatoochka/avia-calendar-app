@@ -2,6 +2,7 @@ import type { PriceDynamicsChartItem } from '../model/types';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/shared/utils';
+import { getPriceHighlightMap } from '../model/get-price-highlight-map';
 import styles from './price-dynamics.module.css';
 
 const priceFormatter = new Intl.NumberFormat('ru-RU', {
@@ -10,11 +11,17 @@ const priceFormatter = new Intl.NumberFormat('ru-RU', {
   maximumFractionDigits: 0,
 });
 
-const CHART_HEIGHT = 180;
-const BAR_WIDTH = 56;
-const BAR_GAP = 24;
-const TOP_OFFSET = 24;
-const BOTTOM_OFFSET = 38;
+const CHART_HEIGHT = 200;
+const BAR_WIDTH = 48;
+const BAR_GAP = 16;
+
+// const TOP_LABEL_Y = 16;
+const BAR_TOP_OFFSET = 24;
+const BAR_BASE_Y = 150;
+
+const PRICE_LABEL_Y = 170;
+const DATE_LABEL_Y = 190;
+
 const MIN_BAR_HEIGHT = 4;
 
 const formatDateLabel = (date: string) => {
@@ -30,7 +37,11 @@ const getChartWidth = (itemsCount: number) => {
 };
 
 const getBarHeight = (price: number, minPrice: number, maxPrice: number) => {
-  const availableHeight = CHART_HEIGHT - TOP_OFFSET - BOTTOM_OFFSET;
+  const availableHeight = BAR_BASE_Y - BAR_TOP_OFFSET;
+
+  if (price <= 0) {
+    return MIN_BAR_HEIGHT;
+  }
 
   if (maxPrice === minPrice) {
     return Math.round(availableHeight * 0.65);
@@ -104,10 +115,16 @@ const getRenderItems = (
 interface Props {
   items: PriceDynamicsChartItem[];
   selectedItem: PriceDynamicsChartItem | null;
+  highlightBestPrices?: boolean;
   onSelect: (item: PriceDynamicsChartItem) => void;
 }
 
-export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => {
+export const PriceDynamicsChart = ({
+  items,
+  selectedItem,
+  highlightBestPrices = false,
+  onSelect,
+}: Props) => {
   const chartScrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -128,6 +145,10 @@ export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => 
       observer.disconnect();
     };
   }, [items.length]);
+
+  const priceHighlightMap = useMemo(() => {
+    return getPriceHighlightMap(items, highlightBestPrices);
+  }, [items, highlightBestPrices]);
 
   const renderItems = useMemo(() => {
     return getRenderItems(items, containerWidth);
@@ -160,7 +181,7 @@ export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => 
             const x = index * (BAR_WIDTH + BAR_GAP);
 
             if (renderItem.type === 'disabled') {
-              const y = CHART_HEIGHT - BOTTOM_OFFSET - MIN_BAR_HEIGHT;
+              const y = BAR_BASE_Y - MIN_BAR_HEIGHT;
               const dateLabel = formatDateLabel(renderItem.date);
 
               return (
@@ -176,9 +197,9 @@ export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => 
 
                   <text
                     x={x + BAR_WIDTH / 2}
-                    y={CHART_HEIGHT - 20}
+                    y={DATE_LABEL_Y}
                     textAnchor="middle"
-                    className={styles.dateText}
+                    className={cn(styles.dateText, styles.dateTextDisabled)}
                   >
                     {dateLabel}
                   </text>
@@ -188,35 +209,52 @@ export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => 
 
             const { item } = renderItem;
 
+            const isUnavailable = item.minTotalPrice <= 0;
             const height = getBarHeight(item.minTotalPrice, minPrice, maxPrice);
-            const y = CHART_HEIGHT - BOTTOM_OFFSET - height;
+            const y = BAR_BASE_Y - height;
 
             const isSelected = selectedItem?.date === item.date;
-            const priceLabel = priceFormatter.format(item.minTotalPrice);
+            const priceLabel = isUnavailable ? '-' : priceFormatter.format(item.minTotalPrice);
             const dateLabel = formatDateLabel(item.date);
+
+            const priceHighlight = priceHighlightMap[item.date];
+            const isBestPrice = priceHighlight === 'best';
+            const isRecommendedPrice = priceHighlight === 'recommended';
 
             return (
               <g
                 key={item.date}
-                className={styles.barGroup}
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelect(item)}
+                className={cn(styles.barGroup, {
+                  [styles.barGroupDisabled]: isUnavailable,
+                })}
+                role={isUnavailable ? undefined : 'button'}
+                tabIndex={isUnavailable ? undefined : 0}
+                onClick={() => {
+                  if (!isUnavailable) {
+                    onSelect(item);
+                  }
+                }}
                 onKeyDown={(event) => {
+                  if (isUnavailable) {
+                    return;
+                  }
+
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     onSelect(item);
                   }
                 }}
               >
-                <text
-                  x={x + BAR_WIDTH / 2}
-                  y={y - 8}
-                  textAnchor="middle"
-                  className={styles.priceText}
-                >
-                  {priceLabel}
-                </text>
+                {/* {isBestPrice && (
+                  <text
+                    x={x + BAR_WIDTH / 2}
+                    y={TOP_LABEL_Y}
+                    textAnchor="middle"
+                    className={styles.bestPriceText}
+                  >
+                    дешево
+                  </text>
+                )} */}
 
                 <rect
                   x={x}
@@ -225,13 +263,27 @@ export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => 
                   height={height}
                   rx={4}
                   className={cn(styles.bar, {
+                    [styles.barUnavailable]: isUnavailable,
+                    [styles.barRecommendedPrice]: isRecommendedPrice,
+                    [styles.barBestPrice]: isBestPrice,
                     [styles.barSelected]: isSelected,
                   })}
                 />
 
                 <text
                   x={x + BAR_WIDTH / 2}
-                  y={CHART_HEIGHT - 20}
+                  y={PRICE_LABEL_Y}
+                  textAnchor="middle"
+                  className={cn(styles.priceText, {
+                    [styles.priceTextUnavailable]: isUnavailable,
+                  })}
+                >
+                  {priceLabel}
+                </text>
+
+                <text
+                  x={x + BAR_WIDTH / 2}
+                  y={DATE_LABEL_Y}
                   textAnchor="middle"
                   className={styles.dateText}
                 >

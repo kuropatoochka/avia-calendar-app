@@ -13,6 +13,12 @@
   --color-primary-light: #EEF5FF;
   --color-error: #FF4D4F;
 
+  --chart-accent-soft: #f39a67; 
+  --chart-accent-strong: #ea7b41; 
+
+  --chart-accent-selected: #c95f2a;
+  --chart-accent-stroke: #8f3a15;
+
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);
   --text-muted: var(--color-text-muted);
