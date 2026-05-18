@@ -80,7 +80,6 @@ const OfferPage = () => {
     setSearchParams(params);
   };
 
-
   useEffect(() => {
     console.log('Offer page search state', {
       selectedPriceDate,
@@ -124,7 +123,6 @@ const OfferPage = () => {
 
         <div className={styles.columns}>
           <aside className={styles.filterWrapper}>
-
             <FlightFiltersSection
               onApply={handleApplyFilters}
               passengers={
