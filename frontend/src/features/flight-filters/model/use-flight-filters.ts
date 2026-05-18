@@ -13,27 +13,17 @@ export const useFlightFilters = () => {
     setDraftFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const setBaggageMode = (forAll: boolean, passengerCount: number) => {
-    setDraftFilters((prev) => {
-      const extras = prev.baggageWeights.slice(forAll ? 1 : passengerCount);
-      const base = forAll
-        ? [prev.baggageWeights[0] ?? 20]
-        : Array.from({ length: passengerCount }, (_, i) => prev.baggageWeights[i] ?? 20);
-      return { ...prev, baggageForAll: forAll, baggageWeights: [...base, ...extras] };
-    });
-  };
-
-  const addBaggageEntry = () => {
+  const addBaggageEntry = (passengerIndex: number) => {
     setDraftFilters((prev) => ({
       ...prev,
-      baggageWeights: [...prev.baggageWeights, 20],
+      extraBaggageEntries: [...prev.extraBaggageEntries, { passengerIndex, weight: 20 }],
     }));
   };
 
-  const removeBaggageEntry = (index: number) => {
+  const removeBaggageEntry = (entryIndex: number) => {
     setDraftFilters((prev) => ({
       ...prev,
-      baggageWeights: prev.baggageWeights.filter((_, i) => i !== index),
+      extraBaggageEntries: prev.extraBaggageEntries.filter((_, i) => i !== entryIndex),
     }));
   };
 
@@ -66,7 +56,6 @@ export const useFlightFilters = () => {
     filters,
     draftFilters,
     updateDraftFilter,
-    setBaggageMode,
     addBaggageEntry,
     removeBaggageEntry,
     updateAnimalCount,

@@ -27,11 +27,13 @@ const OfferPage = () => {
     maxFlightDuration: filters.maxFlightDuration,
     departureTimes: filters.departureTimes,
     arrivalTimes: filters.arrivalTimes,
-    pricePerPassenger: filters.pricePerPassenger,
-    priceRange: filters.priceRange,
+    maxPrice: filters.maxPrice < 200_000 ? filters.maxPrice : undefined,
     baggageEnabled: filters.baggageEnabled,
-    baggageForAll: filters.baggageEnabled ? filters.baggageForAll : undefined,
     baggageWeights: filters.baggageEnabled ? filters.baggageWeights : undefined,
+    extraBaggageEntries:
+      filters.baggageEnabled && filters.extraBaggageEntries.length > 0
+        ? filters.extraBaggageEntries
+        : undefined,
     airlines: filters.airlines.length > 0 ? filters.airlines : undefined,
     petsEnabled: filters.petsEnabled,
     animalCount: filters.petsEnabled ? filters.animalCount : undefined,
@@ -78,12 +80,6 @@ const OfferPage = () => {
     setSearchParams(params);
   };
 
-  const passengerCount = searchParams
-    ? searchParams.passengersNumber +
-      (searchParams.childrenNumber ?? 0) +
-      (searchParams.toddlersNumber ?? 0)
-    : 1;
-
   useEffect(() => {
     console.log('Offer page search state', {
       selectedPriceDate,
@@ -127,7 +123,18 @@ const OfferPage = () => {
 
         <div className={styles.columns}>
           <aside className={styles.filterWrapper}>
-            <FlightFiltersSection onApply={handleApplyFilters} passengerCount={passengerCount} />
+            <FlightFiltersSection
+              onApply={handleApplyFilters}
+              passengers={
+                searchParams
+                  ? {
+                      adults: searchParams.passengersNumber,
+                      children: searchParams?.childrenNumber ?? 0,
+                      toddler: searchParams?.toddlersNumber ?? 0,
+                    }
+                  : undefined
+              }
+            />
           </aside>
         </div>
       </Flex>

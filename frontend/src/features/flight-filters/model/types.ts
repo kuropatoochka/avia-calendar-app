@@ -1,5 +1,10 @@
 export type DepartureTime = 'morning' | 'afternoon' | 'evening' | 'night';
 
+export type ExtraBaggageEntry = {
+  passengerIndex: number;
+  weight: number;
+};
+
 export type FlightFiltersState = {
   // ПЕРЕЛЁТ
   maxStops: number;
@@ -8,12 +13,11 @@ export type FlightFiltersState = {
   departureTimes: DepartureTime[];
   arrivalTimes: DepartureTime[];
   // СТОИМОСТЬ
-  pricePerPassenger: boolean;
-  priceRange: [number, number];
+  maxPrice: number;
   // УСЛОВИЯ
   baggageEnabled: boolean;
-  baggageForAll: boolean;
   baggageWeights: number[];
+  extraBaggageEntries: ExtraBaggageEntry[];
   airlines: string[];
   petsEnabled: boolean;
   animalCount: number;
