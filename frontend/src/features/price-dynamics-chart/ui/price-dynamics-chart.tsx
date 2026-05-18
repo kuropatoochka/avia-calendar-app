@@ -134,7 +134,7 @@ export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => 
   }, [items, containerWidth]);
 
   const prices = useMemo(() => {
-    return items.map((item) => item.minTotalPrice);
+    return items.map((item) => item.minTotalPrice).filter((p): p is number => p !== null);
   }, [items]);
 
   const minPrice = prices.length ? Math.min(...prices) : 0;
@@ -187,6 +187,31 @@ export const PriceDynamicsChart = ({ items, selectedItem, onSelect }: Props) => 
             }
 
             const { item } = renderItem;
+
+            // No flights available for this date — render as a disabled bar.
+            if (item.minTotalPrice === null) {
+              const y = CHART_HEIGHT - BOTTOM_OFFSET - MIN_BAR_HEIGHT;
+              return (
+                <g key={item.date} className={styles.barGroupDisabled}>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={BAR_WIDTH}
+                    height={MIN_BAR_HEIGHT}
+                    rx={4}
+                    className={styles.barDisabled}
+                  />
+                  <text
+                    x={x + BAR_WIDTH / 2}
+                    y={CHART_HEIGHT - 20}
+                    textAnchor="middle"
+                    className={styles.dateText}
+                  >
+                    {formatDateLabel(item.date)}
+                  </text>
+                </g>
+              );
+            }
 
             const height = getBarHeight(item.minTotalPrice, minPrice, maxPrice);
             const y = CHART_HEIGHT - BOTTOM_OFFSET - height;

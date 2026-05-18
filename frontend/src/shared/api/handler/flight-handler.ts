@@ -116,7 +116,9 @@ export const flightHandlers = [
       return acc;
     }, {});
 
-    const hasAvailablePrice = Object.values(minPricesByDate).some((price) => price > 0);
+    const hasAvailablePrice = Object.values(minPricesByDate).some(
+      (price) => price !== null && price > 0,
+    );
 
     if (!hasAvailablePrice && dates.length) {
       const fallbackDate = dates[Math.floor(dates.length / 2)];
