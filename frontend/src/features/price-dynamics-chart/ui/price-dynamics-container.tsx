@@ -5,6 +5,7 @@ import type {
 } from '../model/types';
 import { Alert, Divider, Flex, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
+import { useLaunchExperiment } from '@/features/launch-experiment';
 import { usePriceDynamicsQuery } from '../model/use-price-dynamics-query';
 import { PriceDynamicsChart } from './price-dynamics-chart';
 import { PriceDynamicsPlaceholder } from './price-dynamics-placeholder';
@@ -40,6 +41,9 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
     isPriceDynamicsLoading: isInboundLoading,
     priceDynamicsError: inboundError,
   } = usePriceDynamicsQuery();
+
+  const variant = useLaunchExperiment();
+  const highlightBestPrices = variant === 'B';
 
   useEffect(() => {
     if (!params) {
@@ -128,6 +132,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
                 <PriceDynamicsChart
                   items={outboundItems}
                   selectedItem={selectedOutboundItem}
+                  highlightBestPrices={highlightBestPrices}
                   onSelect={(item) => {
                     handleChartItemSelect(item, {
                       airportFromId: params.airportFromId,
@@ -150,6 +155,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
                     <PriceDynamicsChart
                       items={inboundItems}
                       selectedItem={selectedInboundItem}
+                      highlightBestPrices={highlightBestPrices}
                       onSelect={(item) => {
                         handleChartItemSelect(item, {
                           airportFromId: params.airportToId,
