@@ -6,4 +6,6 @@ export {
 
 export type { PassengersState, SearchFormValues, TripType } from './model/types';
 
+export { useAirportsQuery } from './model/use-airports-query';
+
 export { SearchForm } from './ui/search-form';

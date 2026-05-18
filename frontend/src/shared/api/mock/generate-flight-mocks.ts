@@ -6,6 +6,7 @@ type GenerateFlightsParams = {
   date: string;
   passengers: Passengers;
   serviceClass: ServiceClass;
+  forceAvailable?: boolean;
 };
 
 export type MockFlight = {
@@ -76,8 +77,14 @@ const getPassengerMultiplier = (passengers: Passengers) => {
   return adults + children * 0.75 + toddler * 0.1 + animals * 0.2;
 };
 
-const getFlightCount = (seed: number) => {
-  return seed % 4;
+const getFlightCount = (seed: number, forceAvailable = false) => {
+  const count = seed % 4;
+
+  if (forceAvailable && count === 0) {
+    return 1;
+  }
+
+  return count;
 };
 
 const getDepartureMinutes = (seed: number) => {
@@ -111,6 +118,7 @@ export const generateFlights = ({
   date,
   passengers,
   serviceClass,
+  forceAvailable = false,
 }: GenerateFlightsParams) => {
   const baseSeed = hashString(`${originAirportId}-${destinationAirportId}-${date}-${serviceClass}`);
   const routeSeed = hashString(`${originAirportId}-${destinationAirportId}`);
@@ -120,7 +128,7 @@ export const generateFlights = ({
   const isWeekend = WEEKEND.has(getUTCDate(date).getUTCDay());
   const weekendMultiplier = isWeekend ? 1.08 : 1;
 
-  const flightsCount = getFlightCount(baseSeed);
+  const flightsCount = getFlightCount(baseSeed, forceAvailable);
   const flights: MockFlight[] = [];
 
   for (let index = 0; index < flightsCount; index += 1) {
