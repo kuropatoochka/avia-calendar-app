@@ -75,4 +75,20 @@ export type FlightsRequest = {
   filters?: FlightFilters;
 };
 
-// export type FlightsDto = {};
+export type FlightDto = {
+  id: string;
+  origin: string;
+  destination: string;
+  date: string;
+  price: number;
+  duration: number;
+  airline: string;
+  departureTime: string;
+  arrivalTime: string;
+  baggageIncluded: boolean;
+  stopsCount: number;
+  petsAllowed: boolean;
+  availableSeats: number;
+};
+
+export type FlightsDto = FlightDto[];
