@@ -9,8 +9,8 @@
   width: 100%;
   min-width: 0;
   padding: 8px 16px 0;
-  background-color: var(--background-page);
   border-radius: var(--radius-sm);
+  background-color: var(--background-page);
 }
 
 .chartScroll {
@@ -20,6 +20,25 @@
   overflow-y: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--color-text-secondary) transparent;
+}
+
+.chartScroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.chartScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chartScroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background-color: var(--color-text-secondary);
+}
+
+.chartScroll::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .chartSvg {
@@ -32,30 +51,51 @@
   outline: none;
 }
 
+.barGroupDisabled {
+  cursor: default;
+  pointer-events: none;
+}
+
 .bar {
-  fill: var(--color-primary);
-  opacity: 0.7;
+  fill: var(--color-text-disabled);
+  opacity: 1;
   transition:
     opacity 0.2s ease,
+    fill 0.2s ease,
+    stroke 0.2s ease,
     height 0.2s ease,
     y 0.2s ease;
 }
 
+.barDisabled {
+  fill: var(--color-text-secondary);
+}
+
 .barSelected {
-  opacity: 1;
-  stroke: var(--color-primary);
-  stroke-width: 2;
+  fill: var(--color-primary);
 }
 
 .barGroup:hover .bar {
-  opacity: 1;
+  opacity: 0.8;
+  fill: var(--color-primary);
 }
 
 .barGroup:focus-visible .bar {
   opacity: 1;
-  stroke: var(--color-primary);
-  stroke-width: 3;
 }
+
+.barRecommendedPrice {
+  fill: var(--chart-soft);
+}
+
+.barBestPrice {
+  fill: var(--chart-strong);
+}
+
+.barRecommendedPrice.barSelected,
+.barBestPrice.barSelected {
+  fill: var(--color-primary);
+} 
 
 .priceText {
   font-size: 12px;
@@ -74,12 +114,19 @@
   color: var(--color-text-secondary);
 }
 
-.barDisabled {
-  fill: var(--color-text-secondary);
-  opacity: 1;
+.bestBadgeGroup {
+  pointer-events: none;
 }
 
-.barGroupDisabled {
-  cursor: default;
-  pointer-events: none;
+.bestBadge {
+  fill: var(--color-primary);
+}
+
+.bestBadgeText {
+  font-weight: 700;
+  fill: var(--background-page);
+}
+
+.bestBadgeIcon {
+  color: var(--background-page);
 }

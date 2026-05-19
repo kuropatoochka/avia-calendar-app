@@ -19,7 +19,6 @@ export type PriceDynamicsSelection = {
   airportFromId: number;
   airportToId: number;
   date: string;
-
   direction: PriceDynamicsDirection;
 };
 

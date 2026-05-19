@@ -1,32 +1,36 @@
 import type {
+  FlightsDto,
   FlightsRequest,
   PriceDynamicsRequest,
   PriceDynamicsResponse,
-  TicketsListDto,
 } from '../../types/api';
 import { API_URL } from '../../consts/api';
 import { getFlightSearchParams } from '../../utils/getFlightSearchParams';
 import { getSearchParams } from '../../utils/getSearchParams';
 
 export default class FlightService {
-  static async getFlights(params: FlightsRequest): Promise<TicketsListDto> {
-    const url = new URL(`${API_URL}/tickets`, window.location.origin);
+  static async getFlights(params: FlightsRequest): Promise<FlightsDto> {
+    const url = new URL(`${API_URL}/flights`, window.location.origin);
     url.search = getFlightSearchParams(params);
 
-    const response = await fetch(url, { method: 'GET' });
+    const response = await fetch(url, {
+      method: 'GET',
+    });
 
     if (!response.ok) {
-      throw new Error(`Не удалось загрузить рейсы. Код ошибки: ${response.status}`);
+      throw new Error(`Не удалось получить список рейсов. Код ошибки: ${response.status}`);
     }
 
-    return response.json() as Promise<TicketsListDto>;
+    return response.json() as Promise<FlightsDto>;
   }
 
   static async getPriceDynamics(params: PriceDynamicsRequest): Promise<PriceDynamicsResponse> {
     const url = new URL(`${API_URL}/tickets/range`, window.location.origin);
     url.search = getSearchParams(params);
 
-    const response = await fetch(url, { method: 'GET' });
+    const response = await fetch(url, {
+      method: 'GET',
+    });
 
     if (!response.ok) {
       throw new Error(`Не удалось получить график цен. Код ошибки: ${response.status}`);
