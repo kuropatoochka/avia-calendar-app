@@ -3,11 +3,13 @@ import { AirportService } from '@/shared/api';
 import { useFetch } from '@/shared/hooks';
 
 export const useAirportsQuery = () => {
-  const loadAirports = useCallback(async (search?: string) => {
+  const loadAirports = useCallback(async (search?: string, ids?: number[]) => {
+    const shouldPaginate = !ids?.length;
     const data = await AirportService.getAirports({
       search: search?.trim(),
-      offset: 0,
-      limit: 20,
+      offset: shouldPaginate ? 0 : undefined,
+      limit: shouldPaginate ? 20 : undefined,
+      ids,
     });
 
     return data.items;
