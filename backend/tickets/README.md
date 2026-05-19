@@ -196,7 +196,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ### Справочник аэропортов
 
 - **`GET /airports/`** — паджинированный список всех аэропортов из БД.
-  - **Query:** `offset` (≥ 0), `limit` (1…500). **Опционально:** `search` — подстрока; при задании — ILIKE по `airport.name` и `city.name`.
+  - **Query:** `offset` (≥ 0), `limit` (1…500). **Опционально:** `search` — подстрока; при задании — ILIKE по `airport.name` и `city.name`. **`ids`** — CSV id аэропортов (например `1,3,5`); при задании — только строки с `airport.id` из списка.
   - **Ответ:** `items` (массив `{ id, name, city: { id, name } }`), `total`, `offset`, `limit`. Сортировка по `id`. Пагинация как у **`GET /tickets`**: при `offset` ≥ `total` возвращается последняя страница, в JSON — фактический `offset`.
   - Реализация: `app/routers/airports.py`, `app/services/airport_query.py` (`fetch_airports`), `app/schemas/airports.py`.
 
@@ -223,6 +223,12 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
   - **Query (опционально):** `toddlers_number`, `children_number` (по умолчанию 0).
   - **Ответ:** массив объектов по **каждому** дню от `from_date` до `to_date` включительно, по возрастанию даты: `departure_date`, `min_total_price`. Сумма за день: `price * passengers_number + children_price * children_number + toddler_price * toddlers_number` по тарифу выбранного класса на конкретном экземпляре рейса; в выборку попадают только рейсы, где **`tarif.seats`** и число мест соответствующего класса в **`plane`** не меньше суммы `passengers_number + children_number + toddlers_number`. `min_total_price` — минимум по всем таким рейсам в этот день; если подходящих рейсов нет — **`null`**.
   - Реализация: `app/routers/tickets.py`, `app/services/ticket_range_query.py` (`fetch_ticket_range`), разбор класса — `parse_single_service_class` в `app/services/ticket_query.py`, `app/schemas/tickets.py` (`TicketRangeItem`).
+
+- **`POST /tickets/`** — бронирование: уменьшение **`tarif.seats`** на число пассажиров в тарифе выбранного класса.
+  - **Тело:** `flight_instance_id` (≥ 1), `passengers_number` (≥ 1), `service_class` — одно из `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS` (регистр не важен).
+  - **Ответ:** `{ message, seats_remaining }` — сообщение об успехе и оставшееся число мест в тарифе.
+  - **Ошибки:** **404** — `flight_instance` не найден; **409** — в тарифе недостаточно мест (`seats < passengers_number`); **422** — неизвестный `service_class`.
+  - Реализация: `app/routers/tickets.py`, `app/services/ticket_book.py` (`book_ticket`), `app/schemas/tickets.py` (`TicketBookRequest`, `TicketBookResponse`).
 
 - **`PATCH /tickets/prices`** — пакетное обновление цен в таблице **`tarif`**.
   - **Тело:** JSON-массив объектов `{ tarif_id, price, children_price, toddler_price }` (все поля обязательны, цены ≥ 0, `tarif_id` ≥ 1). Повторяющийся `tarif_id` в одном запросе → **422**.

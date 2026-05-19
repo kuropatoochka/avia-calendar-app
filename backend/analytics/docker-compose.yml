@@ -1,5 +1,5 @@
 services:
-  api:
+  analytics_api:
     build:
       context: .
       dockerfile: Dockerfile
