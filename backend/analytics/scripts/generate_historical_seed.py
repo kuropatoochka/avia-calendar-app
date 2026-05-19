@@ -13,11 +13,61 @@ Usage:
 Output: ~50 000 rows in HistoricalFlights.
 """
 
+import hashlib
+import json
 import random
 from datetime import date, time, timedelta
 from math import ceil
+from typing import Any
 
 random.seed(99)
+
+
+# ---------------------------------------------------------------------------
+# Hash — exact replication of app/db/flight_identity.py::compute_row_hash
+# ---------------------------------------------------------------------------
+
+_IDENTITY_VERSION = 1
+
+
+def _compute_row_hash(
+    *,
+    flight_type: str,
+    seats: int,
+    city_from: str,
+    city_to: str,
+    has_sea: bool,
+    has_warm: bool,
+    has_nature: bool,
+    company: str,
+    plane_type: str,
+    duration: int,
+    departure_day: str,
+    arrival_day: str,
+    departure_time: time,
+    arrival_time: time,
+    booking_day_range: int,
+) -> str:
+    payload: dict[str, Any] = {
+        "v": _IDENTITY_VERSION,
+        "type": flight_type,
+        "seats": seats,
+        "city_from": city_from.strip(),
+        "city_to": city_to.strip(),
+        "has_sea": bool(has_sea),
+        "has_warm": bool(has_warm),
+        "has_nature": bool(has_nature),
+        "company": company.strip(),
+        "plane_type": plane_type.strip(),
+        "duration": duration,
+        "departure_day": departure_day.strip(),
+        "arrival_day": arrival_day.strip(),
+        "departure_time": departure_time.strftime("%H:%M:%S"),
+        "arrival_time": arrival_time.strftime("%H:%M:%S"),
+        "booking_day_range": booking_day_range,
+    }
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 # ---------------------------------------------------------------------------
 # Reference data — mirrors the tickets seed (same cities/routes/companies/planes)
@@ -185,7 +235,7 @@ def generate() -> str:
     a('TRUNCATE "HistoricalFlights" RESTART IDENTITY;')
     a("")
     a('INSERT INTO "HistoricalFlights" (')
-    a('    "type", seats, city_from, city_to,')
+    a('    row_hash, "type", seats, city_from, city_to,')
     a('    has_sea, has_warm, has_nature,')
     a('    company, plane_type, duration,')
     a('    departure_day, arrival_day, departure_time, arrival_time,')
@@ -238,8 +288,25 @@ def generate() -> str:
             for class_name in TARIF_CLASSES:
                 seats = seats_for_class(plane, class_name)
                 price, ch_price, tod_price = prices[class_name]
+                row_hash = _compute_row_hash(
+                    flight_type=class_name,
+                    seats=seats,
+                    city_from=city_from,
+                    city_to=city_to,
+                    has_sea=dest_flags[0],
+                    has_warm=dest_flags[1],
+                    has_nature=dest_flags[2],
+                    company=company,
+                    plane_type=plane_type,
+                    duration=duration,
+                    departure_day=str(current),
+                    arrival_day=str(arr_date),
+                    departure_time=dep_time,
+                    arrival_time=arr_time,
+                    booking_day_range=booking_day_range,
+                )
                 rows.append(
-                    f"    ('{class_name}', {seats}, '{city_from}', '{city_to}', "
+                    f"    ('{row_hash}', '{class_name}', {seats}, '{city_from}', '{city_to}', "
                     f"{has_sea}, {has_warm}, {has_nature}, "
                     f"'{company}', '{plane_type}', {duration}, "
                     f"'{current}', '{arr_date}', "
@@ -262,7 +329,7 @@ def generate() -> str:
             lines[-1] = lines[-1].rstrip(",") + ";"
             a("")
             a('INSERT INTO "HistoricalFlights" (')
-            a('    "type", seats, city_from, city_to,')
+            a('    row_hash, "type", seats, city_from, city_to,')
             a('    has_sea, has_warm, has_nature,')
             a('    company, plane_type, duration,')
             a('    departure_day, arrival_day, departure_time, arrival_time,')
