@@ -5,11 +5,16 @@ type Params = {
   search?: string;
   offset?: number;
   limit?: number;
+  ids?: number[];
 };
 
 export default class AirportService {
   static async getAirports(params: Params = {}): Promise<AirportsDto> {
-    const queryString = getSearchParams(params);
+    const normalizedParams = {
+      ...params,
+      ids: params.ids?.length ? params.ids.join(',') : undefined,
+    };
+    const queryString = getSearchParams(normalizedParams);
     const url = queryString ? `/api/airports?${queryString}` : '/api/airports';
 
     const response = await fetch(url, {
