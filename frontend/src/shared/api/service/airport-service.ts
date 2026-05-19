@@ -5,7 +5,7 @@ type Params = {
   search?: string;
   offset?: number;
   limit?: number;
-  ids?: number[];
+  ids?: string[];
 };
 
 export default class AirportService {

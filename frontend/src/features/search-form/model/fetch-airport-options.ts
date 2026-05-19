@@ -1,17 +1,14 @@
 import { AirportService } from '@/shared/api';
 import type { AirportDto } from '@/shared/types';
 
-export const fetchAirportOptions = async (name?: string) => {
+export const fetchAirportOptions = async (name?: string): Promise<AirportDto[]> => {
   try {
-    const response = await AirportService.getAirports(name?.trim() || undefined);
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const data: AirportDto[] = await response.json();
-
-    return data;
+    const data = await AirportService.getAirports({
+      search: name?.trim() || undefined,
+      offset: 0,
+      limit: 20,
+    });
+    return data.items;
   } catch {
     return [];
   }

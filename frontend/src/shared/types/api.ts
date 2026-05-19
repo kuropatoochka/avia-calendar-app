@@ -4,6 +4,13 @@ export type AirportDto = {
   city: string;
 };
 
+export type AirportsDto = {
+  items: AirportDto[];
+  total: number;
+  offset: number;
+  limit: number;
+};
+
 export type Passengers = {
   adults: number;
   children: number;
