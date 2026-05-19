@@ -109,3 +109,27 @@ class TarifPricePatchItem(BaseModel):
 class TicketPricesPatchResponse(BaseModel):
     message: str = Field(description="Сообщение об успешном завершении патча")
     updated: int = Field(description="Число обновлённых строк в tarif")
+
+
+class TicketBookRequest(BaseModel):
+    """Тело POST /tickets/."""
+
+    flight_instance_id: int = Field(
+        ge=1,
+        description="Id экземпляра рейса (flight_instance)",
+    )
+    passengers_number: int = Field(
+        ge=1,
+        description="Число пассажиров; столько мест вычитается из тарифа",
+    )
+    service_class: str = Field(
+        min_length=1,
+        description="Класс: BUDGET, BUSINESS, COMFORT, FIRST_CLASS",
+    )
+
+
+class TicketBookResponse(BaseModel):
+    message: str = Field(description="Сообщение об успешном бронировании")
+    seats_remaining: int = Field(
+        description="Оставшееся число мест в тарифе после бронирования",
+    )

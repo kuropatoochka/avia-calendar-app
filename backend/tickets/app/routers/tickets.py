@@ -9,12 +9,20 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.schemas.tickets import (
     TarifPricePatchItem,
+    TicketBookRequest,
+    TicketBookResponse,
     TicketItem,
     TicketNextMonthItem,
     TicketPricesPatchResponse,
     TicketRangeItem,
     TicketsListResponse,
     TicketsNextMonthResponse,
+)
+from app.services.ticket_book import (
+    FlightInstanceNotFoundError,
+    InsufficientSeatsError,
+    TicketBookParams,
+    book_ticket,
 )
 from app.services.ticket_next_month_query import (
     TicketNextMonthParams,
@@ -40,6 +48,43 @@ from app.services.ticket_range_query import (
 )
 
 router = APIRouter(tags=["tickets"])
+
+
+@router.post("/tickets/", response_model=TicketBookResponse)
+def book_tickets(
+    db: Annotated[Session, Depends(get_db)],
+    body: TicketBookRequest,
+) -> TicketBookResponse:
+    try:
+        class_token = parse_single_service_class(body.service_class)
+    except ValueError as exc:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+
+    params = TicketBookParams(
+        flight_instance_id=body.flight_instance_id,
+        passengers_number=body.passengers_number,
+        service_class=class_token,
+    )
+    try:
+        seats_remaining = book_ticket(db, params)
+    except FlightInstanceNotFoundError as exc:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except InsufficientSeatsError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+
+    return TicketBookResponse(
+        message="Ticket booked successfully",
+        seats_remaining=seats_remaining,
+    )
 
 
 @router.patch("/tickets/prices", response_model=TicketPricesPatchResponse)

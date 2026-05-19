@@ -6,6 +6,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services.ticket_book import (
+    _DECREMENT_SEATS_SQL,
+    _RESOLVE_TARIF_SQL,
+)
 from app.services.ticket_next_month_query import (
     _NEXT_MONTH_FROM_AND_JOINS,
     LIST_NEXT_MONTH_SQL,
@@ -157,6 +161,42 @@ def test_patch_prices_negative_price_returns_422() -> None:
                 "toddler_price": 0,
             },
         ],
+    )
+    assert response.status_code == 422
+
+
+def test_book_sql_resolves_tarif_by_class_and_decrements_seats() -> None:
+    resolve_sql = str(_RESOLVE_TARIF_SQL)
+    decrement_sql = str(_DECREMENT_SEATS_SQL)
+    assert "flight_instance fi" in resolve_sql
+    assert "budget_tarif_id" in resolve_sql
+    assert "first_class_tarif_id" in resolve_sql
+    assert "UPDATE tarif" in decrement_sql
+    assert "seats >= CAST(:passengers_number AS integer)" in decrement_sql
+    assert "RETURNING seats" in decrement_sql
+
+
+def test_book_unknown_service_class_returns_422() -> None:
+    response = client.post(
+        "/tickets/",
+        json={
+            "flight_instance_id": 1,
+            "passengers_number": 1,
+            "service_class": "VIP",
+        },
+    )
+    assert response.status_code == 422
+    assert "unknown service_class" in response.json()["detail"]
+
+
+def test_book_invalid_passengers_number_returns_422() -> None:
+    response = client.post(
+        "/tickets/",
+        json={
+            "flight_instance_id": 1,
+            "passengers_number": 0,
+            "service_class": "BUDGET",
+        },
     )
     assert response.status_code == 422
 
