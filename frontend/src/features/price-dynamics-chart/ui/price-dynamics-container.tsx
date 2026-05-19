@@ -16,7 +16,7 @@ interface Props {
 }
 
 const mapPriceDynamicsToChartItems = (
-  data: { departure_date: string; min_total_price: number | null }[],
+  data: { departure_date: string; min_total_price: number }[],
 ): PriceDynamicsChartItem[] => {
   return data.map(({ departure_date, min_total_price }) => ({
     date: departure_date,

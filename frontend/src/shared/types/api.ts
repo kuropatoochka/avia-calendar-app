@@ -40,8 +40,7 @@ export type PriceDynamicsRequest = {
 
 export type PriceDynamicsDto = {
   departure_date: string;
-  /** null when no flights are available for that date */
-  min_total_price: number | null;
+  min_total_price: number;
 };
 
 export type PriceDynamicsResponse = PriceDynamicsDto[];

@@ -1,4 +1,4 @@
-import { Collapse, Flex, Space, Typography } from 'antd';
+import { Collapse, Flex, Space, Spin, Typography } from 'antd';
 import { useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
@@ -167,7 +167,7 @@ const OfferPage = () => {
           </aside>
 
           {/* Flight results will be rendered here once FlightResultsBlock is built */}
-          {isFlightsLoading && <div>Загрузка рейсов…</div>}
+          {isFlightsLoading && <Spin />}
         </div>
       </Flex>
     </div>
