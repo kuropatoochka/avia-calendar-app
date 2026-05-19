@@ -1,7 +1,14 @@
 import type { SeatsLeft } from '../lib/types';
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import { CLASS_DELTAS } from '@/shared/consts';
-import type { FlightDto, ServiceClass } from '@/shared/types';
+import type React from 'react';
+import {
+  CheckOutlined,
+  CloseOutlined,
+  HeartOutlined,
+  SmileOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import type { FlightDto, Passengers, ServiceClass } from '@/shared/types';
+import { CLASS_DELTAS } from '../lib/consts';
 import styles from './styles.module.css';
 
 // ── Seat icon ────────────────────────────────────────────────────────────────
@@ -150,5 +157,88 @@ export const ClassDetail = ({
         </button>
       );
     })}
+  </div>
+);
+
+// ── Passenger breakdown popover ──────────────────────────────────────────────
+
+const PawIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <ellipse cx="6.5" cy="3.5" rx="1.8" ry="2.2" />
+    <ellipse cx="13.5" cy="3.5" rx="1.8" ry="2.2" />
+    <ellipse cx="3" cy="8.5" rx="1.5" ry="2" />
+    <ellipse cx="17" cy="8.5" rx="1.5" ry="2" />
+    <path d="M10 7.5c-3.8 0-6.2 2.8-5 6.2.6 1.8 2.2 2.8 3.8 2.8h2.4c1.6 0 3.2-1 3.8-2.8 1.2-3.4-1.2-6.2-5-6.2z" />
+  </svg>
+);
+
+type PassengerDetailProps = {
+  passengers: Passengers;
+  pricePerPassenger: number;
+  baggageAnimals: number;
+  baggageAnimalWeights: number[];
+};
+
+const HUMAN_ROWS: {
+  key: keyof Omit<Passengers, 'animals'>;
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { key: 'adults', label: 'Взрослый', Icon: UserOutlined },
+  { key: 'children', label: 'Ребёнок', Icon: SmileOutlined },
+  { key: 'toddler', label: 'Младенец', Icon: HeartOutlined },
+];
+
+// Flat fee for transporting an animal as checked baggage
+const ANIMAL_BAGGAGE_FEE = 2000;
+
+export const PassengerDetail = ({
+  passengers,
+  pricePerPassenger,
+  baggageAnimals,
+  baggageAnimalWeights,
+}: PassengerDetailProps) => (
+  <div className={styles.classDetail}>
+    <p className={styles.classDetailTitle}>Пассажиры</p>
+    {HUMAN_ROWS.filter(({ key }) => passengers[key] > 0).map(({ key, label, Icon }) => {
+      const count = passengers[key];
+      const total = pricePerPassenger * count;
+      return (
+        <div key={key} className={styles.classOption} style={{ cursor: 'default' }}>
+          <Icon className={styles.classOptionIcon} />
+          <span className={styles.classOptionLabel}>
+            {label}
+            {count > 1 ? ` × ${count}` : ''}
+          </span>
+          <span className={styles.classOptionPrice}>{total.toLocaleString('ru-RU')} ₽</span>
+        </div>
+      );
+    })}
+    {passengers.animals > 0 && (
+      <div className={styles.classOption} style={{ cursor: 'default' }}>
+        <PawIcon className={styles.classOptionIcon} />
+        <span className={styles.classOptionLabel}>
+          Животное в салоне{passengers.animals > 1 ? ` × ${passengers.animals}` : ''}
+        </span>
+        <span className={styles.classOptionPrice}>
+          {(pricePerPassenger * passengers.animals).toLocaleString('ru-RU')} ₽
+        </span>
+      </div>
+    )}
+    {baggageAnimals > 0 &&
+      baggageAnimalWeights.map((weight, i) => (
+        <div key={`bag-animal-${i}`} className={styles.classOption} style={{ cursor: 'default' }}>
+          <PawIcon className={styles.classOptionIcon} />
+          <span className={styles.classOptionLabel}>Животное как багаж · {weight} кг</span>
+          <span className={styles.classOptionPrice}>
+            {ANIMAL_BAGGAGE_FEE.toLocaleString('ru-RU')} ₽
+          </span>
+        </div>
+      ))}
   </div>
 );

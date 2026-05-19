@@ -2,15 +2,11 @@ import type { FlightSegment, LayoverNote } from './types';
 import type { DepartureTime, FlightFiltersState } from '@/features/flight-filters';
 import type { FlightDto, FlightStop } from '@/shared/types';
 
-// ── Time helpers ──────────────────────────────────────────────────────────────
-
 export const addMinutes = (time: string, minutes: number): string => {
   const [h, m] = time.split(':').map(Number);
   const total = h * 60 + m + minutes;
   return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 };
-
-// ── Route leg builder ─────────────────────────────────────────────────────────
 
 export const buildSegments = (flight: FlightDto): FlightSegment[] => {
   if (!flight.stops?.length) {
@@ -73,8 +69,6 @@ export const buildSegments = (flight: FlightDto): FlightSegment[] => {
   return segments;
 };
 
-// ── Layover notes ─────────────────────────────────────────────────────────────
-
 export const getLayoverNotes = (
   stop: FlightStop,
   arrivalTime: string,
@@ -104,8 +98,6 @@ export const getLayoverNotes = (
 
   return notes;
 };
-
-// ── Filter helpers ────────────────────────────────────────────────────────────
 
 export const hourToTimeOfDay = (hour: number): DepartureTime => {
   if (hour >= 6 && hour < 12) return 'morning';

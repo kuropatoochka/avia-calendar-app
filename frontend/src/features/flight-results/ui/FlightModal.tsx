@@ -6,8 +6,7 @@ import {
 } from '@ant-design/icons';
 import { Popover } from 'antd';
 import { useRef } from 'react';
-import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/consts';
-import type { FlightDto, ServiceClass } from '@/shared/types';
+import type { FlightDto, Passengers, ServiceClass } from '@/shared/types';
 import { AirlineCircle } from '@/shared/ui';
 import {
   formatDuration,
@@ -17,13 +16,17 @@ import {
   formatStopsFull,
   getAirlines,
 } from '@/shared/utils';
-import { BaggageDetail, ClassDetail } from './FlightFareDetail';
+import { CLASS_DELTAS, CLASS_NAMES } from '../lib/consts';
+import { BaggageDetail, ClassDetail, PassengerDetail } from './FlightFareDetail';
 import { FlightRouteDetail } from './FlightRouteDetail';
 import styles from './styles.module.css';
 
 type Props = {
   flight: FlightDto;
   passengersCount: number;
+  passengers: Passengers;
+  baggageAnimals: number;
+  baggageAnimalWeights: number[];
   bookedCount: number;
   fareOverride: boolean;
   serviceClass: ServiceClass;
@@ -45,6 +48,9 @@ const getFullRouteName = (flight: FlightDto) =>
 export const FlightModal = ({
   flight,
   passengersCount,
+  passengers,
+  baggageAnimals,
+  baggageAnimalWeights,
   bookedCount,
   fareOverride,
   serviceClass,
@@ -77,7 +83,7 @@ export const FlightModal = ({
   const altSeatsLeft = fareOverride ? flight.seatsLeft : flight.seatsLeftAlt;
   const noSeatsInCurrentClass = effectiveSeatsLeft[serviceClass] === 0;
 
-  const count = booked ? bookedCount : 1;
+  const count = booked ? bookedCount : passengersCount;
   const displayPrice = effectivePrice * count;
   const displayOriginalPrice = effectiveOriginalPrice * count;
 
@@ -155,7 +161,27 @@ export const FlightModal = ({
               </p>
             </div>
             <div>
-              <p className={styles.modalLabel}>Пассажиры</p>
+              <div className={styles.modalLabelRow}>
+                <p className={styles.modalLabel}>Пассажиры</p>
+                <Popover
+                  content={
+                    <PassengerDetail
+                      passengers={passengers}
+                      pricePerPassenger={effectivePrice}
+                      baggageAnimals={baggageAnimals}
+                      baggageAnimalWeights={baggageAnimalWeights}
+                    />
+                  }
+                  trigger="hover"
+                  placement="right"
+                  getPopupContainer={getContainer}
+                  overlayStyle={{ maxWidth: 260 }}
+                >
+                  <span className={styles.modalInfoIconWrap}>
+                    <InfoCircleOutlined className={styles.modalInfoIcon} />
+                  </span>
+                </Popover>
+              </div>
               <p className={styles.modalValue}>{formatPassengers(passengersCount)}</p>
             </div>
             <div>

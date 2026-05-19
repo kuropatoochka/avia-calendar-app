@@ -221,6 +221,8 @@ export const generateFlights = ({
       stops: stops.length > 0 ? stops : undefined,
       seatsLeft,
       seatsLeftAlt,
+      petsAllowed: false,
+      availableSeats: seatsLeft.economy + seatsLeft.comfort + seatsLeft.business + seatsLeft.first,
     });
   }
 

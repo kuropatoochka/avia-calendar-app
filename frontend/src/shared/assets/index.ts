@@ -1,14 +1,31 @@
-export { default as ArrowDown } from './ArrowDown.svg';
-export { default as ArrowRotateLeft } from './ArrowRotateLeft.svg';
-export { default as ArrowUp } from './ArrowUp.svg';
-export { default as Cross } from './Cross.svg';
-export { default as Down } from './Down.svg';
-export { default as ExclamationMark } from './ExclamationMark.svg';
-export { default as Fire } from './Fire.svg';
-export { default as Logo } from './Logo.svg';
-export { default as Person } from './Person.svg';
-export { default as Plane } from './Plane.svg';
-export { default as Search } from './Search.svg';
-export { default as Star } from './Star.svg';
-export { default as Swap } from './Swap.svg';
-export { default as Up } from './Up.svg';
+import ArrowDown from './ArrowDown.svg';
+import ArrowRotateLeft from './ArrowRotateLeft.svg';
+import ArrowUp from './ArrowUp.svg';
+import Cross from './Cross.svg';
+import Down from './Down.svg';
+import ExclamationMark from './ExclamationMark.svg';
+import Fire from './Fire.svg';
+import Logo from './Logo.svg';
+import Person from './Person.svg';
+import Plane from './Plane.svg';
+import Search from './Search.svg';
+import Star from './Star.svg';
+import Swap from './Swap.svg';
+import Up from './Up.svg';
+
+export {
+  Logo,
+  Up,
+  Star,
+  Down,
+  Person,
+  Search,
+  ArrowUp,
+  ArrowDown,
+  ExclamationMark,
+  Cross,
+  Swap,
+  Fire,
+  ArrowRotateLeft,
+  Plane,
+};

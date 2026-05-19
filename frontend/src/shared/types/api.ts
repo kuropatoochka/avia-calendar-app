@@ -11,10 +11,6 @@ export type Passengers = {
   animals: number;
 };
 
-/**
- * UI-level service class used throughout the FE-9 flight list.
- * Maps to the backend enum via CLASS_DELTAS / CLASS_NAMES in shared/consts.
- */
 export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
 
 export type PriceDynamicsRequest = {
@@ -87,4 +83,6 @@ export type FlightDto = {
   stops?: FlightStop[];
   seatsLeft: { economy: number; comfort: number; business: number; first: number };
   seatsLeftAlt: { economy: number; comfort: number; business: number; first: number };
+  petsAllowed: boolean;
+  availableSeats: number;
 };

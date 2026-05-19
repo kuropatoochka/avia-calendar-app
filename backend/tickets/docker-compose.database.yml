@@ -1,5 +1,5 @@
 services:
-  db:
+  tickets_db:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER}

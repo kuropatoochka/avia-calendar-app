@@ -1,8 +1,8 @@
 import { Skeleton, Typography } from 'antd';
 import { useState } from 'react';
 import { useFlightFiltersContext } from '@/features/flight-filters';
-import { CLASS_DELTAS } from '@/shared/consts';
 import type { FlightDto, FlightsRequest, ServiceClass } from '@/shared/types';
+import { CLASS_DELTAS } from '../lib/consts';
 import { applyFilters } from '../lib/flightUtils';
 import { useFlightResults } from '../lib/useFlightResults';
 import { FlightCard } from './FlightCard';
@@ -81,6 +81,10 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
     return baseFare + CLASS_DELTAS[cls];
   };
 
+  const { passengers } = searchParams;
+  const totalPassengers =
+    passengers.adults + passengers.children + passengers.toddler + passengers.animals;
+
   const PREVIEW_COUNT = 3;
 
   const filteredFlights = applyFilters(flights, filters);
@@ -125,7 +129,7 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
                   <FlightCard
                     key={flight.id}
                     flight={flight}
-                    passengersCount={1}
+                    passengersCount={totalPassengers}
                     bookedCount={getBookedCount(flight.id)}
                     fareOverride={fareOverrides.get(flight.id) ?? false}
                     serviceClass={getClass(flight.id)}
@@ -141,7 +145,10 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
       {selectedFlight && (
         <FlightModal
           flight={selectedFlight}
-          passengersCount={1}
+          passengersCount={totalPassengers}
+          passengers={passengers}
+          baggageAnimals={filters.petsEnabled ? filters.animalCount : 0}
+          baggageAnimalWeights={filters.animalWeights}
           bookedCount={getBookedCount(selectedFlight.id)}
           fareOverride={fareOverrides.get(selectedFlight.id) ?? false}
           serviceClass={getClass(selectedFlight.id)}
