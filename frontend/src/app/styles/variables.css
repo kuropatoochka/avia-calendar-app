@@ -13,10 +13,8 @@
   --color-primary-light: #EEF5FF;
   --color-error: #FF4D4F;
 
-  --chart-soft: #F0CDAA; 
-  --chart-accent-soft: #C89669;
-  --chart-strong: #D2873C; 
-  --chart-accent-strong: #D2733C; 
+  --chart-soft: #FFB199; 
+  --chart-strong: #FF6B4A; 
 
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);
