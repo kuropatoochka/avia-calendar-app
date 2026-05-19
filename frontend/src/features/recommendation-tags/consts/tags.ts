@@ -15,7 +15,7 @@ export type TagId = 'baggage' | 'nonstop' | 'pets' | 'fast' | 'morning' | 'late'
 export type RecommendationTag = {
   id: TagId;
   label: string;
-  icon: React.ComponentType<{ className?: string; 'aria-hidden'?: string }>;
+  icon: React.ComponentType<{ className?: string }>;
   filter: (flight: FlightDto) => boolean;
 };
 

@@ -20,7 +20,7 @@ export const RecommendationTags = () => {
             className={cn(styles.tag, selected && styles.tagSelected)}
             aria-pressed={selected}
           >
-            <Icon className={styles.icon} aria-hidden="true" />
+            <Icon className={styles.icon} />
             {tag.label}
           </button>
         );
