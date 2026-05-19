@@ -3,9 +3,11 @@ import type {
   PriceDynamicsSearchParams,
   PriceDynamicsSelection,
 } from '../model/types';
-import { Alert, Divider, Flex, Spin, Typography } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import { Alert, Divider, Flex, Spin, Tooltip, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { useLaunchExperiment } from '@/features/launch-experiment';
+import { useAirportsQuery } from '@/features/search-form';
 import { usePriceDynamicsQuery } from '../model/use-price-dynamics-query';
 import { PriceDynamicsChart } from './price-dynamics-chart';
 import { PriceDynamicsPlaceholder } from './price-dynamics-placeholder';
@@ -29,6 +31,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
   const [outboundItems, setOutboundItems] = useState<PriceDynamicsChartItem[]>([]);
   const [inboundItems, setInboundItems] = useState<PriceDynamicsChartItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<PriceDynamicsSelection | null>(null);
+  const [airportNames, setAirportNames] = useState<Record<number, string>>({});
 
   const {
     fetchPriceDynamics: fetchOutboundPriceDynamics,
@@ -41,6 +44,8 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
     isPriceDynamicsLoading: isInboundLoading,
     priceDynamicsError: inboundError,
   } = usePriceDynamicsQuery();
+
+  const { fetchAirports: fetchAirportsByIds } = useAirportsQuery();
 
   const variant = useLaunchExperiment();
   const highlightBestPrices = variant === 'B';
@@ -85,6 +90,39 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
     };
   }, [params, fetchOutboundPriceDynamics, fetchInboundPriceDynamics]);
 
+  useEffect(() => {
+    if (!params) {
+      return;
+    }
+
+    let isActual = true;
+
+    const loadAirports = async () => {
+      setAirportNames({});
+      const airports = await fetchAirportsByIds(undefined, [
+        params.airportFromId,
+        params.airportToId,
+      ]);
+
+      if (!isActual || !airports) {
+        return;
+      }
+
+      const nextNames = airports.reduce<Record<number, string>>((acc, airport) => {
+        acc[airport.id] = airport.name;
+        return acc;
+      }, {});
+
+      setAirportNames(nextNames);
+    };
+
+    void loadAirports();
+
+    return () => {
+      isActual = false;
+    };
+  }, [params, fetchAirportsByIds]);
+
   const handleChartItemSelect = (
     item: PriceDynamicsChartItem,
     selectionParams: Omit<PriceDynamicsSelection, 'date'>,
@@ -112,6 +150,13 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
       ? (inboundItems.find((item) => item.date === selectedItem.date) ?? null)
       : null;
 
+  const outboundTitleFrom = params
+    ? (airportNames[params.airportFromId] ?? String(params.airportFromId))
+    : '';
+  const outboundTitleTo = params
+    ? (airportNames[params.airportToId] ?? String(params.airportToId))
+    : '';
+
   if (!params) {
     return <PriceDynamicsPlaceholder />;
   }
@@ -125,9 +170,14 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
           {!priceDynamicsError && (
             <>
               <Flex gap={16} vertical>
-                <Typography.Title type="secondary" level={3}>
-                  {params.airportFromId} — {params.airportToId}
-                </Typography.Title>
+                <Flex justify="space-between">
+                  <Typography.Title type="secondary" level={3}>
+                    {outboundTitleFrom} — {outboundTitleTo}
+                  </Typography.Title>
+                  <Tooltip title="Цена указана без учета дополнительных фильтров" placement="left">
+                    <QuestionCircleOutlined style={{ color: 'var(--color-text-secondary)' }} />
+                  </Tooltip>
+                </Flex>
 
                 <PriceDynamicsChart
                   items={outboundItems}
@@ -149,7 +199,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
 
                   <Flex gap={16} vertical>
                     <Typography.Title type="secondary" level={3}>
-                      {params.airportToId} — {params.airportFromId}
+                      {outboundTitleTo} — {outboundTitleFrom}
                     </Typography.Title>
 
                     <PriceDynamicsChart
