@@ -23,6 +23,8 @@ export type MockFlight = {
   arrivalTime: string;
   baggageIncluded: boolean;
   stopsCount: number;
+  petsAllowed: boolean;
+  availableSeats: number;
   serviceClass: ServiceClass;
 };
 
@@ -160,6 +162,8 @@ export const generateFlights = ({
       arrivalTime: formatTime(arrivalMinutes),
       baggageIncluded: serviceClass !== 'BUDGET' || seed % 2 === 0,
       stopsCount,
+      petsAllowed: seed % 3 !== 0,
+      availableSeats: 2 + (seed % 9),
       serviceClass,
     });
   }

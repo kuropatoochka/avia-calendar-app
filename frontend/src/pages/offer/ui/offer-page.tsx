@@ -1,57 +1,93 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import { FlightFilters as FlightFiltersSection } from '@/features/flight-filters';
+import { FlightList, useFlightsQuery } from '@/features/flight-list';
 import type {
   PriceDynamicsSearchParams,
   PriceDynamicsSelection,
 } from '@/features/price-dynamics-chart';
 import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
+import {
+  RecommendationTags,
+  RecommendationTagsProvider,
+  useTagFilter,
+} from '@/features/recommendation-tags';
 import type { SearchFormValues } from '@/features/search-form';
 import { SearchForm } from '@/features/search-form';
 import { ArrowDown } from '@/shared/assets';
-import type { FlightFilters as FlightFiltersRequest } from '@/shared/types';
+import type {
+  FlightDto,
+  FlightFilters as FlightFiltersRequest,
+  FlightsRequest,
+} from '@/shared/types';
 import { cn } from '@/shared/utils';
 import styles from './offer-page.module.css';
 
-const OfferPage = () => {
+const OfferPageContent = () => {
   const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(null);
   const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
-
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
+  const [rawFlights, setRawFlights] = useState<FlightDto[]>([]);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
-  const mapFiltersToRequest = (filters: FlightFiltersState): FlightFiltersRequest => ({
-    maxStops: filters.maxStops,
-    stopDurationRange: filters.maxStops > 0 ? filters.stopDurationRange : undefined,
-    maxFlightDuration: filters.maxFlightDuration,
-    departureTimes: filters.departureTimes,
-    arrivalTimes: filters.arrivalTimes,
-    maxPrice: filters.maxPrice < 200_000 ? filters.maxPrice : undefined,
-    baggageEnabled: filters.baggageEnabled,
-    baggageWeights: filters.baggageEnabled ? filters.baggageWeights : undefined,
-    extraBaggageEntries:
-      filters.baggageEnabled && filters.extraBaggageEntries.length > 0
-        ? filters.extraBaggageEntries
-        : undefined,
-    airlines: filters.airlines.length > 0 ? filters.airlines : undefined,
-    petsEnabled: filters.petsEnabled,
-    animalCount: filters.petsEnabled ? filters.animalCount : undefined,
-    animalWeights: filters.petsEnabled ? filters.animalWeights : undefined,
-  });
+  const { fetchFlights, isFlightsLoading, flightsError } = useFlightsQuery();
+  const { filterFlights } = useTagFilter();
+
+  const mapFiltersToRequest = useCallback(
+    (filters: FlightFiltersState): FlightFiltersRequest => ({
+      maxStops: filters.maxStops,
+      stopDurationRange: filters.maxStops > 0 ? filters.stopDurationRange : undefined,
+      maxFlightDuration: filters.maxFlightDuration,
+      departureTimes: filters.departureTimes,
+      arrivalTimes: filters.arrivalTimes,
+      maxPrice: filters.maxPrice < 200_000 ? filters.maxPrice : undefined,
+      baggageEnabled: filters.baggageEnabled,
+      baggageWeights: filters.baggageEnabled ? filters.baggageWeights : undefined,
+      extraBaggageEntries:
+        filters.baggageEnabled && filters.extraBaggageEntries.length > 0
+          ? filters.extraBaggageEntries
+          : undefined,
+      airlines: filters.airlines.length > 0 ? filters.airlines : undefined,
+      petsEnabled: filters.petsEnabled,
+      animalCount: filters.petsEnabled ? filters.animalCount : undefined,
+      animalWeights: filters.petsEnabled ? filters.animalWeights : undefined,
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    if (!selectedPriceDate || !searchParams) {
+      return;
+    }
+
+    const request: FlightsRequest = {
+      originAirportId: selectedPriceDate.airportFromId,
+      destinationAirportId: selectedPriceDate.airportToId,
+      date: selectedPriceDate.date,
+      serviceClass: searchParams.serviceClass,
+      passengers: {
+        adults: searchParams.passengersNumber,
+        children: searchParams.childrenNumber ?? 0,
+        toddler: searchParams.toddlersNumber ?? 0,
+        animals: 0,
+      },
+      filters: activeFilters ? mapFiltersToRequest(activeFilters) : undefined,
+    };
+
+    fetchFlights(request).then((data) => {
+      if (data) {
+        setRawFlights(data);
+      }
+    });
+  }, [selectedPriceDate, activeFilters, searchParams, fetchFlights, mapFiltersToRequest]);
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
-
-    const requestFilters = mapFiltersToRequest(filters);
-
-    console.log('Apply filters request params', requestFilters);
   };
 
   const handleShowFlights = (selection: PriceDynamicsSelection) => {
     setSelectedPriceDate(selection);
-
-    console.log('Show flights for selected date');
   };
 
   const handleSearch = (values: SearchFormValues) => {
@@ -77,15 +113,11 @@ const OfferPage = () => {
     };
 
     setSelectedPriceDate(null);
+    setRawFlights([]);
     setSearchParams(params);
   };
 
-  useEffect(() => {
-    console.log('Offer page search state', {
-      selectedPriceDate,
-      activeFilters,
-    });
-  }, [selectedPriceDate, activeFilters]);
+  const filteredFlights = filterFlights(rawFlights);
 
   return (
     <div className={styles.page}>
@@ -123,7 +155,16 @@ const OfferPage = () => {
           ]}
         />
 
+        <RecommendationTags />
+
         <div className={styles.columns}>
+          <FlightList
+            flights={filteredFlights}
+            isLoading={isFlightsLoading}
+            error={flightsError}
+            isIdle={selectedPriceDate === null}
+          />
+
           <aside className={styles.filterWrapper}>
             <FlightFiltersSection
               onApply={handleApplyFilters}
@@ -143,5 +184,11 @@ const OfferPage = () => {
     </div>
   );
 };
+
+const OfferPage = () => (
+  <RecommendationTagsProvider>
+    <OfferPageContent />
+  </RecommendationTagsProvider>
+);
 
 export default OfferPage;

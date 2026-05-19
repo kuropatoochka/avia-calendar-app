@@ -1,0 +1,64 @@
+.tags {
+  max-width: 800px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background-color: var(--color-background-primary);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-sm);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.1s;
+  white-space: nowrap;
+  user-select: none;
+  font-family: var(--font-family);
+}
+
+.tag:hover {
+  border-color: var(--border-primary);
+  color: var(--color-primary);
+}
+
+.tag:active {
+  transform: scale(0.94);
+  box-shadow: none;
+}
+
+.tag:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.tagSelected {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.tagSelected:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.tagSelected:active {
+  transform: scale(0.94);
+  box-shadow: none;
+}
+
+.icon {
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}

@@ -1,10 +1,15 @@
-import type { FlightsRequest, PriceDynamicsRequest, PriceDynamicsResponse } from '../../types/api';
+import type {
+  FlightsDto,
+  FlightsRequest,
+  PriceDynamicsRequest,
+  PriceDynamicsResponse,
+} from '../../types/api';
 import { API_URL } from '../../consts/api';
 import { getFlightSearchParams } from '../../utils/getFlightSearchParams';
 import { getSearchParams } from '../../utils/getSearchParams';
 
 export default class FlightService {
-  static async getFlights(params: FlightsRequest) {
+  static async getFlights(params: FlightsRequest): Promise<FlightsDto> {
     const url = new URL(`${API_URL}/flights`, window.location.origin);
     url.search = getFlightSearchParams(params);
 
@@ -12,7 +17,11 @@ export default class FlightService {
       method: 'GET',
     });
 
-    return response;
+    if (!response.ok) {
+      throw new Error(`Не удалось получить список рейсов. Код ошибки: ${response.status}`);
+    }
+
+    return response.json() as Promise<FlightsDto>;
   }
 
   static async getPriceDynamics(params: PriceDynamicsRequest): Promise<PriceDynamicsResponse> {
