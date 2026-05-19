@@ -60,7 +60,7 @@ export type FlightFilters = {
   baggageEnabled?: boolean;
   baggageWeights?: number[];
   extraBaggageEntries?: ExtraBaggageEntry[];
-  airlines?: string[];
+  airlines?: number[];
   petsEnabled?: boolean;
   animalCount?: number;
   animalWeights?: number[];
