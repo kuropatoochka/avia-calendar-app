@@ -1,6 +1,6 @@
 import type { FlightDto } from '@/shared/types';
 
-export type Leg = {
+export type FlightSegment = {
   from: string;
   fromAirport: string;
   fromCode: string;

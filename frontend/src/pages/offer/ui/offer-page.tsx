@@ -190,11 +190,14 @@ const OfferPage = () => {
             {flightSearchParams && <FlightResultsBlock searchParams={flightSearchParams} />}
             <aside className={styles.filterWrapper}>
               <FlightFiltersSection
-                passengerCount={
+                passengers={
                   activeSearch
-                    ? activeSearch.baseParams.passengers.adults +
-                      activeSearch.baseParams.passengers.children
-                    : 1
+                    ? {
+                        adults: activeSearch.baseParams.passengers.adults,
+                        children: activeSearch.baseParams.passengers.children,
+                        toddler: activeSearch.baseParams.passengers.toddler,
+                      }
+                    : undefined
                 }
               />
             </aside>

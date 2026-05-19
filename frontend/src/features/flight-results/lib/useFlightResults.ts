@@ -1,16 +1,9 @@
 import { useEffect, useState } from 'react';
 import { FlightService } from '@/shared/api';
-import type { FlightDto, FlightsRequest, PriceDynamicsDto } from '@/shared/types';
-
-const addDays = (dateStr: string, days: number) => {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-};
+import type { FlightDto, FlightsRequest } from '@/shared/types';
 
 export const useFlightResults = (params: FlightsRequest | null) => {
   const [flights, setFlights] = useState<FlightDto[]>([]);
-  const [priceDynamics, setPriceDynamics] = useState<PriceDynamicsDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,30 +15,15 @@ export const useFlightResults = (params: FlightsRequest | null) => {
       setError(null);
 
       try {
-        const [flightsRes, priceDynamicsRes] = await Promise.all([
-          FlightService.getFlights(params),
-          FlightService.getPriceDynamics({
-            originAirportId: params.originAirportId,
-            destinationAirportId: params.destinationAirportId,
-            dateFrom: addDays(params.date, -3),
-            dateTo: addDays(params.date, 3),
-            passengers: params.passengers,
-            serviceClass: params.serviceClass,
-          }),
-        ]);
+        const response = await FlightService.getFlights(params);
 
-        if (!flightsRes.ok || !priceDynamicsRes.ok) {
+        if (!response.ok) {
           setError('Ошибка загрузки данных');
           return;
         }
 
-        const [flightsData, priceDynamicsData] = await Promise.all([
-          flightsRes.json() as Promise<FlightDto[]>,
-          priceDynamicsRes.json() as Promise<PriceDynamicsDto[]>,
-        ]);
-
-        setFlights(flightsData);
-        setPriceDynamics(priceDynamicsData);
+        const data = (await response.json()) as FlightDto[];
+        setFlights(data);
       } catch {
         setError('Ошибка загрузки данных');
       } finally {
@@ -59,5 +37,5 @@ export const useFlightResults = (params: FlightsRequest | null) => {
 
   const sortedFlights = [...flights].sort((a, b) => a.price - b.price);
 
-  return { flights: sortedFlights, priceDynamics, loading, error };
+  return { flights: sortedFlights, loading, error };
 };

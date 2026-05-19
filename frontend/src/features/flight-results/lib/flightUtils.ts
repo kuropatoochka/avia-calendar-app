@@ -1,4 +1,4 @@
-import type { Leg, LayoverNote } from './types';
+import type { FlightSegment, LayoverNote } from './types';
 import type { DepartureTime, FlightFiltersState } from '@/features/flight-filters';
 import type { FlightDto, FlightStop } from '@/shared/types';
 
@@ -12,7 +12,7 @@ export const addMinutes = (time: string, minutes: number): string => {
 
 // ── Route leg builder ─────────────────────────────────────────────────────────
 
-export const buildLegs = (flight: FlightDto): Leg[] => {
+export const buildSegments = (flight: FlightDto): FlightSegment[] => {
   if (!flight.stops?.length) {
     return [
       {
@@ -30,7 +30,7 @@ export const buildLegs = (flight: FlightDto): Leg[] => {
     ];
   }
 
-  const legs: Leg[] = [];
+  const segments: FlightSegment[] = [];
   let depTime = flight.departureTime;
 
   flight.stops.forEach((stop, i) => {
@@ -39,7 +39,7 @@ export const buildLegs = (flight: FlightDto): Leg[] => {
     const fromAirport = i === 0 ? flight.originAirport : flight.stops![i - 1].airport;
     const fromCode = i === 0 ? flight.origin.toUpperCase() : flight.stops![i - 1].code;
     const airline = i === 0 ? flight.airline : (flight.stops![i - 1].legAirline ?? flight.airline);
-    legs.push({
+    segments.push({
       from: fromCity,
       fromAirport,
       fromCode,
@@ -57,7 +57,7 @@ export const buildLegs = (flight: FlightDto): Leg[] => {
   const lastStop = flight.stops[flight.stops.length - 1];
   const totalLayovers = flight.stops.reduce((acc, stop) => acc + stop.durationMinutes, 0);
   const totalLegFlying = flight.stops.reduce((acc, stop) => acc + stop.legDurationMinutes, 0);
-  legs.push({
+  segments.push({
     from: lastStop.city,
     fromAirport: lastStop.airport,
     fromCode: lastStop.code,
@@ -70,7 +70,7 @@ export const buildLegs = (flight: FlightDto): Leg[] => {
     airline: lastStop.legAirline ?? flight.airline,
   });
 
-  return legs;
+  return segments;
 };
 
 // ── Layover notes ─────────────────────────────────────────────────────────────
@@ -117,12 +117,13 @@ export const hourToTimeOfDay = (hour: number): DepartureTime => {
 export const applyFilters = (flights: FlightDto[], filters: FlightFiltersState): FlightDto[] =>
   flights.filter((flight) => {
     if (flight.stopsCount > filters.maxStops) return false;
-    if (filters.maxFlightDuration > 0 && flight.duration > filters.maxFlightDuration * 60) return false;
+    if (filters.maxFlightDuration > 0 && flight.duration > filters.maxFlightDuration * 60)
+      return false;
 
     const hour = parseInt(flight.departureTime.split(':')[0], 10);
     if (!filters.departureTimes.includes(hourToTimeOfDay(hour))) return false;
 
-    if (flight.price < filters.priceRange[0] || flight.price > filters.priceRange[1]) return false;
+    if (filters.maxPrice < 200_000 && flight.price > filters.maxPrice) return false;
 
     if (filters.baggageEnabled && !flight.baggageIncluded) return false;
 

@@ -2,15 +2,14 @@ import type { FlightFiltersState } from './types';
 
 export const DEFAULT_FLIGHT_FILTERS: FlightFiltersState = {
   maxStops: 0,
-  stopDurationRange: [1, 72],
+  stopDurationRange: [0, 72] as [number, number],
   maxFlightDuration: 0,
   departureTimes: ['morning', 'afternoon', 'evening', 'night'],
   arrivalTimes: ['morning', 'afternoon', 'evening', 'night'],
-  pricePerPassenger: false,
-  priceRange: [1_000, 200_000],
+  maxPrice: 200_000,
   baggageEnabled: false,
-  baggageForAll: true,
   baggageWeights: [20],
+  extraBaggageEntries: [],
   airlines: [],
   petsEnabled: false,
   animalCount: 1,

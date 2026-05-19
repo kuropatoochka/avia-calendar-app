@@ -169,3 +169,33 @@
 .actionButton:hover {
   color: var(--color-primary) !important;
 }
+
+.removeButton {
+  padding: 0 !important;
+  min-width: unset !important;
+  height: auto !important;
+  color: var(--text-muted) !important;
+  flex-shrink: 0;
+}
+
+.removeButton:hover {
+  color: var(--color-primary) !important;
+}
+
+.removeIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.passengerSelect {
+  width: 100%;
+}
+
+.passengerSelectArrow {
+  transition: transform 0.2s ease;
+}
+
+.passengerSelectArrowOpen {
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}

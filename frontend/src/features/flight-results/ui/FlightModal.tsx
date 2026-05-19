@@ -1,11 +1,8 @@
-import type { LayoverNote, SeatsLeft } from '../lib/types';
 import {
   CheckCircleFilled,
   InfoCircleOutlined,
-  CloseOutlined,
-  CheckOutlined,
-  PlusOutlined,
   MinusOutlined,
+  PlusOutlined,
 } from '@ant-design/icons';
 import { Popover } from 'antd';
 import { useRef } from 'react';
@@ -13,14 +10,15 @@ import { CLASS_DELTAS, CLASS_NAMES } from '@/shared/consts';
 import type { FlightDto, ServiceClass } from '@/shared/types';
 import { AirlineCircle } from '@/shared/ui';
 import {
+  formatDuration,
   formatFlightDate,
   formatPassengers,
-  formatDuration,
-  formatStopsFull,
   formatSeats,
+  formatStopsFull,
   getAirlines,
 } from '@/shared/utils';
-import { buildLegs, getLayoverNotes } from '../lib/flightUtils';
+import { BaggageDetail, ClassDetail } from './FlightFareDetail';
+import { FlightRouteDetail } from './FlightRouteDetail';
 import styles from './styles.module.css';
 
 type Props = {
@@ -37,240 +35,12 @@ type Props = {
   onClose: () => void;
 };
 
-const CLASS_OPTIONS: { key: ServiceClass; label: string }[] = [
-  { key: 'economy', label: 'Эконом' },
-  { key: 'comfort', label: 'Комфорт' },
-  { key: 'business', label: 'Бизнес' },
-  { key: 'first', label: 'Первый класс' },
-];
-
 const getFullRouteName = (flight: FlightDto) =>
   [
     flight.originAirport,
     ...(flight.stops?.map((s) => s.airport) ?? []),
     flight.destinationAirport,
   ].join(' → ');
-
-/* ── Seat icon SVG ── */
-const SeatIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 20 22"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <rect x="5" y="1" width="10" height="11" rx="2" />
-    <rect x="3" y="13" width="14" height="4" rx="2" />
-    <rect x="3" y="18" width="3" height="3" rx="1" />
-    <rect x="14" y="18" width="3" height="3" rx="1" />
-  </svg>
-);
-
-const NOTE_PREFIXES: Record<LayoverNote['kind'], string> = {
-  danger: '⚠',
-  warning: '·',
-  info: '·',
-};
-
-/* ── Route detail popover ── */
-const RouteDetail = ({ flight }: { flight: FlightDto }) => {
-  const legs = buildLegs(flight);
-  const hasStops = (flight.stops?.length ?? 0) > 0;
-  return (
-    <div className={styles.routeDetail}>
-      <p className={styles.routeDetailTitle}>
-        {flight.originCity} — {flight.destinationCity}
-      </p>
-      <p className={styles.routeDetailSub}>{formatDuration(flight.duration)} в пути</p>
-      {legs.map((leg, i) => (
-        <div key={i}>
-          <div className={styles.routeDetailLeg}>
-            <div className={styles.routeDetailLegInfo}>
-              <AirlineCircle airline={leg.airline} size={34} />
-              <div>
-                <p className={styles.routeDetailAirlineName}>{leg.airline}</p>
-                <p className={styles.routeDetailLegTime}>{formatDuration(leg.duration)} в полёте</p>
-              </div>
-            </div>
-            <div className={styles.routeDetailPoints}>
-              <div className={styles.routeDetailPoint}>
-                <div className={styles.routeDetailDotCol}>
-                  <div className={styles.routeDetailDot} />
-                  <div className={styles.routeDetailLine} />
-                </div>
-                <span className={styles.routeDetailTime}>{leg.dep}</span>
-                <div>
-                  <p className={styles.routeDetailCity}>{leg.from}</p>
-                  <p className={styles.routeDetailAirport}>
-                    {leg.fromAirport}, {leg.fromCode}
-                  </p>
-                </div>
-              </div>
-              <div className={styles.routeDetailPoint}>
-                <div className={styles.routeDetailDotCol}>
-                  <div className={styles.routeDetailDot} />
-                </div>
-                <span className={styles.routeDetailTime}>{leg.arr}</span>
-                <div>
-                  <p className={styles.routeDetailCity}>{leg.to}</p>
-                  <p className={styles.routeDetailAirport}>
-                    {leg.toAirport}, {leg.toCode}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          {hasStops &&
-            i < legs.length - 1 &&
-            (() => {
-              const stop = flight.stops![i];
-              const notes = getLayoverNotes(stop, leg.arr, leg.airline);
-              return (
-                <div className={styles.routeDetailTransfer}>
-                  <span className={styles.routeDetailTransferBadge}>
-                    Пересадка в {stop.city} · {formatDuration(stop.durationMinutes)}
-                  </span>
-                  {notes.map((note, ni) => (
-                    <span
-                      key={ni}
-                      className={`${styles.routeDetailNote} ${styles[`routeDetailNote_${note.kind}`]}`}
-                    >
-                      {NOTE_PREFIXES[note.kind]} {note.text}
-                    </span>
-                  ))}
-                </div>
-              );
-            })()}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-/* ── Baggage detail popover ── */
-
-type BaggageDetailProps = {
-  flight: FlightDto;
-  altSeatsLeft: SeatsLeft;
-  fareOverride: boolean;
-  serviceClass: ServiceClass;
-  onFareChange: () => void;
-};
-
-const BaggageDetail = ({
-  flight,
-  altSeatsLeft,
-  fareOverride,
-  serviceClass,
-  onFareChange,
-}: BaggageDetailProps) => {
-  const effectiveBaggage = fareOverride ? !flight.baggageIncluded : flight.baggageIncluded;
-  const noSeats = (altSeatsLeft[serviceClass] ?? 0) === 0;
-  const altBaseFare = fareOverride
-    ? flight.price
-    : flight.baggageIncluded
-      ? flight.price - 2500
-      : flight.price + 2500;
-  const switchPrice = (altBaseFare + CLASS_DELTAS[serviceClass]).toLocaleString('ru-RU');
-  const switchLabel = effectiveBaggage ? 'Поменять на ручную кладь?' : 'Поменять на багаж?';
-
-  return (
-    <div className={styles.baggageDetail}>
-      <p className={styles.baggageDetailTitle}>Условия тарифа</p>
-
-      <div className={styles.baggageDetailRow}>
-        <CheckOutlined className={styles.baggageDetailIconOk} />
-        <div className={styles.baggageDetailText}>
-          <span>Ручная кладь — 1 шт</span>
-          <span className={styles.baggageDetailHint}>до 10 кг · 55 × 40 × 20 см</span>
-        </div>
-      </div>
-
-      <div className={styles.baggageDetailRow}>
-        {effectiveBaggage ? (
-          <>
-            <CheckOutlined className={styles.baggageDetailIconOk} />
-            <div className={styles.baggageDetailText}>
-              <span>Багаж включён</span>
-              <span className={styles.baggageDetailHint}>
-                до {flight.baggageWeight} кг · 158 лин. см
-              </span>
-            </div>
-          </>
-        ) : (
-          <>
-            <CloseOutlined className={styles.baggageDetailIconNo} />
-            <span>Без багажа</span>
-          </>
-        )}
-      </div>
-
-      <div className={styles.baggageDetailRow}>
-        <CloseOutlined className={styles.baggageDetailIconNo} />
-        <span>Без возврата</span>
-      </div>
-
-      <div className={styles.baggageDetailRow}>
-        <CheckOutlined className={styles.baggageDetailIconOk} />
-        <span>Обмен платный</span>
-      </div>
-
-      <p className={styles.baggageDetailFooter}>
-        Общее количество чемоданов и сумок на всех пассажиров
-      </p>
-
-      <p className={styles.changeFareLabel}>{switchLabel}</p>
-      <button
-        className={styles.changeFareBtn}
-        onClick={onFareChange}
-        disabled={noSeats}
-        style={noSeats ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
-      >
-        <span>Изменить тариф</span>
-        <span className={styles.changeFarePrice}>{switchPrice} ₽</span>
-      </button>
-    </div>
-  );
-};
-
-/* ── Class selector popover ── */
-type ClassDetailProps = {
-  seatsLeft: SeatsLeft;
-  baseFarePrice: number;
-  serviceClass: ServiceClass;
-  onClassChange: (cls: ServiceClass) => void;
-};
-
-const ClassDetail = ({
-  seatsLeft,
-  baseFarePrice,
-  serviceClass,
-  onClassChange,
-}: ClassDetailProps) => (
-  <div className={styles.classDetail}>
-    <p className={styles.classDetailTitle}>Класс обслуживания</p>
-    {CLASS_OPTIONS.map(({ key, label }) => {
-      const price = baseFarePrice + CLASS_DELTAS[key];
-      const selected = serviceClass === key;
-      const noSeats = (seatsLeft[key] ?? 0) === 0;
-      return (
-        <button
-          key={key}
-          className={`${styles.classOption} ${selected ? styles.classOptionSelected : ''}`}
-          onClick={() => !noSeats && onClassChange(key)}
-          disabled={noSeats}
-          style={noSeats ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
-        >
-          <SeatIcon className={styles.classOptionIcon} />
-          <span className={styles.classOptionLabel}>{label}</span>
-          <span className={styles.classOptionPrice}>
-            {noSeats ? 'Нет мест' : `${price.toLocaleString('ru-RU')} ₽`}
-          </span>
-        </button>
-      );
-    })}
-  </div>
-);
 
 export const FlightModal = ({
   flight,
@@ -369,7 +139,7 @@ export const FlightModal = ({
               <div className={styles.modalLabelRow}>
                 <p className={styles.modalLabel}>Маршрут</p>
                 <Popover
-                  content={<RouteDetail flight={flight} />}
+                  content={<FlightRouteDetail flight={flight} />}
                   trigger="hover"
                   placement="right"
                   getPopupContainer={getContainer}
