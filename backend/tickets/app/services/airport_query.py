@@ -21,6 +21,10 @@ WHERE (
   OR a.name ILIKE '%' || :search || '%'
   OR c.name ILIKE '%' || :search || '%'
 )
+AND (
+  CAST(:airport_ids AS int[]) IS NULL
+  OR a.id = ANY(CAST(:airport_ids AS int[]))
+)
 ORDER BY a.id
 LIMIT CAST(:limit AS integer) OFFSET CAST(:offset AS integer)
 """
@@ -34,7 +38,37 @@ WHERE (
   OR a.name ILIKE '%' || :search || '%'
   OR c.name ILIKE '%' || :search || '%'
 )
+AND (
+  CAST(:airport_ids AS int[]) IS NULL
+  OR a.id = ANY(CAST(:airport_ids AS int[]))
+)
 """)
+
+
+def parse_ids_csv(raw: str) -> tuple[int, ...]:
+    """
+    Разбор CSV id аэропортов.
+
+    Возбуждает ValueError при пустом результате, нецелых значениях или id < 1.
+    """
+    tokens = [part.strip() for part in raw.split(",") if part.strip()]
+    if not tokens:
+        msg = "ids must contain at least one airport id"
+        raise ValueError(msg)
+
+    ids: list[int] = []
+    for token in tokens:
+        try:
+            airport_id = int(token)
+        except ValueError as exc:
+            msg = f"ids contains non-integer token: {token!r}"
+            raise ValueError(msg) from exc
+        if airport_id < 1:
+            msg = "airport id must be >= 1"
+            raise ValueError(msg)
+        ids.append(airport_id)
+
+    return tuple(dict.fromkeys(ids))
 
 
 @dataclass(frozen=True)
@@ -42,6 +76,7 @@ class AirportListParams:
     offset: int
     limit: int
     search: str | None = None
+    ids: tuple[int, ...] | None = None
 
 
 def _rows_to_items(rows: Sequence[Any]) -> list[dict[str, Any]]:
@@ -69,6 +104,7 @@ def fetch_airports(
         "offset": params.offset,
         "limit": params.limit,
         "search": params.search,
+        "airport_ids": list(params.ids) if params.ids else None,
     }
     rows = db.execute(stmt, bind).mappings().all()
 
@@ -76,9 +112,11 @@ def fetch_airports(
         total = int(rows[0]["_total_count"])
         return _rows_to_items(rows), total, params.offset
 
-    total = int(
-        db.execute(_COUNT_AIRPORTS_SQL, {"search": params.search}).mappings().one()["c"]
-    )
+    count_bind = {
+        "search": params.search,
+        "airport_ids": list(params.ids) if params.ids else None,
+    }
+    total = int(db.execute(_COUNT_AIRPORTS_SQL, count_bind).mappings().one()["c"])
     if total == 0:
         return [], 0, params.offset
 
@@ -88,6 +126,7 @@ def fetch_airports(
             "offset": last_page_offset,
             "limit": params.limit,
             "search": params.search,
+            "airport_ids": list(params.ids) if params.ids else None,
         }
         rows2 = db.execute(stmt, bind2).mappings().all()
         if rows2:
