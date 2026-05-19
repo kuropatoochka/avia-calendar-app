@@ -113,6 +113,8 @@ const OfferPage = () => {
           expandIcon={({ isActive }) => (
             <ArrowDown className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)} />
           )}
+          ghost
+          collapsible="disabled"
           expandIconPlacement="end"
           items={[
             {

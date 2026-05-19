@@ -1,6 +1,5 @@
 .container {
   padding: var(--space-lg);
-  margin: var(--space-sm);
   gap: var(--space-sm);
   border-radius: var(--radius-md);
   background-color: var(--background-section);
@@ -59,7 +58,7 @@
 
 .bar {
   fill: var(--color-text-disabled);
-  opacity: 0.5;
+  opacity: 1;
   transition:
     opacity 0.2s ease,
     fill 0.2s ease,
@@ -70,47 +69,32 @@
 
 .barDisabled {
   fill: var(--color-text-secondary);
-  opacity: 1;
 }
 
 .barSelected {
-  opacity: 1;
-  stroke: var(--color-text-disabled);
-  stroke-width: 5;
+  fill: var(--color-primary);
 }
 
 .barGroup:hover .bar {
-  opacity: 1;
+  opacity: 0.8;
+  fill: var(--color-primary);
 }
 
 .barGroup:focus-visible .bar {
   opacity: 1;
-  stroke: var(--color-primary);
-  stroke-width: 3;
 }
 
 .barRecommendedPrice {
   fill: var(--chart-soft);
-  opacity: 0.6;
 }
 
 .barBestPrice {
   fill: var(--chart-strong);
-  opacity: 0.6;
 }
 
 .barRecommendedPrice.barSelected,
-.barRecommendedPrice:hover {
-  opacity: 1;
-  fill: var(--chart-accent-soft);
-  stroke: var(--chart-accent-soft)
-} 
-
-.barBestPrice.barSelected,
-.barBestPrice:hover {
-  opacity: 1;
-  fill: var(--chart-accent-strong);
-  stroke: var(--chart-accent-strong)
+.barBestPrice.barSelected {
+  fill: var(--color-primary);
 } 
 
 .priceText {
@@ -128,4 +112,21 @@
   padding: 24px;
   text-align: center;
   color: var(--color-text-secondary);
+}
+
+.bestBadgeGroup {
+  pointer-events: none;
+}
+
+.bestBadge {
+  fill: var(--color-primary);
+}
+
+.bestBadgeText {
+  font-weight: 700;
+  fill: var(--background-page);
+}
+
+.bestBadgeIcon {
+  color: var(--background-page);
 }
