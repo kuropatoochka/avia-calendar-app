@@ -10,6 +10,7 @@ import {
 } from '@/features/flight-filters';
 import { useTicketsQuery } from '@/features/flight-list/model/use-tickets-query';
 import { FlightList } from '@/features/flight-list/ui/flight-list';
+import { useLaunchExperiment } from '@/features/launch-experiment';
 import type {
   PriceDynamicsSearchParams,
   PriceDynamicsSelection,
@@ -52,9 +53,16 @@ const OfferPageContent = () => {
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
+  const variant = useLaunchExperiment();
+  const showRecommendationTags = variant === 'B';
+
   const { selectedTagIds } = useRecommendationTags();
 
   const handleRecommendationTagToggle = (tagId: TagId, selected: boolean) => {
+    if (!showRecommendationTags) {
+      return;
+    }
+
     if (
       tagId !== 'morning_departure' &&
       tagId !== 'night_departure' &&
@@ -147,11 +155,18 @@ const OfferPageContent = () => {
       offset: 0,
       limit: DEFAULT_TICKETS_LIMIT,
       ...(activeFilters ? mapFiltersToTicketRequest(activeFilters) : {}),
-      ...getRecommendationTagFilters(selectedTagIds),
+      ...(showRecommendationTags ? getRecommendationTagFilters(selectedTagIds) : {}),
     };
 
     void fetchTickets(request);
-  }, [selectedPriceDate, activeFilters, searchParams, selectedTagIds, fetchTickets]);
+  }, [
+    selectedPriceDate,
+    activeFilters,
+    searchParams,
+    selectedTagIds,
+    fetchTickets,
+    showRecommendationTags,
+  ]);
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
@@ -227,7 +242,9 @@ const OfferPageContent = () => {
 
         <div className={styles.columns}>
           <Flex component="main" gap={24} vertical className={styles.resultsColumn}>
-            <RecommendationTags onTagToggle={handleRecommendationTagToggle} />
+            {showRecommendationTags && (
+              <RecommendationTags onTagToggle={handleRecommendationTagToggle} />
+            )}
 
             <FlightList
               flights={visibleTicketGroups}
