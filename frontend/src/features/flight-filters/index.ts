@@ -1,5 +1,6 @@
-export { FlightFilters } from './ui/flight-filters';
-export { FlightFiltersProvider } from './lib/FlightFiltersProvider';
-export { useFlightFiltersContext } from './lib/FlightFiltersContext';
+export { filterTicketGroups } from './model/filter-ticket-groups';
+export { mapFiltersToTicketRequest } from './model/map-filters-to-ticket-request';
+export type { FlightFiltersState } from './model/types';
+export { useCompaniesQuery } from './model/use-companies-query';
 export { useFlightFilters } from './model/use-flight-filters';
-export type { FlightFiltersState, DepartureTime } from './model/types';
+export { FlightFilters } from './ui/flight-filters';

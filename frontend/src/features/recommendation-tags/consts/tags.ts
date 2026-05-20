@@ -1,13 +1,5 @@
-import type React from 'react';
-import {
-  HeartOutlined,
-  MoonOutlined,
-  SendOutlined,
-  ShoppingOutlined,
-  SunOutlined,
-  TeamOutlined,
-  ThunderboltOutlined,
-} from '@ant-design/icons';
+import { HeartFilled, MoonFilled, SunFilled } from '@ant-design/icons';
+import React from 'react';
 import type { FlightDto } from '@/shared/types/api';
 
 export type TagId = 'baggage' | 'nonstop' | 'pets' | 'fast' | 'morning' | 'late' | 'group';
@@ -15,7 +7,8 @@ export type TagId = 'baggage' | 'nonstop' | 'pets' | 'fast' | 'morning' | 'late'
 export type RecommendationTag = {
   id: TagId;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon?: React.ReactElement;
+  iconColor?: string;
   filter: (flight: FlightDto) => boolean;
 };
 
@@ -25,31 +18,25 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
   {
     id: 'baggage',
     label: 'С багажом',
-    icon: ShoppingOutlined,
+
     filter: (flight) => flight.baggageIncluded,
   },
   {
     id: 'nonstop',
     label: 'Без пересадок',
-    icon: SendOutlined,
     filter: (flight) => flight.stopsCount === 0,
   },
   {
     id: 'pets',
     label: 'С животным рядом',
-    icon: HeartOutlined,
+    icon: React.createElement(HeartFilled, { style: { color: '#FF6B4A' } }),
     filter: (flight) => flight.petsAllowed,
   },
-  {
-    id: 'fast',
-    label: 'Быстрый перелёт',
-    icon: ThunderboltOutlined,
-    filter: (flight) => flight.duration < 180,
-  },
+
   {
     id: 'morning',
     label: 'Утренний вылет',
-    icon: SunOutlined,
+    icon: React.createElement(SunFilled, { style: { color: '#F2B705' } }),
     filter: (flight) => {
       const h = getDepartureHour(flight.departureTime);
       return h >= 6 && h < 18;
@@ -58,16 +45,10 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
   {
     id: 'late',
     label: 'Поздний вылет',
-    icon: MoonOutlined,
+    icon: React.createElement(MoonFilled, { style: { color: '#516FD4' } }),
     filter: (flight) => {
       const h = getDepartureHour(flight.departureTime);
       return h >= 18 || h < 6;
     },
-  },
-  {
-    id: 'group',
-    label: 'Большая компания',
-    icon: TeamOutlined,
-    filter: (flight) => flight.availableSeats > 5,
   },
 ];

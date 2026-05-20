@@ -45,57 +45,52 @@ export type PriceDynamicsDto = {
 
 export type PriceDynamicsResponse = PriceDynamicsDto[];
 
-export type ExtraBaggageEntry = {
-  passengerIndex: number;
-  weight: number;
+export type TicketFiltersRequest = {
+  departure_from_time?: string;
+  departure_to_time?: string;
+  company?: string;
+  price_to?: number;
+  todlers_number?: number;
+  children_number?: number;
+  baggage_size?: number;
+  has_sea?: boolean;
+  has_warm?: boolean;
+  has_nature?: boolean;
 };
 
-export type FlightFilters = {
-  maxStops?: number;
-  stopDurationRange?: [number, number];
-  maxFlightDuration?: number;
-  departureTimes?: string[];
-  arrivalTimes?: string[];
-  maxPrice?: number;
-  baggageEnabled?: boolean;
-  baggageWeights?: number[];
-  extraBaggageEntries?: ExtraBaggageEntry[];
-  airlines?: number[];
-  petsEnabled?: boolean;
-  animalCount?: number;
-  animalWeights?: number[];
-};
-
-export type Passengers = {
-  adults: number;
-  children: number;
-  toddler: number;
-  animals: number;
-};
-
-export type FlightsRequest = {
-  originAirportId: number;
-  destinationAirportId: number;
+export type TicketsRequest = {
+  airport_from: number;
+  airport_to: number;
   date: string;
-  passengers: Passengers;
-  serviceClass: ServiceClass;
-  filters?: FlightFilters;
-};
+  passengers_number: number;
+  service_class: ServiceClass;
+  offset: number;
+  limit: number;
+} & TicketFiltersRequest;
 
-export type FlightDto = {
-  id: string;
-  origin: string;
-  destination: string;
-  date: string;
+export type TicketPricesDto = {
+  total: number;
   price: number;
-  duration: number;
-  airline: string;
-  departureTime: string;
-  arrivalTime: string;
-  baggageIncluded: boolean;
-  stopsCount: number;
-  petsAllowed: boolean;
-  availableSeats: number;
+  children_price: number;
+  todlers_price: number;
+  baggage_price: number;
 };
 
-export type FlightsDto = FlightDto[];
+export type TicketItemDto = {
+  city_from: string;
+  city_to: string;
+  airport_from: string;
+  airport_to: string;
+  flight_number: number;
+  company_name: string;
+  duration: number;
+  departure_date: string;
+  departure_time: string;
+  arrival_date: string;
+  arrival_time: string;
+  plane_type: string;
+  plane_number: string;
+  prices: TicketPricesDto;
+};
+
+export type TicketsResponse = PaginatedResponse<TicketItemDto[]>;

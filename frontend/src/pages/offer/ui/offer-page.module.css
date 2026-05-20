@@ -4,14 +4,6 @@
   padding: 0 var(--space-xl);
 }
 
-.columns {
-  display: grid;
-  grid-template-columns: 1fr 356px;
-  gap: 23px;
-  align-items: start;
-  margin-top: var(--space-xl);
-}
-
 .collapse {
   background: transparent;
 }
@@ -30,9 +22,19 @@
   transform: rotate(180deg);
 }
 
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 356px;
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.resultsColumn {
+  min-width: 0;
+}
+
 .filterWrapper {
   width: 356px;
-  max-width: 100%;
 }
 
 @media (max-width: 1280px) {

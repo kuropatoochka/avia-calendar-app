@@ -11,7 +11,7 @@ export const RecommendationTags = () => {
     <Flex wrap gap={8} className={styles.tags} role="group" aria-label="Быстрые фильтры">
       {RECOMMENDATION_TAGS.map((tag) => {
         const selected = isTagSelected(tag.id);
-        const Icon = tag.icon;
+        const icon = tag.icon;
         return (
           <button
             key={tag.id}
@@ -20,7 +20,7 @@ export const RecommendationTags = () => {
             className={cn(styles.tag, selected && styles.tagSelected)}
             aria-pressed={selected}
           >
-            <Icon className={styles.icon} />
+            {icon}
             {tag.label}
           </button>
         );

@@ -17,6 +17,11 @@ export const usePriceDynamicsQuery = () => {
       toddlers_number: params.toddlersNumber,
     };
 
+    // TODO: Remove mock delay when real backend integration is ready.
+    await new Promise((resolve) => {
+      setTimeout(resolve, 1200);
+    });
+
     const data = await FlightService.getPriceDynamics(requestParams);
 
     return data;

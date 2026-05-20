@@ -1,26 +1,9 @@
 import { http, HttpResponse } from 'msw';
-import type { Passengers, ServiceClass } from '@/shared/types';
+import type { ServiceClass } from '@/shared/types';
+import { companyMock } from '../mock/company-mock';
 import { generateFlights, getDateRange } from '../mock/generate-flight-mocks';
 
 const SERVICE_CLASSES: ServiceClass[] = ['BUDGET', 'COMFORT', 'BUSINESS', 'FIRST_CLASS'];
-
-const getPassengers = (url: URL): Passengers => {
-  return {
-    adults: Number(url.searchParams.get('passengers_adults') ?? 1),
-    children: Number(url.searchParams.get('passengers_children') ?? 0),
-    toddler: Number(url.searchParams.get('passengers_toddler') ?? 0),
-    animals: Number(url.searchParams.get('passengers_animals') ?? 0),
-  };
-};
-
-const getPriceDynamicsPassengers = (url: URL): Passengers => {
-  return {
-    adults: Number(url.searchParams.get('passengers_number') ?? 1),
-    children: Number(url.searchParams.get('children_number') ?? 0),
-    toddler: Number(url.searchParams.get('toddlers_number') ?? 0),
-    animals: 0,
-  };
-};
 
 const getServiceClass = (url: URL): ServiceClass => {
   const serviceClass = url.searchParams.get('service_class');
@@ -32,52 +15,33 @@ const getServiceClass = (url: URL): ServiceClass => {
   return 'BUDGET';
 };
 
-const parseNumber = (value: string | null) => {
+const parseNumber = (value: string | null, fallback = 0) => {
   if (!value) {
-    return undefined;
+    return fallback;
   }
 
   const parsed = Number(value);
 
-  return Number.isNaN(parsed) ? undefined : parsed;
+  return Number.isNaN(parsed) ? fallback : parsed;
 };
 
-const parseRange = (value: string | null) => {
+const parseCompanyIds = (value: string | null) => {
   if (!value) {
-    return undefined;
+    return [];
   }
 
-  const [minRaw, maxRaw] = value.split(',');
-  const min = parseNumber(minRaw ?? null);
-  const max = parseNumber(maxRaw ?? null);
-
-  if (min === undefined || max === undefined) {
-    return undefined;
-  }
-
-  return [min, max] as const;
+  return value
+    .split(',')
+    .map(Number)
+    .filter((id) => !Number.isNaN(id));
 };
 
-const applyFilters = (flights: ReturnType<typeof generateFlights>, url: URL) => {
-  const maxStops = parseNumber(url.searchParams.get('maxStops'));
-  const maxFlightDuration = parseNumber(url.searchParams.get('maxFlightDuration'));
-  const priceRange = parseRange(url.searchParams.get('priceRange'));
+const normalizeTime = (time: string) => {
+  return time.length === 5 ? `${time}:00` : time;
+};
 
-  return flights.filter((flight) => {
-    if (maxStops !== undefined && flight.stopsCount > maxStops) {
-      return false;
-    }
-
-    if (maxFlightDuration !== undefined && flight.duration > maxFlightDuration) {
-      return false;
-    }
-
-    if (priceRange && (flight.price < priceRange[0] || flight.price > priceRange[1])) {
-      return false;
-    }
-
-    return true;
-  });
+const getTicketGroupPrice = (group: ReturnType<typeof generateFlights>[number]) => {
+  return group[0]?.prices.total ?? 0;
 };
 
 const getMinFlightPrice = (flights: ReturnType<typeof generateFlights>) => {
@@ -85,7 +49,57 @@ const getMinFlightPrice = (flights: ReturnType<typeof generateFlights>) => {
     return 0;
   }
 
-  return Math.min(...flights.map((flight) => flight.price));
+  return Math.min(...flights.map(getTicketGroupPrice));
+};
+
+const getCompanyNamesByIds = (companyIds: number[]) => {
+  return companyIds
+    .map((companyId) => companyMock.find((company) => company.id === companyId)?.name)
+    .filter((companyName): companyName is string => Boolean(companyName));
+};
+
+const applyTicketRequestFilters = (ticketGroups: ReturnType<typeof generateFlights>, url: URL) => {
+  const companyIds = parseCompanyIds(url.searchParams.get('company'));
+  const companyNames = getCompanyNamesByIds(companyIds);
+
+  const priceTo = parseNumber(url.searchParams.get('price_to'));
+  const departureFromTime = url.searchParams.get('departure_from_time');
+  const departureToTime = url.searchParams.get('departure_to_time');
+
+  return ticketGroups.filter((group) => {
+    const firstTicket = group[0];
+
+    if (!firstTicket) {
+      return false;
+    }
+
+    if (
+      companyNames.length > 0 &&
+      !group.every((ticket) => companyNames.includes(ticket.company_name))
+    ) {
+      return false;
+    }
+
+    if (priceTo > 0 && getTicketGroupPrice(group) >= priceTo) {
+      return false;
+    }
+
+    if (
+      departureFromTime &&
+      normalizeTime(firstTicket.departure_time) < normalizeTime(departureFromTime)
+    ) {
+      return false;
+    }
+
+    if (
+      departureToTime &&
+      normalizeTime(firstTicket.departure_time) > normalizeTime(departureToTime)
+    ) {
+      return false;
+    }
+
+    return true;
+  });
 };
 
 export const flightHandlers = [
@@ -94,30 +108,32 @@ export const flightHandlers = [
 
     console.log('[MSW] /api/tickets/range matched', url.search);
 
-    const origin = url.searchParams.get('airport_from');
-    const destination = url.searchParams.get('airport_to');
+    const airportFrom = parseNumber(url.searchParams.get('airport_from'));
+    const airportTo = parseNumber(url.searchParams.get('airport_to'));
     const dateFrom = url.searchParams.get('from_date');
     const dateTo = url.searchParams.get('to_date');
 
-    if (!origin || !destination || !dateFrom || !dateTo) {
+    if (!airportFrom || !airportTo || !dateFrom || !dateTo) {
       return HttpResponse.json({ message: 'Некорректные параметры запроса' }, { status: 400 });
     }
 
-    const passengers = getPriceDynamicsPassengers(url);
     const serviceClass = getServiceClass(url);
+    const passengersNumber = parseNumber(url.searchParams.get('passengers_number'), 1);
+    const childrenNumber = parseNumber(url.searchParams.get('children_number'));
+    const toddlersNumber = parseNumber(url.searchParams.get('toddlers_number'));
+
     const dates = getDateRange(dateFrom, dateTo);
 
     const minPricesByDate = dates.reduce<Record<string, number>>((acc, date) => {
-      const flights = applyFilters(
-        generateFlights({
-          originAirportId: origin,
-          destinationAirportId: destination,
-          date,
-          passengers,
-          serviceClass,
-        }),
-        url,
-      );
+      const flights = generateFlights({
+        airport_from: airportFrom,
+        airport_to: airportTo,
+        date,
+        passengers_number: passengersNumber,
+        children_number: childrenNumber,
+        todlers_number: toddlersNumber,
+        service_class: serviceClass,
+      });
 
       acc[date] = getMinFlightPrice(flights);
 
@@ -130,11 +146,13 @@ export const flightHandlers = [
       const fallbackDate = dates[Math.floor(dates.length / 2)];
 
       const fallbackFlights = generateFlights({
-        originAirportId: origin,
-        destinationAirportId: destination,
+        airport_from: airportFrom,
+        airport_to: airportTo,
         date: fallbackDate,
-        passengers,
-        serviceClass,
+        passengers_number: passengersNumber,
+        children_number: childrenNumber,
+        todlers_number: toddlersNumber,
+        service_class: serviceClass,
         forceAvailable: true,
       });
 
@@ -149,31 +167,43 @@ export const flightHandlers = [
     return HttpResponse.json(response);
   }),
 
-  http.get('/api/flights', ({ request }) => {
+  http.get('/api/tickets', ({ request }) => {
     const url = new URL(request.url);
 
-    const origin = url.searchParams.get('origin');
-    const destination = url.searchParams.get('destination');
+    console.log('[MSW] /api/tickets matched', url.search);
+
+    const airportFrom = parseNumber(url.searchParams.get('airport_from'));
+    const airportTo = parseNumber(url.searchParams.get('airport_to'));
     const date = url.searchParams.get('date');
 
-    if (!origin || !destination || !date) {
+    if (!airportFrom || !airportTo || !date) {
       return HttpResponse.json({ message: 'Некорректные параметры запроса' }, { status: 400 });
     }
 
-    const passengers = getPassengers(url);
     const serviceClass = getServiceClass(url);
+    const offset = parseNumber(url.searchParams.get('offset'));
+    const limit = parseNumber(url.searchParams.get('limit'), 100);
 
-    const response = applyFilters(
-      generateFlights({
-        originAirportId: origin,
-        destinationAirportId: destination,
-        date,
-        passengers,
-        serviceClass,
-      }),
-      url,
-    ).sort((a, b) => a.price - b.price);
+    const items = generateFlights({
+      airport_from: airportFrom,
+      airport_to: airportTo,
+      date,
+      passengers_number: parseNumber(url.searchParams.get('passengers_number'), 1),
+      children_number: parseNumber(url.searchParams.get('children_number')),
+      todlers_number: parseNumber(url.searchParams.get('todlers_number')),
+      baggage_size: parseNumber(url.searchParams.get('baggage_size')),
+      service_class: serviceClass,
+    });
 
-    return HttpResponse.json(response);
+    const filteredItems = applyTicketRequestFilters(items, url).sort((firstGroup, secondGroup) => {
+      return getTicketGroupPrice(firstGroup) - getTicketGroupPrice(secondGroup);
+    });
+
+    return HttpResponse.json({
+      items: filteredItems.slice(offset, offset + limit),
+      total: filteredItems.length,
+      offset,
+      limit,
+    });
   }),
 ];

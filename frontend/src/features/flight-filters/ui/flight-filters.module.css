@@ -3,24 +3,38 @@
   overflow-x: hidden;
 }
 
-.header {
-  padding-inline: var(--space-sm);
+.fullWidth {
+  width: 100%;
+  padding: var(--space-xs);
 }
 
-.title {
-  margin: 0 !important;
+.resetBtn {
+  width: 24px;
+  height: 36px;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.resetBtn:hover {
+  background: #eeecec;
+}
+
+.resetBtn:active {
+  transform: scale(0.97);
+}
+
+.resetIcon {
+  width: 18px;
+  height: 18px;
+  fill: var(--text-secondary);
 }
 
 .panel {
   width: 100%;
-  padding: var(--space-md);
+  padding: var(--space-sm);
   background: var(--background-section);
-  border-radius: 30px;
-  box-shadow: var(--shadow-sm);
-}
-
-.fullWidth {
-  width: 100%;
+  border-radius: var(--radius-md);
 }
 
 .collapse {
@@ -28,7 +42,19 @@
   background: transparent;
 }
 
+.collapseIcon {
+  width: 12px;
+  height: 12px;
+  color: var(--text-secondary) !important;
+  transition: transform 0.2s ease;
+}
+
+.collapseIconOpen {
+  transform: rotate(180deg);
+}
+
 .collapse :global(.ant-collapse-item) {
+  padding: var(--space-2xs) 0;
   border-bottom: 1px solid var(--border-primary);
 }
 
@@ -36,25 +62,13 @@
   border-bottom: none;
 }
 
-.collapse :global(.ant-collapse-header) {
-  padding: var(--space-sm) 0 !important;
-  align-items: center !important;
-}
-
-.collapse :global(.ant-collapse-content) {
-  background: transparent;
-  border-top: none;
-}
-
-.collapse :global(.ant-collapse-content-box) {
-  padding: 0 0 var(--space-lg) !important;
+.actions {
+  padding: var(--space-sm) 0;
 }
 
 .sectionTitle {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--text-secondary);
 }
 
@@ -156,15 +170,6 @@
   margin-bottom: var(--space-sm);
 }
 
-.actions {
-  padding-top: var(--space-md);
-  padding-bottom: var(--space-sm);
-}
-
-.applyButton {
-  min-width: 180px;
-}
-
 .infoIcon {
   width: 14px;
   height: 14px;
@@ -176,15 +181,6 @@
 
 .infoIcon:hover {
   color: var(--color-primary);
-}
-
-
-.actionButton {
-  color: var(--text-secondary) !important;
-}
-
-.actionButton:hover {
-  color: var(--color-primary) !important;
 }
 
 .removeButton {
