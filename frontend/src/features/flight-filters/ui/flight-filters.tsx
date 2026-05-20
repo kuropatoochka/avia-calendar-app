@@ -25,9 +25,15 @@ type FlightFiltersProps = {
   onApply?: (filters: FlightFiltersState) => void;
   passengers?: PassengerCounts;
   companyOptions?: CompanyOption[];
+  filters?: FlightFiltersState | null;
 };
 
-export const FlightFilters = ({ onApply, passengers, companyOptions = [] }: FlightFiltersProps) => {
+export const FlightFilters = ({
+  onApply,
+  passengers,
+  companyOptions = [],
+  filters,
+}: FlightFiltersProps) => {
   const {
     draftFilters,
     updateDraftFilter,
@@ -35,7 +41,7 @@ export const FlightFilters = ({ onApply, passengers, companyOptions = [] }: Flig
     removeBaggageEntry,
     updateAnimalCount,
     resetFilters,
-  } = useFlightFilters();
+  } = useFlightFilters(filters);
 
   const handleApplyFilters = () => {
     onApply?.(draftFilters);

@@ -58,6 +58,59 @@ const getCompanyNamesByIds = (companyIds: number[]) => {
     .filter((companyName): companyName is string => Boolean(companyName));
 };
 
+type DestinationTraits = {
+  has_sea: boolean;
+  has_warm: boolean;
+  has_nature: boolean;
+};
+
+const DESTINATION_TRAITS_BY_AIRPORT_ID: Record<number, DestinationTraits> = {
+  101: { has_sea: false, has_warm: false, has_nature: false }, // Шереметьево
+  102: { has_sea: false, has_warm: false, has_nature: false }, // Домодедово
+  103: { has_sea: false, has_warm: false, has_nature: false }, // Внуково
+  104: { has_sea: true, has_warm: false, has_nature: true }, // Пулково
+  105: { has_sea: false, has_warm: false, has_nature: true }, // Толмачёво
+  106: { has_sea: false, has_warm: false, has_nature: true }, // Кольцово
+  107: { has_sea: false, has_warm: false, has_nature: true }, // Казань
+  108: { has_sea: false, has_warm: true, has_nature: true }, // Краснодар
+  109: { has_sea: true, has_warm: true, has_nature: true }, // Адлер / Сочи
+  110: { has_sea: false, has_warm: true, has_nature: true }, // Курумоч
+  111: { has_sea: false, has_warm: false, has_nature: true }, // Уфа
+  112: { has_sea: true, has_warm: false, has_nature: true }, // Владивосток
+  113: { has_sea: false, has_warm: false, has_nature: true }, // Спиченково
+  114: { has_sea: false, has_warm: true, has_nature: false }, // Платов
+};
+
+const isEnabledParam = (value: string | null) => value === 'true';
+
+const getDestinationTraits = (airportTo: number): DestinationTraits => {
+  return (
+    DESTINATION_TRAITS_BY_AIRPORT_ID[airportTo] ?? {
+      has_sea: false,
+      has_warm: false,
+      has_nature: false,
+    }
+  );
+};
+
+const matchesDestinationTags = (airportTo: number, url: URL) => {
+  const traits = getDestinationTraits(airportTo);
+
+  if (isEnabledParam(url.searchParams.get('has_sea')) && !traits.has_sea) {
+    return false;
+  }
+
+  if (isEnabledParam(url.searchParams.get('has_warm')) && !traits.has_warm) {
+    return false;
+  }
+
+  if (isEnabledParam(url.searchParams.get('has_nature')) && !traits.has_nature) {
+    return false;
+  }
+
+  return true;
+};
+
 const applyTicketRequestFilters = (ticketGroups: ReturnType<typeof generateFlights>, url: URL) => {
   const companyIds = parseCompanyIds(url.searchParams.get('company'));
   const companyNames = getCompanyNamesByIds(companyIds);
@@ -105,8 +158,6 @@ const applyTicketRequestFilters = (ticketGroups: ReturnType<typeof generateFligh
 export const flightHandlers = [
   http.get('/api/tickets/range', ({ request }) => {
     const url = new URL(request.url);
-
-    console.log('[MSW] /api/tickets/range matched', url.search);
 
     const airportFrom = parseNumber(url.searchParams.get('airport_from'));
     const airportTo = parseNumber(url.searchParams.get('airport_to'));
@@ -170,8 +221,6 @@ export const flightHandlers = [
   http.get('/api/tickets', ({ request }) => {
     const url = new URL(request.url);
 
-    console.log('[MSW] /api/tickets matched', url.search);
-
     const airportFrom = parseNumber(url.searchParams.get('airport_from'));
     const airportTo = parseNumber(url.searchParams.get('airport_to'));
     const date = url.searchParams.get('date');
@@ -180,9 +229,19 @@ export const flightHandlers = [
       return HttpResponse.json({ message: 'Некорректные параметры запроса' }, { status: 400 });
     }
 
-    const serviceClass = getServiceClass(url);
     const offset = parseNumber(url.searchParams.get('offset'));
     const limit = parseNumber(url.searchParams.get('limit'), 100);
+
+    if (!matchesDestinationTags(airportTo, url)) {
+      return HttpResponse.json({
+        items: [],
+        total: 0,
+        offset,
+        limit,
+      });
+    }
+
+    const serviceClass = getServiceClass(url);
 
     const items = generateFlights({
       airport_from: airportFrom,

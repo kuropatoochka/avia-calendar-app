@@ -2,8 +2,10 @@ import type { FlightFiltersState } from './types';
 import { useState } from 'react';
 import { DEFAULT_FLIGHT_FILTERS } from './defaults';
 
-export const useFlightFilters = () => {
-  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(DEFAULT_FLIGHT_FILTERS);
+export const useFlightFilters = (initialFilters?: FlightFiltersState | null) => {
+  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(
+    initialFilters ?? DEFAULT_FLIGHT_FILTERS,
+  );
 
   const updateDraftFilter = <K extends keyof FlightFiltersState>(
     key: K,

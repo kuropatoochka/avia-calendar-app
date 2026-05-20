@@ -1,54 +1,96 @@
-import { HeartFilled, MoonFilled, SunFilled } from '@ant-design/icons';
+import { EnvironmentFilled, FireFilled, MoonFilled, SunFilled } from '@ant-design/icons';
 import React from 'react';
-import type { FlightDto } from '@/shared/types/api';
+import type { TicketFiltersRequest } from '@/shared/types';
 
-export type TagId = 'baggage' | 'nonstop' | 'pets' | 'fast' | 'morning' | 'late' | 'group';
+export type DestinationTagId = 'has_sea' | 'has_warm' | 'has_nature';
+export type DepartureTimeTagId = 'morning_departure' | 'night_departure';
+export type StopsTagId = 'direct_flight';
+export type BaggageTagId = 'baggage_included';
 
-export type RecommendationTag = {
+export type TagId = DestinationTagId | DepartureTimeTagId | StopsTagId | BaggageTagId;
+
+type BaseRecommendationTag = {
   id: TagId;
   label: string;
   icon?: React.ReactElement;
-  iconColor?: string;
-  filter: (flight: FlightDto) => boolean;
 };
 
-const getDepartureHour = (departureTime: string) => Number(departureTime.split(':')[0]);
+type DestinationRecommendationTag = BaseRecommendationTag & {
+  id: DestinationTagId;
+  type: 'destination';
+  requestParam: keyof Pick<TicketFiltersRequest, 'has_sea' | 'has_warm' | 'has_nature'>;
+};
+
+type DepartureTimeRecommendationTag = BaseRecommendationTag & {
+  id: DepartureTimeTagId;
+  type: 'departureTime';
+  departureTime: 'morning' | 'night';
+  exclusiveGroup: 'departureTime';
+};
+
+type StopsRecommendationTag = BaseRecommendationTag & {
+  id: StopsTagId;
+  type: 'stops';
+};
+
+type BaggageRecommendationTag = BaseRecommendationTag & {
+  id: BaggageTagId;
+  type: 'baggage';
+};
+
+export type RecommendationTag =
+  | DestinationRecommendationTag
+  | DepartureTimeRecommendationTag
+  | StopsRecommendationTag
+  | BaggageRecommendationTag;
 
 export const RECOMMENDATION_TAGS: RecommendationTag[] = [
   {
-    id: 'baggage',
+    id: 'direct_flight',
+    type: 'stops',
+    label: 'Прямой рейс',
+  },
+  {
+    id: 'baggage_included',
+    type: 'baggage',
     label: 'С багажом',
-
-    filter: (flight) => flight.baggageIncluded,
-  },
-  {
-    id: 'nonstop',
-    label: 'Без пересадок',
-    filter: (flight) => flight.stopsCount === 0,
-  },
-  {
-    id: 'pets',
-    label: 'С животным рядом',
-    icon: React.createElement(HeartFilled, { style: { color: '#FF6B4A' } }),
-    filter: (flight) => flight.petsAllowed,
   },
 
   {
-    id: 'morning',
+    id: 'morning_departure',
+    type: 'departureTime',
     label: 'Утренний вылет',
     icon: React.createElement(SunFilled, { style: { color: '#F2B705' } }),
-    filter: (flight) => {
-      const h = getDepartureHour(flight.departureTime);
-      return h >= 6 && h < 18;
-    },
+    departureTime: 'morning',
+    exclusiveGroup: 'departureTime',
   },
   {
-    id: 'late',
-    label: 'Поздний вылет',
+    id: 'night_departure',
+    type: 'departureTime',
+    label: 'Ночной вылет',
     icon: React.createElement(MoonFilled, { style: { color: '#516FD4' } }),
-    filter: (flight) => {
-      const h = getDepartureHour(flight.departureTime);
-      return h >= 18 || h < 6;
-    },
+    departureTime: 'night',
+    exclusiveGroup: 'departureTime',
+  },
+
+  {
+    id: 'has_sea',
+    type: 'destination',
+    label: 'Море и пляж',
+    requestParam: 'has_sea',
+  },
+  {
+    id: 'has_warm',
+    type: 'destination',
+    label: 'Тепло',
+    icon: React.createElement(FireFilled, { style: { color: '#FF6B4A' } }),
+    requestParam: 'has_warm',
+  },
+  {
+    id: 'has_nature',
+    type: 'destination',
+    label: 'Природа',
+    icon: React.createElement(EnvironmentFilled, { style: { color: '#4DAA57' } }),
+    requestParam: 'has_nature',
   },
 ];

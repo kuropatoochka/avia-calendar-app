@@ -2,6 +2,7 @@ import { Collapse, Flex, Space, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import {
+  DEFAULT_FLIGHT_FILTERS,
   filterTicketGroups,
   FlightFilters as FlightFiltersSection,
   mapFiltersToTicketRequest,
@@ -13,7 +14,13 @@ import type {
   PriceDynamicsSelection,
 } from '@/features/price-dynamics-chart';
 import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
-import { RecommendationTags, RecommendationTagsProvider } from '@/features/recommendation-tags';
+import type { TagId } from '@/features/recommendation-tags';
+import {
+  RecommendationTags,
+  RecommendationTagsProvider,
+  useRecommendationTags,
+} from '@/features/recommendation-tags';
+import { getRecommendationTagFilters } from '@/features/recommendation-tags/lib/get-recommendation-tag-filters';
 import type { SearchFormValues } from '@/features/search-form';
 import { SearchForm } from '@/features/search-form';
 import { ArrowDown } from '@/shared/assets';
@@ -23,6 +30,20 @@ import styles from './offer-page.module.css';
 
 const DEFAULT_TICKETS_LIMIT = 100;
 
+const DEFAULT_BAGGAGE_WEIGHT = 20;
+
+const getPassengerCount = (params: PriceDynamicsSearchParams | null) => {
+  if (!params) {
+    return 1;
+  }
+
+  return params.passengersNumber + (params.childrenNumber ?? 0) + (params.toddlersNumber ?? 0);
+};
+
+const getDefaultBaggageWeights = (params: PriceDynamicsSearchParams | null) => {
+  return Array.from({ length: getPassengerCount(params) }, () => DEFAULT_BAGGAGE_WEIGHT);
+};
+
 const OfferPageContent = () => {
   const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(null);
   const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
@@ -30,6 +51,53 @@ const OfferPageContent = () => {
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
   const [ticketGroups, setTicketGroups] = useState<TicketItemDto[][]>([]);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
+
+  const { selectedTagIds } = useRecommendationTags();
+
+  const handleRecommendationTagToggle = (tagId: TagId, selected: boolean) => {
+    if (
+      tagId !== 'morning_departure' &&
+      tagId !== 'night_departure' &&
+      tagId !== 'direct_flight' &&
+      tagId !== 'baggage_included'
+    ) {
+      return;
+    }
+
+    setActiveFilters((prev) => {
+      const nextFilters = prev ?? DEFAULT_FLIGHT_FILTERS;
+
+      if (tagId === 'morning_departure' || tagId === 'night_departure') {
+        return {
+          ...nextFilters,
+          departureTime: selected ? (tagId === 'morning_departure' ? 'morning' : 'night') : null,
+        };
+      }
+
+      if (tagId === 'direct_flight') {
+        return {
+          ...nextFilters,
+          stopsFilterType: selected ? 'direct' : null,
+          maxStops: selected ? 0 : DEFAULT_FLIGHT_FILTERS.maxStops,
+        };
+      }
+
+      if (tagId === 'baggage_included') {
+        return {
+          ...nextFilters,
+          baggageEnabled: selected,
+          baggageWeights: selected
+            ? getDefaultBaggageWeights(searchParams)
+            : DEFAULT_FLIGHT_FILTERS.baggageWeights,
+          extraBaggageEntries: selected
+            ? nextFilters.extraBaggageEntries
+            : DEFAULT_FLIGHT_FILTERS.extraBaggageEntries,
+        };
+      }
+
+      return nextFilters;
+    });
+  };
 
   const { fetchFlights, isFlightsLoading, flightsError } = useFlightsQuery();
   const { companies } = useCompaniesQuery();
@@ -57,6 +125,11 @@ const OfferPageContent = () => {
     ),
   });
 
+  const filtersKey = useMemo(
+    () => `${filterKey}-${JSON.stringify(activeFilters ?? DEFAULT_FLIGHT_FILTERS)}`,
+    [filterKey, activeFilters],
+  );
+
   useEffect(() => {
     if (!selectedPriceDate || !searchParams) {
       return;
@@ -73,6 +146,7 @@ const OfferPageContent = () => {
       offset: 0,
       limit: DEFAULT_TICKETS_LIMIT,
       ...(activeFilters ? mapFiltersToTicketRequest(activeFilters) : {}),
+      ...getRecommendationTagFilters(selectedTagIds),
     };
 
     fetchFlights(request).then((data) => {
@@ -80,7 +154,7 @@ const OfferPageContent = () => {
         setTicketGroups(data.items);
       }
     });
-  }, [selectedPriceDate, activeFilters, searchParams, fetchFlights]);
+  }, [selectedPriceDate, activeFilters, searchParams, fetchFlights, selectedTagIds]);
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
@@ -156,7 +230,7 @@ const OfferPageContent = () => {
 
         <div className={styles.columns}>
           <Flex component="main" gap={24} vertical className={styles.resultsColumn}>
-            <RecommendationTags />
+            <RecommendationTags onTagToggle={handleRecommendationTagToggle} />
 
             <FlightList
               flights={visibleTicketGroups}
@@ -168,7 +242,8 @@ const OfferPageContent = () => {
 
           <aside className={styles.filterWrapper}>
             <FlightFiltersSection
-              key={filterKey}
+              key={filtersKey}
+              filters={activeFilters}
               onApply={handleApplyFilters}
               companyOptions={companyOptions}
               passengers={
