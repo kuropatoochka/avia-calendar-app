@@ -8,7 +8,8 @@ import {
   mapFiltersToTicketRequest,
   useCompaniesQuery,
 } from '@/features/flight-filters';
-import { FlightList, useFlightsQuery } from '@/features/flight-list';
+import { useTicketsQuery } from '@/features/flight-list/model/use-tickets-query';
+import { FlightList } from '@/features/flight-list/ui/flight-list';
 import type {
   PriceDynamicsSearchParams,
   PriceDynamicsSelection,
@@ -24,7 +25,7 @@ import { getRecommendationTagFilters } from '@/features/recommendation-tags/lib/
 import type { SearchFormValues } from '@/features/search-form';
 import { SearchForm } from '@/features/search-form';
 import { ArrowDown } from '@/shared/assets';
-import type { TicketItemDto, TicketsRequest } from '@/shared/types';
+import type { TicketsRequest } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import styles from './offer-page.module.css';
 
@@ -49,7 +50,6 @@ const OfferPageContent = () => {
   const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
   const [filterKey, setFilterKey] = useState(0);
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
-  const [ticketGroups, setTicketGroups] = useState<TicketItemDto[][]>([]);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
   const { selectedTagIds } = useRecommendationTags();
@@ -99,7 +99,8 @@ const OfferPageContent = () => {
     });
   };
 
-  const { fetchFlights, isFlightsLoading, flightsError } = useFlightsQuery();
+  const { ticketGroups, fetchTickets, resetTickets, isTicketsLoading, ticketsError } =
+    useTicketsQuery();
   const { companies } = useCompaniesQuery();
 
   const companyOptions = useMemo(
@@ -149,12 +150,8 @@ const OfferPageContent = () => {
       ...getRecommendationTagFilters(selectedTagIds),
     };
 
-    fetchFlights(request).then((data) => {
-      if (data) {
-        setTicketGroups(data.items);
-      }
-    });
-  }, [selectedPriceDate, activeFilters, searchParams, fetchFlights, selectedTagIds]);
+    void fetchTickets(request);
+  }, [selectedPriceDate, activeFilters, searchParams, selectedTagIds, fetchTickets]);
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
@@ -187,7 +184,7 @@ const OfferPageContent = () => {
     };
 
     setSelectedPriceDate(null);
-    setTicketGroups([]);
+    resetTickets();
     setActiveFilters(null);
     setSearchParams(params);
     setFilterKey((key) => key + 1);
@@ -234,8 +231,8 @@ const OfferPageContent = () => {
 
             <FlightList
               flights={visibleTicketGroups}
-              isLoading={isFlightsLoading}
-              error={flightsError}
+              isLoading={isTicketsLoading}
+              error={ticketsError}
               isIdle={selectedPriceDate === null}
             />
           </Flex>
