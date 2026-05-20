@@ -175,7 +175,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
                     {outboundTitleFrom} — {outboundTitleTo}
                   </Typography.Title>
                   <Tooltip title="Цена указана без учета дополнительных фильтров" placement="left">
-                    <QuestionCircleOutlined style={{ color: 'var(--color-text-secondary)' }} />
+                    <QuestionCircleOutlined style={{ color: 'var(--color-accent)' }} />
                   </Tooltip>
                 </Flex>
 

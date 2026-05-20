@@ -2,9 +2,10 @@ import type { FlightFiltersState } from './types';
 import { useState } from 'react';
 import { DEFAULT_FLIGHT_FILTERS } from './defaults';
 
-export const useFlightFilters = () => {
-  const [filters, setFilters] = useState<FlightFiltersState>(DEFAULT_FLIGHT_FILTERS);
-  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(DEFAULT_FLIGHT_FILTERS);
+export const useFlightFilters = (initialFilters?: FlightFiltersState | null) => {
+  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(
+    initialFilters ?? DEFAULT_FLIGHT_FILTERS,
+  );
 
   const updateDraftFilter = <K extends keyof FlightFiltersState>(
     key: K,
@@ -23,44 +24,27 @@ export const useFlightFilters = () => {
   const removeBaggageEntry = (entryIndex: number) => {
     setDraftFilters((prev) => ({
       ...prev,
-      extraBaggageEntries: prev.extraBaggageEntries.filter((_, i) => i !== entryIndex),
+      extraBaggageEntries: prev.extraBaggageEntries.filter((_, index) => index !== entryIndex),
     }));
   };
 
   const updateAnimalCount = (count: number) => {
     setDraftFilters((prev) => ({
       ...prev,
-      animalCount: count,
-      animalWeights: Array.from({ length: count }, (_, i) => prev.animalWeights[i] ?? 10),
+      animalWeights: Array.from({ length: count }, (_, index) => prev.animalWeights[index] ?? 10),
     }));
-  };
-
-  const removeAnimalEntry = (index: number) => {
-    setDraftFilters((prev) => {
-      if (prev.animalCount <= 1) return prev;
-      const newWeights = prev.animalWeights.filter((_, i) => i !== index);
-      return { ...prev, animalCount: newWeights.length, animalWeights: newWeights };
-    });
-  };
-
-  const applyFilters = () => {
-    setFilters(draftFilters);
   };
 
   const resetFilters = () => {
     setDraftFilters(DEFAULT_FLIGHT_FILTERS);
-    setFilters(DEFAULT_FLIGHT_FILTERS);
   };
 
   return {
-    filters,
     draftFilters,
     updateDraftFilter,
     addBaggageEntry,
     removeBaggageEntry,
     updateAnimalCount,
-    removeAnimalEntry,
-    applyFilters,
     resetFilters,
   };
 };

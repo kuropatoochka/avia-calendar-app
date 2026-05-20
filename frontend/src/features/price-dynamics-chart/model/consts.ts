@@ -1,4 +1,4 @@
-export const CHART_HEIGHT = 150;
+export const CHART_HEIGHT = 160;
 
 export const BAR_WIDTH = 46;
 export const BAR_GAP = 10;

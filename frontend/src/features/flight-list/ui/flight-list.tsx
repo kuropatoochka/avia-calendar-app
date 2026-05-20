@@ -1,10 +1,9 @@
 import { Flex, Spin, Typography } from 'antd';
-import type { FlightDto } from '@/shared/types';
-import { FlightCard } from './flight-card';
+import type { TicketItemDto } from '@/shared/types';
 import styles from './flight-list.module.css';
 
 type Props = {
-  flights: FlightDto[];
+  flights: TicketItemDto[][];
   isLoading: boolean;
   error: string | null;
   isIdle: boolean;
@@ -24,7 +23,7 @@ export const FlightList = ({ flights, isLoading, error, isIdle }: Props) => {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" className={styles.placeholder}>
-        <Spin size="large" />
+        <Spin spinning={isLoading} description="Загружаем предложения..." />
       </Flex>
     );
   }
@@ -46,10 +45,16 @@ export const FlightList = ({ flights, isLoading, error, isIdle }: Props) => {
   }
 
   return (
-    <Flex vertical gap={12}>
-      {flights.map((flight) => (
-        <FlightCard key={flight.id} flight={flight} />
-      ))}
-    </Flex>
+    <Typography.Text type="secondary" className={styles.foundCount}>
+      Найдено {flights.length} предложений
+    </Typography.Text>
   );
+
+  // return (
+  //   <Flex vertical gap={12}>
+  //     {flights.map((flight) => (
+  //       <FlightCard key={flight.id} flight={flight} />
+  //     ))}
+  //   </Flex>
+  // );
 };
