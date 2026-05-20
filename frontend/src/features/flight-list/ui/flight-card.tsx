@@ -1,71 +1,115 @@
-// const formatDuration = (minutes: number) => {
-//   const h = Math.floor(minutes / 60);
-//   const m = minutes % 60;
+import type { FlightCardViewModel } from '../model/types';
+import styles from './flight-list.module.css';
 
-//   return m === 0 ? `${h}ч` : `${h}ч ${m}мин`;
-// };
+type Props = {
+  flight: FlightCardViewModel;
+  onClick?: () => void;
+};
 
-// const formatPrice = (price: number) => `${price.toLocaleString('ru-RU')} ₽`;
+const priceFormatter = new Intl.NumberFormat('ru-RU', {
+  style: 'currency',
+  currency: 'RUB',
+  maximumFractionDigits: 0,
+});
 
-// const getStopsLabel = (count: number) => {
-//   if (count === 0) return 'Прямой рейс';
-//   if (count === 1) return '1 пересадка';
+const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'short',
+});
 
-//   return `${count} пересадки`;
-// };
+const formatTime = (time: string) => {
+  return time.slice(0, 5);
+};
 
-// type Props = {
-//   flight: unknown;
-// };
+const formatDate = (date: string) => {
+  return dateFormatter.format(new Date(date));
+};
 
-export const FlightCard = () => {
-  return null;
+const formatDuration = (durationMinutes: number) => {
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
 
-  // return (
-  //   <div className={styles.card}>
-  //     <Flex justify="space-between" align="center" gap={16}>
-  //       <Flex align="center" gap={12} className={styles.routeBlock}>
-  //         <Typography.Text strong className={styles.time}>
-  //           {flight.departureTime}
-  //         </Typography.Text>
+  if (hours === 0) {
+    return `${minutes} мин`;
+  }
 
-  //         <Flex vertical align="center" className={styles.routeInfo}>
-  //           <Typography.Text type="secondary" className={styles.duration}>
-  //             {formatDuration(flight.duration)}
-  //           </Typography.Text>
-  //           <div className={styles.routeLine} />
-  //           <Typography.Text type="secondary" className={styles.stopsLabel}>
-  //             {getStopsLabel(flight.stopsCount)}
-  //           </Typography.Text>
-  //         </Flex>
+  if (minutes === 0) {
+    return `${hours} ч`;
+  }
 
-  //         <Typography.Text strong className={styles.time}>
-  //           {flight.arrivalTime}
-  //         </Typography.Text>
-  //       </Flex>
+  return `${hours} ч ${minutes} мин`;
+};
 
-  //       <Flex vertical gap={4} className={styles.airlineBlock}>
-  //         <Typography.Text className={styles.airline}>{flight.airline}</Typography.Text>
-  //         <Flex gap={8}>
-  //           {flight.baggageIncluded && (
-  //             <Flex align="center" gap={4}>
-  //               <ShoppingOutlined className={styles.badgeIcon} />
-  //               <Typography.Text className={styles.badgeText}>Багаж</Typography.Text>
-  //             </Flex>
-  //           )}
-  //           {flight.petsAllowed && (
-  //             <Flex align="center" gap={4}>
-  //               <HeartOutlined className={styles.badgeIcon} />
-  //               <Typography.Text className={styles.badgeText}>Питомцы</Typography.Text>
-  //             </Flex>
-  //           )}
-  //         </Flex>
-  //       </Flex>
+const formatStops = (stopsCount: number) => {
+  if (stopsCount === 0) {
+    return 'Прямой рейс';
+  }
 
-  //       <Typography.Text strong className={styles.price}>
-  //         {formatPrice(flight.price)}
-  //       </Typography.Text>
-  //     </Flex>
-  //   </div>
-  // );
+  if (stopsCount === 1) {
+    return '1 пересадка';
+  }
+
+  return `${stopsCount} пересадки`;
+};
+
+export const FlightCard = ({ flight, onClick }: Props) => {
+  return (
+    <article
+      className={styles.card}
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick?.();
+        }
+      }}
+    >
+      <div className={styles.cardTop}>
+        <div className={styles.priceBlock}>
+          <span className={styles.price}>{priceFormatter.format(flight.price)}</span>
+          <span className={styles.priceCaption}>за всех пассажиров</span>
+        </div>
+
+        <span className={flight.stopsCount === 0 ? styles.directBadge : styles.transferBadge}>
+          {formatStops(flight.stopsCount)}
+        </span>
+      </div>
+
+      <div className={styles.cardMain}>
+        <div className={styles.timeBlock}>
+          <span className={styles.time}>{formatTime(flight.departureTime)}</span>
+          <span className={styles.airport}>{flight.airportFrom}</span>
+          <span className={styles.city}>{flight.cityFrom}</span>
+        </div>
+
+        <div className={styles.routeBlock}>
+          <span className={styles.duration}>{formatDuration(flight.duration)}</span>
+
+          <div className={styles.routeLine}>
+            <span className={styles.routeDot} />
+            <span className={styles.routeDash} />
+            <span className={styles.routeDot} />
+          </div>
+
+          <span className={styles.date}>
+            {formatDate(flight.departureDate)}
+            {flight.arrivalDate !== flight.departureDate && ` — ${formatDate(flight.arrivalDate)}`}
+          </span>
+        </div>
+
+        <div className={styles.timeBlockRight}>
+          <span className={styles.time}>{formatTime(flight.arrivalTime)}</span>
+          <span className={styles.airport}>{flight.airportTo}</span>
+          <span className={styles.city}>{flight.cityTo}</span>
+        </div>
+      </div>
+
+      <div className={styles.cardBottom}>
+        <span>{flight.companyNames.join(', ')}</span>
+        <span>{flight.planeTypes.join(', ')}</span>
+      </div>
+    </article>
+  );
 };
