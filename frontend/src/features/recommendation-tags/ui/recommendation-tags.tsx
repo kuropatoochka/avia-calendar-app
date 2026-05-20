@@ -1,7 +1,8 @@
 import type { TagId } from '../consts/tags';
 import { Flex } from 'antd';
-import { cn } from '@/shared/utils';
+import { cn, reachGoal } from '@/shared/utils';
 import { RECOMMENDATION_TAGS } from '../consts/tags';
+import { RECOMMENDATION_TAGS_METRIKA_GOALS } from '../lib/metrika-goals';
 import { useRecommendationTags } from '../lib/use-recommendation-tags';
 import styles from './styles.module.css';
 
@@ -16,7 +17,7 @@ export const RecommendationTags = ({ onTagToggle }: RecommendationTagsProps) => 
     <Flex wrap gap={8} className={styles.tags} role="group" aria-label="Быстрые фильтры">
       {RECOMMENDATION_TAGS.map((tag) => {
         const selected = isTagSelected(tag.id);
-        const icon = tag.icon;
+        const nextSelected = !selected;
 
         return (
           <button
@@ -24,12 +25,19 @@ export const RecommendationTags = ({ onTagToggle }: RecommendationTagsProps) => 
             type="button"
             onClick={() => {
               toggleTag(tag.id);
-              onTagToggle?.(tag.id, !selected);
+              onTagToggle?.(tag.id, nextSelected);
+
+              reachGoal(RECOMMENDATION_TAGS_METRIKA_GOALS.tagClick, {
+                tag_id: tag.id,
+                tag_label: tag.label,
+                tag_type: tag.type,
+                selected: nextSelected,
+              });
             }}
             className={cn(styles.tag, selected && styles.tagSelected)}
             aria-pressed={selected}
           >
-            {icon}
+            {tag.icon}
             {tag.label}
           </button>
         );
