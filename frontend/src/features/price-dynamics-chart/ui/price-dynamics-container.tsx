@@ -5,9 +5,11 @@ import type {
 } from '../model/types';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Alert, Divider, Flex, Spin, Tooltip, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLaunchExperiment } from '@/features/launch-experiment';
 import { useAirportsQuery } from '@/features/search-form';
+import { reachGoal } from '@/shared/utils';
+import { PRICE_DYNAMICS_METRIKA_GOALS } from '../model/metrika-goals';
 import { usePriceDynamicsQuery } from '../model/use-price-dynamics-query';
 import { PriceDynamicsChart } from './price-dynamics-chart';
 import { PriceDynamicsPlaceholder } from './price-dynamics-placeholder';
@@ -123,10 +125,36 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
     };
   }, [params, fetchAirportsByIds]);
 
+  const chartShownAtRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!params) {
+      chartShownAtRef.current = null;
+      return;
+    }
+
+    chartShownAtRef.current = performance.now();
+  }, [params]);
+
   const handleChartItemSelect = (
     item: PriceDynamicsChartItem,
     selectionParams: Omit<PriceDynamicsSelection, 'date'>,
   ) => {
+    const now = performance.now();
+    const decisionTimeMs = chartShownAtRef.current
+      ? Math.round(now - chartShownAtRef.current)
+      : null;
+
+    reachGoal(PRICE_DYNAMICS_METRIKA_GOALS.barClick, {
+      variant,
+      direction: selectionParams.direction,
+      date: item.date,
+      min_total_price: item.minTotalPrice,
+      highlight_best_prices: highlightBestPrices,
+      decision_time_ms: decisionTimeMs,
+      decision_time_sec: decisionTimeMs ? Math.round(decisionTimeMs / 1000) : null,
+    });
+
     const nextSelection: PriceDynamicsSelection = {
       ...selectionParams,
       date: item.date,
