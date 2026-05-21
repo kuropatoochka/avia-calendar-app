@@ -1,0 +1,64 @@
+.page {
+  max-width: 1247px;
+  margin: 0 auto;
+  padding: 0 var(--space-xl);
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+}
+
+.backButton:hover {
+  color: var(--color-primary);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 356px;
+  gap: 23px;
+  align-items: start;
+  margin-top: var(--space-xl);
+}
+
+.collapse {
+  background: transparent;
+}
+
+.collapse :global(.ant-collapse-item > .ant-collapse-header) {
+  padding: 0 var(--space-md) var(--space-lg) 0;
+}
+
+.collapseArrow {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.2s ease;
+}
+
+.collapseArrowOpen {
+  transform: rotate(180deg);
+}
+
+.filterWrapper {
+  width: 356px;
+}
+
+@media (max-width: 1280px) {
+  .page {
+    padding: 0 var(--space-lg);
+  }
+}
+
+@media (max-width: 960px) {
+  .page {
+    padding: 0 var(--space-md);
+  }
+}
