@@ -30,17 +30,17 @@ export default class FlightService {
   }
 
   static async getPriceDynamics(params: PriceDynamicsRequest): Promise<Response> {
-    const url = new URL(`${API_URL}/flights/best-prices`, window.location.origin);
+    const url = new URL(`${API_URL}/tickets/range`, window.location.origin);
 
     const searchParams = new URLSearchParams();
-    searchParams.set('origin', params.originAirportId);
-    searchParams.set('destination', params.destinationAirportId);
-    searchParams.set('date_from', params.dateFrom);
-    searchParams.set('date_to', params.dateTo);
+    searchParams.set('airport_from', params.originAirportId);
+    searchParams.set('airport_to', params.destinationAirportId);
+    searchParams.set('from_date', params.dateFrom);
+    searchParams.set('to_date', params.dateTo);
     searchParams.set('service_class', params.serviceClass);
-    searchParams.set('passengers_adults', String(params.passengers.adults));
-    searchParams.set('passengers_children', String(params.passengers.children));
-    searchParams.set('passengers_toddler', String(params.passengers.toddler));
+    searchParams.set('passengers_number', String(params.passengers.adults));
+    searchParams.set('children_number', String(params.passengers.children));
+    searchParams.set('toddlers_number', String(params.passengers.toddler));
     url.search = searchParams.toString();
 
     const response = await fetch(url, {

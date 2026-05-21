@@ -64,26 +64,26 @@ type DestinationTraits = {
   has_nature: boolean;
 };
 
-const DESTINATION_TRAITS_BY_AIRPORT_ID: Record<number, DestinationTraits> = {
-  101: { has_sea: false, has_warm: false, has_nature: false }, // Шереметьево
-  102: { has_sea: false, has_warm: false, has_nature: false }, // Домодедово
-  103: { has_sea: false, has_warm: false, has_nature: false }, // Внуково
-  104: { has_sea: true, has_warm: false, has_nature: true }, // Пулково
-  105: { has_sea: false, has_warm: false, has_nature: true }, // Толмачёво
-  106: { has_sea: false, has_warm: false, has_nature: true }, // Кольцово
-  107: { has_sea: false, has_warm: false, has_nature: true }, // Казань
-  108: { has_sea: false, has_warm: true, has_nature: true }, // Краснодар
-  109: { has_sea: true, has_warm: true, has_nature: true }, // Адлер / Сочи
-  110: { has_sea: false, has_warm: true, has_nature: true }, // Курумоч
-  111: { has_sea: false, has_warm: false, has_nature: true }, // Уфа
-  112: { has_sea: true, has_warm: false, has_nature: true }, // Владивосток
-  113: { has_sea: false, has_warm: false, has_nature: true }, // Спиченково
-  114: { has_sea: false, has_warm: true, has_nature: false }, // Платов
+const DESTINATION_TRAITS_BY_AIRPORT_ID: Record<string, DestinationTraits> = {
+  svo: { has_sea: false, has_warm: false, has_nature: false }, // Шереметьево
+  dme: { has_sea: false, has_warm: false, has_nature: false }, // Домодедово
+  vko: { has_sea: false, has_warm: false, has_nature: false }, // Внуково
+  led: { has_sea: true, has_warm: false, has_nature: true }, // Пулково
+  ovb: { has_sea: false, has_warm: false, has_nature: true }, // Толмачёво
+  svx: { has_sea: false, has_warm: false, has_nature: true }, // Кольцово
+  kzn: { has_sea: false, has_warm: false, has_nature: true }, // Казань
+  krd: { has_sea: false, has_warm: true, has_nature: true }, // Краснодар
+  aer: { has_sea: true, has_warm: true, has_nature: true }, // Адлер / Сочи
+  kuF: { has_sea: false, has_warm: true, has_nature: true }, // Курумоч
+  ufa: { has_sea: false, has_warm: false, has_nature: true }, // Уфа
+  vvo: { has_sea: true, has_warm: false, has_nature: true }, // Владивосток
+  nsk: { has_sea: false, has_warm: false, has_nature: true }, // Спиченково
+  rov: { has_sea: false, has_warm: true, has_nature: false }, // Платов
 };
 
 const isEnabledParam = (value: string | null) => value === 'true';
 
-const getDestinationTraits = (airportTo: number): DestinationTraits => {
+const getDestinationTraits = (airportTo: string): DestinationTraits => {
   return (
     DESTINATION_TRAITS_BY_AIRPORT_ID[airportTo] ?? {
       has_sea: false,
@@ -93,7 +93,7 @@ const getDestinationTraits = (airportTo: number): DestinationTraits => {
   );
 };
 
-const matchesDestinationTags = (airportTo: number, url: URL) => {
+const matchesDestinationTags = (airportTo: string, url: URL) => {
   const traits = getDestinationTraits(airportTo);
 
   if (isEnabledParam(url.searchParams.get('has_sea')) && !traits.has_sea) {
@@ -159,8 +159,8 @@ export const flightHandlers = [
   http.get('/api/tickets/range', ({ request }) => {
     const url = new URL(request.url);
 
-    const airportFrom = parseNumber(url.searchParams.get('airport_from'));
-    const airportTo = parseNumber(url.searchParams.get('airport_to'));
+    const airportFrom = url.searchParams.get('airport_from') ?? '';
+    const airportTo = url.searchParams.get('airport_to') ?? '';
     const dateFrom = url.searchParams.get('from_date');
     const dateTo = url.searchParams.get('to_date');
 
@@ -221,8 +221,8 @@ export const flightHandlers = [
   http.get('/api/tickets', ({ request }) => {
     const url = new URL(request.url);
 
-    const airportFrom = parseNumber(url.searchParams.get('airport_from'));
-    const airportTo = parseNumber(url.searchParams.get('airport_to'));
+    const airportFrom = url.searchParams.get('airport_from') ?? '';
+    const airportTo = url.searchParams.get('airport_to') ?? '';
     const date = url.searchParams.get('date');
 
     if (!airportFrom || !airportTo || !date) {

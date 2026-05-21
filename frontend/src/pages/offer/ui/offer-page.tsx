@@ -193,8 +193,8 @@ const OfferPageContent = () => {
     }
 
     const params: PriceDynamicsSearchParams = {
-      airportFromId: Number(originAirportId),
-      airportToId: Number(destinationAirportId),
+      airportFromId: originAirportId,
+      airportToId: destinationAirportId,
       dateFrom: dateFrom.format('YYYY-MM-DD'),
       dateTo: dateTo.format('YYYY-MM-DD'),
       serviceClass,

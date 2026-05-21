@@ -2,8 +2,8 @@ import type { ServiceClass, TicketItemDto, TicketsResponse } from '@/shared/type
 import { companyMock } from './company-mock';
 
 type GenerateFlightsParams = {
-  airport_from: number;
-  airport_to: number;
+  airport_from: string;
+  airport_to: string;
   date: string;
   passengers_number: number;
   service_class: ServiceClass;

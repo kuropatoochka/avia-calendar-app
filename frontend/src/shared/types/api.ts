@@ -122,8 +122,8 @@ export type TicketFiltersRequest = {
 };
 
 export type TicketsRequest = {
-  airport_from: number;
-  airport_to: number;
+  airport_from: string;
+  airport_to: string;
   date: string;
   passengers_number: number;
   service_class: ServiceClass;
