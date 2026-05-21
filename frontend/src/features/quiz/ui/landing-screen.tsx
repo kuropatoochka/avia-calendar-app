@@ -11,9 +11,10 @@ import styles from './landing-screen.module.css';
 
 interface LandingScreenProps {
   onStart: () => void;
+  onBrowse: () => void;
 }
 
-export const LandingScreen = ({ onStart }: LandingScreenProps) => {
+export const LandingScreen = ({ onStart, onBrowse }: LandingScreenProps) => {
   const title = useMemo(() => pickRandom(LANDING_TITLES), []);
   const subtitle = useMemo(() => pickRandom(LANDING_SUBTITLES), []);
   const buttonText = useMemo(() => pickRandom(LANDING_BUTTONS), []);
@@ -33,6 +34,9 @@ export const LandingScreen = ({ onStart }: LandingScreenProps) => {
         </Button>
         <p className={styles.footnote}>{footnote}</p>
       </div>
+      <button type="button" className={styles.browseLink} onClick={onBrowse}>
+        Посмотреть все направления и цены →
+      </button>
     </div>
   );
 };

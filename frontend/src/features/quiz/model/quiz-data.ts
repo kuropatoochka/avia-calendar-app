@@ -11,7 +11,7 @@ export const QUESTIONS: Question[] = [
         label: 'Лежать у воды',
         sublabel: '«Не кантовать до понедельника»',
         scores: {
-          sochi: 4,
+          sochi: 3,
           vladivostok: 3,
           kaliningrad: 3,
           krasnodar: 2,
@@ -35,7 +35,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'city',
-        emoji: '🌆',
+        emoji: '🎭',
         label: 'Город и движ',
         sublabel: '«Кофе, бары, архитектура и 27к шагов»',
         scores: {
@@ -54,7 +54,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'adventure',
-        emoji: '🏔',
+        emoji: '🌋',
         label: 'Приключения',
         sublabel: '«Я заплатил деньги, чтобы устать ещё сильнее»',
         scores: {
@@ -62,7 +62,7 @@ export const QUESTIONS: Question[] = [
           altai: 3,
           dagestan: 3,
           mineralvody: 3,
-          khabarovsk: 2,
+          khabarovsk: 4,
           krasnoyarsk: 1,
           ekb: 2,
         },
@@ -103,10 +103,10 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'silence',
-        emoji: '🧘',
+        emoji: '🌿',
         label: '«Я хочу тишины. И чтобы меня никто не трогал»',
         scores: {
-          baikal: 4,
+          baikal: 2,
           karelia: 3,
           murmansk: 3,
           irkutsk: 2,
@@ -119,7 +119,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'story',
-        emoji: '🕺',
+        emoji: '💃',
         label: '«Главное — история, остальное разберём»',
         scores: {
           moscow: 3,
@@ -128,11 +128,11 @@ export const QUESTIONS: Question[] = [
           kazan: 2,
           kaliningrad: 2,
           samara: 4,
-          perm: 2,
+          perm: 4,
           ekb: 3,
           omsk: 2,
           ufa: 1,
-          irkutsk: 4,
+          irkutsk: 2,
         },
       },
     ],
@@ -154,6 +154,7 @@ export const QUESTIONS: Question[] = [
           irkutsk: 2,
           murmansk: 2,
           kazan: 1,
+          perm: 2,
         },
       },
       {
@@ -176,7 +177,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'family',
-        emoji: '👨‍👩‍👧',
+        emoji: '🫂',
         label: 'Семейный режим активирован',
         sublabel: '«Это не отдых. Это экспедиция»',
         scores: {
@@ -204,7 +205,8 @@ export const QUESTIONS: Question[] = [
           altai: 2,
           krasnoyarsk: 3,
           omsk: 4,
-          novosib: 3,
+          novosib: 4,
+          khabarovsk: 3,
         },
       },
     ],
@@ -220,7 +222,7 @@ export const QUESTIONS: Question[] = [
         sublabel: '«Есть, гулять, красиво страдать»',
         scores: {
           spb: 4,
-          nnov: 3,
+          nnov: 4,
           kaliningrad: 3,
           kazan: 2,
           moscow: 2,
@@ -230,11 +232,11 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'japan',
-        emoji: '🎌',
+        emoji: '🌸',
         label: 'Япония',
         sublabel: '«Необычно, тихо и идеально организовано»',
         scores: {
-          vladivostok: 4,
+          vladivostok: 3,
           khabarovsk: 3,
           novosib: 2,
           irkutsk: 1,
@@ -260,7 +262,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'bali',
-        emoji: '🌴',
+        emoji: '🌞',
         label: 'Бали',
         sublabel: '«Я просто хочу исчезнуть в закате»',
         scores: {
@@ -304,11 +306,12 @@ export const QUESTIONS: Question[] = [
           murmansk: 2,
           perm: 2,
           omsk: 4,
+          novosib: 3,
         },
       },
       {
         id: 'headphones',
-        emoji: '🎧',
+        emoji: '🎶',
         label: 'Наушники',
         sublabel: '«Не разговаривать — тоже отдых»',
         scores: {
@@ -322,11 +325,11 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'swimsuit',
-        emoji: '🩴',
+        emoji: '🍹',
         label: 'Купальник/сланцы',
         sublabel: '«План уже понятен»',
         scores: {
-          sochi: 4,
+          sochi: 3,
           krasnodar: 2,
           dagestan: 2,
           kaliningrad: 2,
@@ -348,13 +351,14 @@ export const QUESTIONS: Question[] = [
           baikal: 2,
           karelia: 1,
           spb: 1,
-          novosib: 1,
+          novosib: 3,
           mineralvody: 2,
+          murmansk: 3,
         },
       },
       {
         id: 'last',
-        emoji: '🏃',
+        emoji: '⚡',
         label: 'Бегу к выходу последним',
         sublabel: '«Посадка уже заканчивается? Отлично»',
         scores: {
@@ -384,7 +388,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'dutyfree',
-        emoji: '🛍',
+        emoji: '🛒',
         label: 'Duty Free — культурная программа',
         sublabel: '«Мне ничего не нужно, но посмотрю»',
         scores: {
@@ -479,6 +483,7 @@ export const QUESTIONS: Question[] = [
           irkutsk: 2,
           sochi: 1,
           perm: 2,
+          murmansk: 3,
         },
       },
       {
@@ -517,10 +522,10 @@ export const QUESTIONS: Question[] = [
         sublabel: '«Это не недостаток. Это стиль путешествий»',
         scores: {
           sochi: 3,
-          krasnodar: 3,
+          krasnodar: 4,
           tyumen: 4,
           kaliningrad: 2,
-          ufa: 3,
+          ufa: 4,
           mineralvody: 4,
         },
       },
@@ -538,8 +543,8 @@ export const QUESTIONS: Question[] = [
           dagestan: 4,
           mineralvody: 3,
           altai: 3,
-          ufa: 2,
-          krasnodar: 2,
+          ufa: 4,
+          krasnodar: 4,
           krasnoyarsk: 1,
         },
       },
@@ -557,14 +562,14 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'homemade',
-        emoji: '🥟',
+        emoji: '🥞',
         label: 'Что-то домашнее и сытное',
         scores: {
           kazan: 4,
           moscow: 2,
-          nnov: 2,
+          nnov: 4,
           ufa: 2,
-          perm: 2,
+          perm: 4,
           ekb: 1,
           samara: 1,
           tyumen: 3,
@@ -604,7 +609,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'food',
-        emoji: '🍽️',
+        emoji: '🌮',
         label: 'Найду местную еду',
         sublabel: '«Культурное погружение через желудок»',
         scores: {
@@ -613,17 +618,17 @@ export const QUESTIONS: Question[] = [
           vladivostok: 2,
           krasnodar: 2,
           ufa: 1,
-          khabarovsk: 1,
+          khabarovsk: 4,
           irkutsk: 3,
         },
       },
       {
         id: 'nothing',
-        emoji: '📱',
+        emoji: '🎯',
         label: 'Открою сохранёнки',
         sublabel: '«У меня уже есть список мест, таблица и резервный план»',
         scores: {
-          baikal: 4,
+          baikal: 2,
           karelia: 3,
           murmansk: 2,
           altai: 2,
@@ -636,7 +641,7 @@ export const QUESTIONS: Question[] = [
       },
       {
         id: 'random',
-        emoji: '🧳',
+        emoji: '🚕',
         label: 'Кину вещи и сразу куда-то уйду',
         sublabel: '«Город сам себя не исследует»',
         scores: {
@@ -959,7 +964,7 @@ export const LANDING_TITLES = [
   'Куда бы сбежать на выходные?',
   'Россия большая. А отпуск маленький.',
   'Выбираем направление вместо тебя — ну мы видим, что ты устал, работяга.',
-  'Давай честно: тебе нужен кто-то, кто примет решение.',
+  'Давай честно: тебе нужен кто-то, кто примет решение за тебя.',
 ];
 
 export const LANDING_SUBTITLES = [

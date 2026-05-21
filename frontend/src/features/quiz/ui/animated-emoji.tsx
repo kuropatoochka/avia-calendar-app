@@ -1,15 +1,11 @@
 import { clsx } from 'clsx';
 import { useState } from 'react';
 import styles from './animated-emoji.module.css';
+import { getEmojiUrl } from './emoji-utils';
 
 interface AnimatedEmojiProps {
   emoji: string;
   className?: string;
-}
-
-function getEmojiUrl(emoji: string): string {
-  const codepoints = [...emoji].map((char) => char.codePointAt(0)!.toString(16)).join('_');
-  return `https://fonts.gstatic.com/s/e/notoemoji/latest/${codepoints}/512.webp`;
 }
 
 export const AnimatedEmoji = ({ emoji, className }: AnimatedEmojiProps) => {
