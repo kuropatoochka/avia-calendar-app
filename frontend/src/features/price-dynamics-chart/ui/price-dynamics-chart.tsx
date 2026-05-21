@@ -1,7 +1,7 @@
 import type { PriceDynamicsChartItem } from '../model/types';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { cn } from '@/shared/utils';
+import { cn, priceFormatter } from '@/shared/utils';
 import {
   BAR_BASE_Y,
   BAR_GAP,
@@ -21,7 +21,6 @@ import {
   PRICE_LABEL_Y,
 } from '../model/consts';
 import { getPriceHighlightMap } from '../model/get-price-highlight-map';
-import { priceFormatter } from '../model/price-formatter';
 import styles from './price-dynamics.module.css';
 
 type RenderChartItem =

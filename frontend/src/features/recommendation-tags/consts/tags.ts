@@ -1,4 +1,4 @@
-import { EnvironmentFilled, FireFilled, MoonFilled, SunFilled } from '@ant-design/icons';
+import { MoonFilled, SunFilled } from '@ant-design/icons';
 import React from 'react';
 import type { TicketFiltersRequest } from '@/shared/types';
 
@@ -73,24 +73,24 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
     exclusiveGroup: 'departureTime',
   },
 
-  {
-    id: 'has_sea',
-    type: 'destination',
-    label: 'Море и пляж',
-    requestParam: 'has_sea',
-  },
-  {
-    id: 'has_warm',
-    type: 'destination',
-    label: 'Тепло',
-    icon: React.createElement(FireFilled, { style: { color: '#FF6B4A' } }),
-    requestParam: 'has_warm',
-  },
-  {
-    id: 'has_nature',
-    type: 'destination',
-    label: 'Природа',
-    icon: React.createElement(EnvironmentFilled, { style: { color: '#4DAA57' } }),
-    requestParam: 'has_nature',
-  },
+  // {
+  //   id: 'has_sea',
+  //   type: 'destination',
+  //   label: 'Море и пляж',
+  //   requestParam: 'has_sea',
+  // },
+  // {
+  //   id: 'has_warm',
+  //   type: 'destination',
+  //   label: 'Тепло',
+  //   icon: React.createElement(FireFilled, { style: { color: '#FF6B4A' } }),
+  //   requestParam: 'has_warm',
+  // },
+  // {
+  //   id: 'has_nature',
+  //   type: 'destination',
+  //   label: 'Природа',
+  //   icon: React.createElement(EnvironmentFilled, { style: { color: '#4DAA57' } }),
+  //   requestParam: 'has_nature',
+  // },
 ];
