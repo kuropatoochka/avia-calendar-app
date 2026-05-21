@@ -1,148 +1,214 @@
 import { Collapse, Flex, Space, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { FlightFiltersState } from '@/features/flight-filters';
 import {
+  DEFAULT_FLIGHT_FILTERS,
+  filterTicketGroups,
   FlightFilters as FlightFiltersSection,
-  FlightFiltersProvider,
+  mapFiltersToTicketRequest,
+  useCompaniesQuery,
 } from '@/features/flight-filters';
-import { FlightResultsBlock } from '@/features/flight-results';
-import type { PriceDynamicsSelection } from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
+import { useTicketsQuery } from '@/features/flight-list/model/use-tickets-query';
+import { FlightList } from '@/features/flight-list/ui/flight-list';
+import { useLaunchExperiment } from '@/features/launch-experiment';
+import type {
+  PriceDynamicsSearchParams,
+  PriceDynamicsSelection,
+} from '@/features/price-dynamics-chart';
+import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
+import type { TagId } from '@/features/recommendation-tags';
 import {
-  PriceDynamicsBlock,
-  PriceDynamicsPlaceholder,
-} from '@/features/price-dynamics-chart/ui/PriceDynamicsWrapper';
+  RecommendationTags,
+  RecommendationTagsProvider,
+  useRecommendationTags,
+} from '@/features/recommendation-tags';
+import { getRecommendationTagFilters } from '@/features/recommendation-tags/lib/get-recommendation-tag-filters';
 import type { SearchFormValues } from '@/features/search-form';
-import {
-  DEFAULT_DESTINATION_AIRPORT,
-  DEFAULT_ORIGIN_AIRPORT,
-  SearchForm,
-} from '@/features/search-form';
-import { airportMock } from '@/shared/api';
+import { SearchForm } from '@/features/search-form';
 import { ArrowDown } from '@/shared/assets';
-import type { FlightsRequest, PriceDynamicsRequest } from '@/shared/types';
+import type { TicketsRequest } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import styles from './offer-page.module.css';
 
-type PriceDynamicsChartConfig = {
-  label: string;
-  params: PriceDynamicsRequest;
-  originLabel: string;
-  destinationLabel: string;
+const DEFAULT_TICKETS_LIMIT = 100;
+
+const DEFAULT_BAGGAGE_WEIGHT = 20;
+
+const getPassengerCount = (params: PriceDynamicsSearchParams | null) => {
+  if (!params) {
+    return 1;
+  }
+
+  return params.passengersNumber + (params.childrenNumber ?? 0) + (params.toddlersNumber ?? 0);
 };
 
-type ActiveSearchState = {
-  baseParams: PriceDynamicsRequest;
-  tripType: SearchFormValues['tripType'];
-  originLabel: string;
-  destinationLabel: string;
+const getDefaultBaggageWeights = (params: PriceDynamicsSearchParams | null) => {
+  return Array.from({ length: getPassengerCount(params) }, () => DEFAULT_BAGGAGE_WEIGHT);
 };
 
-const DEFAULT_AIRPORTS = [DEFAULT_ORIGIN_AIRPORT, DEFAULT_DESTINATION_AIRPORT];
-
-const OfferPage = () => {
-  const [activeSearch, setActiveSearch] = useState<ActiveSearchState | null>(null);
-  const [flightSearchParams, setFlightSearchParams] = useState<FlightsRequest | null>(null);
+const OfferPageContent = () => {
+  const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(null);
+  const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
+  const [filterKey, setFilterKey] = useState(0);
+  const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
   const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
-  const airportLookup = useMemo(() => {
-    const entries = [...airportMock, ...DEFAULT_AIRPORTS];
+  const variant = useLaunchExperiment();
+  const showRecommendationTags = variant === 'B';
 
-    return new Map(entries.map((airport) => [airport.id, airport]));
-  }, []);
+  const { selectedTagIds } = useRecommendationTags();
 
-  const getAirportLabel = (airportId: string) => {
-    return airportLookup.get(airportId)?.airport ?? airportId.toUpperCase();
-  };
-
-  const handleSearch = (values: SearchFormValues) => {
-    const [dateFrom, dateTo] = values.dateRange;
-    const [originAirportId, destinationAirportId] = [
-      values.originAirport,
-      values.destinationAirport,
-    ];
-
-    if (!dateFrom || !dateTo || originAirportId === destinationAirportId) {
-      setActiveSearch(null);
-      setFlightSearchParams(null);
+  const handleRecommendationTagToggle = (tagId: TagId, selected: boolean) => {
+    if (!showRecommendationTags) {
       return;
     }
 
-    const baseParams: PriceDynamicsRequest = {
-      originAirportId,
-      destinationAirportId,
-      dateFrom: dateFrom.format('YYYY-MM-DD'),
-      dateTo: dateTo.format('YYYY-MM-DD'),
-      passengers: {
-        adults: values.passengers.adults,
-        children: values.passengers.children,
-        toddler: values.passengers.toddler,
-        animals: values.passengers.animals,
-      },
-      serviceClass: values.serviceClass,
-    };
+    if (
+      tagId !== 'morning_departure' &&
+      tagId !== 'night_departure' &&
+      tagId !== 'direct_flight' &&
+      tagId !== 'baggage_included'
+    ) {
+      return;
+    }
 
-    setActiveSearch({
-      baseParams,
-      tripType: values.tripType,
-      originLabel: getAirportLabel(values.originAirport),
-      destinationLabel: getAirportLabel(values.destinationAirport),
+    setActiveFilters((prev) => {
+      const nextFilters = prev ?? DEFAULT_FLIGHT_FILTERS;
+
+      if (tagId === 'morning_departure' || tagId === 'night_departure') {
+        return {
+          ...nextFilters,
+          departureTime: selected ? (tagId === 'morning_departure' ? 'morning' : 'night') : null,
+        };
+      }
+
+      if (tagId === 'direct_flight') {
+        return {
+          ...nextFilters,
+          stopsFilterType: selected ? 'direct' : null,
+          maxStops: selected ? 0 : DEFAULT_FLIGHT_FILTERS.maxStops,
+        };
+      }
+
+      if (tagId === 'baggage_included') {
+        return {
+          ...nextFilters,
+          baggageEnabled: selected,
+          baggageWeights: selected
+            ? getDefaultBaggageWeights(searchParams)
+            : DEFAULT_FLIGHT_FILTERS.baggageWeights,
+          extraBaggageEntries: selected
+            ? nextFilters.extraBaggageEntries
+            : DEFAULT_FLIGHT_FILTERS.extraBaggageEntries,
+        };
+      }
+
+      return nextFilters;
     });
-    setFlightSearchParams(null);
   };
 
-  const priceDynamicsCharts = useMemo<PriceDynamicsChartConfig[] | null>(() => {
-    if (!activeSearch) {
-      return null;
+  const { ticketGroups, fetchTickets, resetTickets, isTicketsLoading, ticketsError } =
+    useTicketsQuery();
+  const { companies } = useCompaniesQuery();
+
+  const companyOptions = useMemo(
+    () =>
+      companies.map((company) => ({
+        value: company.id,
+        label: company.name,
+      })),
+    [companies],
+  );
+
+  const visibleTicketGroups = useMemo(
+    () => filterTicketGroups(ticketGroups, activeFilters),
+    [ticketGroups, activeFilters],
+  );
+
+  console.log('[FRONT] visible tickets', {
+    raw: ticketGroups.length,
+    visible: visibleTicketGroups.length,
+    stops: visibleTicketGroups.map((group) => group.length - 1),
+    durations: visibleTicketGroups.map((group) =>
+      group.reduce((sum, ticket) => sum + ticket.duration, 0),
+    ),
+  });
+
+  const filtersKey = useMemo(
+    () => `${filterKey}-${JSON.stringify(activeFilters ?? DEFAULT_FLIGHT_FILTERS)}`,
+    [filterKey, activeFilters],
+  );
+
+  useEffect(() => {
+    if (!selectedPriceDate || !searchParams) {
+      return;
     }
 
-    const charts: PriceDynamicsChartConfig[] = [
-      {
-        label: 'Туда',
-        params: activeSearch.baseParams,
-        originLabel: activeSearch.originLabel,
-        destinationLabel: activeSearch.destinationLabel,
-      },
-    ];
+    const request: TicketsRequest = {
+      airport_from: selectedPriceDate.airportFromId,
+      airport_to: selectedPriceDate.airportToId,
+      date: selectedPriceDate.date,
+      service_class: searchParams.serviceClass,
+      passengers_number: searchParams.passengersNumber,
+      children_number: searchParams.childrenNumber ?? 0,
+      todlers_number: searchParams.toddlersNumber ?? 0,
+      offset: 0,
+      limit: DEFAULT_TICKETS_LIMIT,
+      ...(activeFilters ? mapFiltersToTicketRequest(activeFilters) : {}),
+      ...(showRecommendationTags ? getRecommendationTagFilters(selectedTagIds) : {}),
+    };
 
-    if (activeSearch.tripType === 'roundTrip') {
-      charts.push({
-        label: 'Обратно',
-        params: {
-          ...activeSearch.baseParams,
-          originAirportId: activeSearch.baseParams.destinationAirportId,
-          destinationAirportId: activeSearch.baseParams.originAirportId,
-        },
-        originLabel: activeSearch.destinationLabel,
-        destinationLabel: activeSearch.originLabel,
-      });
-    }
+    void fetchTickets(request);
+  }, [
+    selectedPriceDate,
+    activeFilters,
+    searchParams,
+    selectedTagIds,
+    fetchTickets,
+    showRecommendationTags,
+  ]);
 
-    return charts;
-  }, [activeSearch]);
+  const handleApplyFilters = (filters: FlightFiltersState) => {
+    setActiveFilters(filters);
+  };
 
   const handleShowFlights = (selection: PriceDynamicsSelection) => {
-    if (!activeSearch) return;
+    setSelectedPriceDate(selection);
+  };
 
-    const isReturn = selection.direction === 'return';
-    const originAirportId = isReturn
-      ? activeSearch.baseParams.destinationAirportId
-      : activeSearch.baseParams.originAirportId;
-    const destinationAirportId = isReturn
-      ? activeSearch.baseParams.originAirportId
-      : activeSearch.baseParams.destinationAirportId;
+  const handleSearch = (values: SearchFormValues) => {
+    const { originAirportId, destinationAirportId, dateRange, tripType, serviceClass, passengers } =
+      values;
 
-    setFlightSearchParams({
-      originAirportId,
-      destinationAirportId,
-      date: selection.date,
-      passengers: activeSearch.baseParams.passengers,
-      serviceClass: activeSearch.baseParams.serviceClass,
-    });
+    const [dateFrom, dateTo] = dateRange;
+
+    if (!dateFrom || !dateTo) {
+      return;
+    }
+
+    const params: PriceDynamicsSearchParams = {
+      airportFromId: originAirportId,
+      airportToId: destinationAirportId,
+      dateFrom: dateFrom.format('YYYY-MM-DD'),
+      dateTo: dateTo.format('YYYY-MM-DD'),
+      serviceClass,
+      tripType,
+      passengersNumber: passengers.adults,
+      childrenNumber: passengers.children,
+      toddlersNumber: passengers.toddler,
+    };
+
+    setSelectedPriceDate(null);
+    resetTickets();
+    setActiveFilters(null);
+    setSearchParams(params);
+    setFilterKey((key) => key + 1);
   };
 
   return (
     <div className={styles.page}>
       <Flex vertical gap={32}>
-        <Space direction="vertical" size={8}>
+        <Space orientation="vertical" size={8}>
           <Typography.Title>Куда летим?</Typography.Title>
           <Typography.Paragraph type="secondary">
             Да хоть куда, лишь бы подешевле...
@@ -161,51 +227,60 @@ const OfferPage = () => {
           expandIcon={({ isActive }) => (
             <ArrowDown className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)} />
           )}
+          ghost
+          expandIconPlacement="end"
           items={[
             {
               key: 'price-dynamics',
-              label: (
-                <Typography.Title level={4} className={styles.sectionTitle}>
-                  Динамика цен
-                </Typography.Title>
-              ),
+              label: <Typography.Title level={2}>График цен</Typography.Title>,
               children: (
-                <div className={styles.collapseBody}>
-                  {priceDynamicsCharts ? (
-                    <PriceDynamicsBlock
-                      sections={priceDynamicsCharts}
-                      onShowFlights={handleShowFlights}
-                    />
-                  ) : (
-                    <PriceDynamicsPlaceholder />
-                  )}
-                </div>
+                <PriceDynamicsContainer params={searchParams} onSelect={handleShowFlights} />
               ),
             },
           ]}
         />
 
-        <FlightFiltersProvider>
-          <div className={styles.columns}>
-            {flightSearchParams && <FlightResultsBlock searchParams={flightSearchParams} />}
-            <aside className={styles.filterWrapper}>
-              <FlightFiltersSection
-                passengers={
-                  activeSearch
-                    ? {
-                        adults: activeSearch.baseParams.passengers.adults,
-                        children: activeSearch.baseParams.passengers.children,
-                        toddler: activeSearch.baseParams.passengers.toddler,
-                      }
-                    : undefined
-                }
-              />
-            </aside>
-          </div>
-        </FlightFiltersProvider>
+        <div className={styles.columns}>
+          <Flex component="main" gap={24} vertical className={styles.resultsColumn}>
+            {showRecommendationTags && (
+              <RecommendationTags onTagToggle={handleRecommendationTagToggle} />
+            )}
+
+            <FlightList
+              flights={visibleTicketGroups}
+              isLoading={isTicketsLoading}
+              error={ticketsError}
+              isIdle={selectedPriceDate === null}
+            />
+          </Flex>
+
+          <aside className={styles.filterWrapper}>
+            <FlightFiltersSection
+              key={filtersKey}
+              filters={activeFilters}
+              onApply={handleApplyFilters}
+              companyOptions={companyOptions}
+              passengers={
+                searchParams
+                  ? {
+                      adults: searchParams.passengersNumber,
+                      children: searchParams?.childrenNumber ?? 0,
+                      toddler: searchParams?.toddlersNumber ?? 0,
+                    }
+                  : undefined
+              }
+            />
+          </aside>
+        </div>
       </Flex>
     </div>
   );
 };
+
+const OfferPage = () => (
+  <RecommendationTagsProvider>
+    <OfferPageContent />
+  </RecommendationTagsProvider>
+);
 
 export default OfferPage;

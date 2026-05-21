@@ -1,20 +1,13 @@
-.tags {
-  max-width: 800px;
-}
-
 .tag {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-md);
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-full);
   border: 1px solid transparent;
   background-color: var(--color-background-primary);
   color: var(--color-primary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-sm);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 8px rgb(20 20 20 / 15%);
   cursor: pointer;
   transition:
     border-color 0.15s,
@@ -24,7 +17,6 @@
     transform 0.1s;
   white-space: nowrap;
   user-select: none;
-  font-family: var(--font-family);
 }
 
 .tag:hover {

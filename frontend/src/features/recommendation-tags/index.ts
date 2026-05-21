@@ -1,5 +1,4 @@
-export { RecommendationTagsProvider } from './ui/RecommendationTagsProvider';
-export { RecommendationTags } from './ui/RecommendationTags';
-export { useRecommendationTags } from './lib/useRecommendationTags';
-export { useTagFilter } from './lib/useTagFilter';
-export type { TagId, RecommendationTag } from './consts/tags';
+export type { RecommendationTag, TagId } from './consts/tags';
+export { useRecommendationTags } from './lib/use-recommendation-tags';
+export { RecommendationTags } from './ui/recommendation-tags';
+export { RecommendationTagsProvider } from './ui/recommendation-tags-provider';

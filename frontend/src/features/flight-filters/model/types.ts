@@ -1,25 +1,33 @@
 export type DepartureTime = 'morning' | 'afternoon' | 'evening' | 'night';
 
+export type StopsFilterType = 'direct' | 'withStops' | null;
+
 export type ExtraBaggageEntry = {
   passengerIndex: number;
   weight: number;
 };
 
 export type FlightFiltersState = {
-  // ПЕРЕЛЁТ
+  // ФРОНТ
+  stopsFilterType: StopsFilterType;
   maxStops: number;
-  stopDurationRange: [number, number];
   maxFlightDuration: number;
-  departureTimes: DepartureTime[];
-  arrivalTimes: DepartureTime[];
-  // СТОИМОСТЬ
+
+  // БЭК: один диапазон времени вылета
+  departureTime: DepartureTime | null;
+
+  // БЭК
   maxPrice: number;
-  // УСЛОВИЯ
+
+  // БЭК: вес багажа
   baggageEnabled: boolean;
   baggageWeights: number[];
   extraBaggageEntries: ExtraBaggageEntry[];
-  airlines: string[];
+
+  // БЭК: company CSV
+  airlines: number[];
+
+  // БЭК: животные добавляются к baggage_size
   petsEnabled: boolean;
-  animalCount: number;
   animalWeights: number[];
 };

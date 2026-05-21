@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { FlightService } from '@/shared/api';
 import type { FlightDto, FlightsRequest } from '@/shared/types';
 
 export const useFlightResults = (params: FlightsRequest | null) => {
@@ -15,7 +14,13 @@ export const useFlightResults = (params: FlightsRequest | null) => {
       setError(null);
 
       try {
-        const response = await FlightService.getFlights(params);
+        const searchParams = new URLSearchParams({
+          originAirportId: params.originAirportId,
+          destinationAirportId: params.destinationAirportId,
+          date: params.date,
+          serviceClass: params.serviceClass,
+        });
+        const response = await fetch(`/api/flights?${searchParams.toString()}`);
 
         if (!response.ok) {
           setError('Ошибка загрузки данных');
@@ -31,7 +36,7 @@ export const useFlightResults = (params: FlightsRequest | null) => {
       }
     };
 
-    fetchData();
+    void fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.originAirportId, params?.destinationAirportId, params?.date, params?.serviceClass]);
 

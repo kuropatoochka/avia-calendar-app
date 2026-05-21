@@ -93,3 +93,72 @@ export type FlightDto = {
   petsAllowed: boolean;
   availableSeats: number;
 };
+
+// --- Types from develop (real backend API shapes) ---
+
+export type CompanyDto = {
+  id: number;
+  name: string;
+};
+
+export type CompaniesDto = {
+  items: CompanyDto[];
+  total: number;
+  offset: number;
+  limit: number;
+};
+
+export type TicketFiltersRequest = {
+  departure_from_time?: string;
+  departure_to_time?: string;
+  company?: string;
+  price_to?: number;
+  todlers_number?: number;
+  children_number?: number;
+  baggage_size?: number;
+  has_sea?: boolean;
+  has_warm?: boolean;
+  has_nature?: boolean;
+};
+
+export type TicketsRequest = {
+  airport_from: number;
+  airport_to: number;
+  date: string;
+  passengers_number: number;
+  service_class: ServiceClass;
+  offset: number;
+  limit: number;
+} & TicketFiltersRequest;
+
+export type TicketPricesDto = {
+  total: number;
+  price: number;
+  children_price: number;
+  todlers_price: number;
+  baggage_price: number;
+};
+
+export type TicketItemDto = {
+  city_from: string;
+  city_to: string;
+  airport_from: string;
+  airport_to: string;
+  flight_number: number;
+  company_name: string;
+  duration: number;
+  departure_date: string;
+  departure_time: string;
+  arrival_date: string;
+  arrival_time: string;
+  plane_type: string;
+  plane_number: string;
+  prices: TicketPricesDto;
+};
+
+export type TicketsResponse = {
+  items: TicketItemDto[][];
+  total: number;
+  offset: number;
+  limit: number;
+};

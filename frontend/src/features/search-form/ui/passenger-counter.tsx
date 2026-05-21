@@ -25,7 +25,7 @@ export const PassengerCounter = ({
         <Typography.Text>{label}</Typography.Text>
         {helpText && (
           <Tooltip title={helpText} placement="top">
-            <QuestionCircleOutlined style={{ color: 'var(--color-text-secondary)' }} />
+            <QuestionCircleOutlined style={{ color: 'var(--color-accent)' }} />
           </Tooltip>
         )}
       </Space>
