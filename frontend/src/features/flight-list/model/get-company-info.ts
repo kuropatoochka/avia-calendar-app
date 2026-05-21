@@ -11,3 +11,12 @@ const AIRLINE_LOGOS: Record<string, string> = {
 export const getAirlineLogo = (companyName: string): string | undefined => {
   return AIRLINE_LOGOS[companyName];
 };
+
+export const getCompanyShortName = (company: string) => {
+  return company
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+};

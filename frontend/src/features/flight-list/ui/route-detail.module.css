@@ -1,0 +1,45 @@
+.routeDetail {
+  width: 320px;
+}
+
+.routeSegment {
+  width: 100%;
+}
+
+.routePoints {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding-left: 4px;
+}
+
+.routePoint {
+  display: grid;
+  grid-template-columns: 12px 48px 1fr;
+  align-items: flex-start;
+  column-gap: 8px;
+}
+
+.routeDot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.routeLine {
+  width: 1px;
+  height: 18px;
+  margin-left: 7px;
+  background: var(--color-border);
+}
+
+.routeTime {
+  font-variant-numeric: tabular-nums;
+}
+
+.routeTransfer {
+  width: fit-content;
+  margin-inline-start: 0;
+}

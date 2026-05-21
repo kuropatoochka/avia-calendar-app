@@ -4,6 +4,10 @@ export const formatDate = (date: string) => {
   return dayjs(date).format('DD.MM.YYYY');
 };
 
+export const timeFormatter = (time: string) => {
+  return time.slice(0, 5);
+};
+
 export const priceFormatter = new Intl.NumberFormat('ru-RU', {
   currency: 'RUB',
   style: 'currency',
@@ -36,5 +40,3 @@ export const stopsFormatter = (stopsCount: number) => {
 
   return `${stopsCount} пересадки`;
 };
-
-export const timeFormatter = (time: string) => time.slice(0, 5);

@@ -1,7 +1,7 @@
 import type { FlightCardViewModel } from '../model/types';
-import { Avatar, Flex, Modal, Tooltip, Typography } from 'antd';
+import { Avatar, Divider, Flex, Modal, Tooltip, Typography } from 'antd';
 import { cn, durationFormatter, stopsFormatter } from '@/shared/utils';
-import { getAirlineLogo } from '../model/airline-logos';
+import { getAirlineLogo } from '../model/get-company-info';
 import styles from './flight-booking-modal.module.css';
 
 type Props = {
@@ -55,10 +55,9 @@ export const FlightBookingModal = ({ flight, open, onClose }: Props) => {
             </Typography.Text>
           </Flex>
         </Flex>
+        <Divider />
       </Flex>
-      {/* <div className={styles.modalAirline}>...</div>
-
-      <div className={styles.modalDivider} />
+      {/* 
 
       <div className={styles.modalGrid}>...</div>
 
