@@ -1,4 +1,8 @@
-export type { FlightBookingDetails, FlightCardViewModel } from './model/types';
+export type {
+  FlightBookingDetails,
+  FlightBookingPayload,
+  FlightCardViewModel,
+} from './model/types';
 
 export { useTicketsQuery } from './model/use-tickets-query';
 

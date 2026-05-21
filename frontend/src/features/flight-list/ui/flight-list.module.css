@@ -6,7 +6,7 @@
   min-height: 180px;
   padding: 32px;
   border-radius: 24px;
-  background: var(--color-bg-container);
+  background-color: var(--background-section);
 }
 
 .header {
