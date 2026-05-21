@@ -1,17 +1,16 @@
-import { Flex, Space, Typography } from 'antd';
+import { Quiz } from '@/features/quiz';
 import styles from './search-page.module.css';
 
 const SearchPage = () => {
   return (
     <div className={styles.page}>
-      <Flex vertical gap={32}>
-        <Space direction="vertical" size={8}>
-          <Typography.Title>Не знаю куда лететь</Typography.Title>
-          <Typography.Paragraph type="secondary">
-            Мы тоже не знаем. Но сейчас выясним.
-          </Typography.Paragraph>
-        </Space>
-      </Flex>
+      <div className={styles.hero}>
+        <h1 className={styles.heroTitle}>Не знаю куда лететь</h1>
+        <p className={styles.heroSubtitle}>Мы тоже не знаем. Но сейчас выясним.</p>
+      </div>
+      <div className={styles.card}>
+        <Quiz />
+      </div>
     </div>
   );
 };
