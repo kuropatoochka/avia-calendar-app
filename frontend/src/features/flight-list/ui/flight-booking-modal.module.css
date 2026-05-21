@@ -28,3 +28,13 @@
 .divider {
     margin: 0;
 }
+
+.modalLabel {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-2xs);
+}
+
+.modalValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}

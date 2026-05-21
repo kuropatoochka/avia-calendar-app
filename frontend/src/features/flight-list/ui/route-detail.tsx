@@ -45,7 +45,7 @@ type Props = {
   flight: FlightCardViewModel;
 };
 
-export const FlightRouteDetail = ({ flight }: Props) => {
+export const RouteDetail = ({ flight }: Props) => {
   const segments = getRouteSegments(flight);
 
   return (

@@ -1,4 +1,5 @@
 import ArrowDown from './ArrowDown.svg';
+import ArrowRight from './ArrowRight.svg';
 import ArrowRotateLeft from './ArrowRotateLeft.svg';
 import ArrowUp from './ArrowUp.svg';
 import Cross from './Cross.svg';
@@ -21,6 +22,7 @@ export {
   Search,
   ArrowUp,
   ArrowDown,
+  ArrowRight,
   ExclamationMark,
   Cross,
   Swap,
