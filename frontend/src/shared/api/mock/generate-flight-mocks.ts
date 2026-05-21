@@ -150,8 +150,8 @@ const createSegment = ({
   todlersPrice,
   baggagePrice,
 }: {
-  airportFrom: number;
-  airportTo: number;
+  airportFrom: string;
+  airportTo: string;
   cityFrom: string;
   cityTo: string;
   date: string;
