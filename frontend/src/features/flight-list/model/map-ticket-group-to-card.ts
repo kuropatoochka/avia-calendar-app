@@ -25,6 +25,7 @@ export const mapTicketGroupToCard = (
     arrivalTime: lastTicket.arrival_time,
     duration: ticketGroup.reduce((sum, ticket) => sum + ticket.duration, 0),
     price: firstTicket.prices.total,
+    prices: firstTicket.prices,
     companyNames: [...new Set(ticketGroup.map((ticket) => ticket.company_name))],
     stopsCount: Math.max(ticketGroup.length - 1, 0),
     planeTypes: [...new Set(ticketGroup.map((ticket) => ticket.plane_type))],

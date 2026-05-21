@@ -5,7 +5,7 @@
 
 .stopsBadge {
   width: fit-content;
-  padding: 6px 14px;
+  padding: 4px 14px;
   border-radius: 999px;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .divider {
-    margin: 0;
+    margin: 8px 0;
 }
 
 .modalLabel {
@@ -36,5 +36,21 @@
 
 .modalValue {
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.switchButton {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.switchText {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+}
+
+.switchText:last-child {
   font-weight: var(--font-weight-semibold);
 }

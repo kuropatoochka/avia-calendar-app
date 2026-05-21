@@ -8,8 +8,8 @@ import {
   mapFiltersToTicketRequest,
   useCompaniesQuery,
 } from '@/features/flight-filters';
-import { useTicketsQuery } from '@/features/flight-list/model/use-tickets-query';
-import { FlightList } from '@/features/flight-list/ui/flight-list';
+import type { FlightCardViewModel } from '@/features/flight-list';
+import { FlightList, useTicketsQuery } from '@/features/flight-list';
 import { useLaunchExperiment } from '@/features/launch-experiment';
 import type {
   PriceDynamicsSearchParams,
@@ -18,11 +18,11 @@ import type {
 import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
 import type { TagId } from '@/features/recommendation-tags';
 import {
+  getRecommendationTagFilters,
   RecommendationTags,
   RecommendationTagsProvider,
   useRecommendationTags,
 } from '@/features/recommendation-tags';
-import { getRecommendationTagFilters } from '@/features/recommendation-tags/lib/get-recommendation-tag-filters';
 import type { SearchFormValues } from '@/features/search-form';
 import { SearchForm } from '@/features/search-form';
 import { ArrowDown } from '@/shared/assets';
@@ -105,6 +105,37 @@ const OfferPageContent = () => {
 
       return nextFilters;
     });
+  };
+
+  const bookingDetails = useMemo(() => {
+    if (!searchParams) {
+      return null;
+    }
+
+    const filters = activeFilters ?? DEFAULT_FLIGHT_FILTERS;
+
+    return {
+      serviceClass: searchParams.serviceClass,
+      passengers: {
+        adults: searchParams.passengersNumber,
+        children: searchParams.childrenNumber ?? 0,
+        toddler: searchParams.toddlersNumber ?? 0,
+      },
+      baggage: {
+        enabled: filters.baggageEnabled,
+        weights: filters.baggageWeights,
+      },
+    };
+  }, [searchParams, activeFilters]);
+
+  const handleBookFlight = (flight: FlightCardViewModel) => {
+    // TODO: вызвать ручку бронирования
+    // flight.id
+    // searchParams.serviceClass
+    // passengers
+    // baggage
+
+    console.log(flight);
   };
 
   const { ticketGroups, fetchTickets, resetTickets, isTicketsLoading, ticketsError } =
@@ -251,6 +282,8 @@ const OfferPageContent = () => {
               isLoading={isTicketsLoading}
               error={ticketsError}
               isIdle={selectedPriceDate === null}
+              bookingDetails={bookingDetails}
+              onBook={handleBookFlight}
             />
           </Flex>
 

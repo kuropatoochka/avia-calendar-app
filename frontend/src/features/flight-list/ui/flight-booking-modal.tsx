@@ -1,35 +1,65 @@
-import type { FlightCardViewModel } from '../model/types';
+import type {
+  FlightBookingDetails,
+  FlightBookingPayload,
+  FlightCardViewModel,
+} from '../model/types';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Avatar, Col, Divider, Flex, Modal, Popover, Row, Tooltip, Typography } from 'antd';
+import { Avatar, Button, Col, Divider, Flex, Modal, Popover, Row, Tooltip, Typography } from 'antd';
+import { useMemo, useState } from 'react';
 import { ArrowRight } from '@/shared/assets';
-import { cn, durationFormatter, formatDate, stopsFormatter, timeFormatter } from '@/shared/utils';
+import {
+  cn,
+  durationFormatter,
+  formatDate,
+  priceFormatter,
+  stopsFormatter,
+  timeFormatter,
+} from '@/shared/utils';
+import { formatPassengersLabel, formatServiceClass } from '../model/formatter';
+import { getBaggageOptions } from '../model/get-baggage-info';
 import { getAirlineLogo } from '../model/get-company-info';
+import { BaggageDetail } from './baggage-detail';
 import styles from './flight-booking-modal.module.css';
 import { RouteDetail } from './route-detail';
 
 type Props = {
   flight: FlightCardViewModel;
+  bookingDetails: FlightBookingDetails;
   open: boolean;
   onClose: () => void;
+  onBook: (payload: FlightBookingPayload) => void;
 };
 
-export const FlightBookingModal = ({ flight, open, onClose }: Props) => {
-  const { cityFrom, cityTo, companyNames, stopsCount, duration } = flight || {};
+export const FlightBookingModal = ({ flight, bookingDetails, open, onBook, onClose }: Props) => {
+  const { cityFrom, cityTo, companyNames, stopsCount, duration } = flight;
 
-  if (!flight) {
-    return null;
-  }
+  const baggageOptions = useMemo(
+    () =>
+      getBaggageOptions({
+        prices: flight.prices,
+        initialBaggageEnabled: bookingDetails.baggage.enabled,
+      }),
+    [flight.prices, bookingDetails.baggage.enabled],
+  );
+
+  const [selectedBaggageOption, setSelectedBaggageOption] = useState(() =>
+    bookingDetails.baggage.enabled ? baggageOptions.withBaggage : baggageOptions.withoutBaggage,
+  );
+
+  const alternativeBaggageOption = selectedBaggageOption.enabled
+    ? baggageOptions.withoutBaggage
+    : baggageOptions.withBaggage;
+
+  const handleBook = () => {
+    onBook({
+      flight,
+      baggage: selectedBaggageOption,
+      price: selectedBaggageOption.price,
+    });
+  };
 
   return (
-    <Modal
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={720}
-      title="Детали рейса"
-      centered
-      className={styles.flightModal}
-    >
+    <Modal open={open} onCancel={onClose} footer={null} width={520} title="Детали рейса" centered>
       <Flex vertical gap={8}>
         <Flex justify="space-between" align="center">
           <Flex className={styles.block}>
@@ -61,9 +91,9 @@ export const FlightBookingModal = ({ flight, open, onClose }: Props) => {
           </Flex>
         </Flex>
 
-        <Divider />
+        <Divider className={styles.divider} />
 
-        <Row gutter={[48, 24]}>
+        <Row gutter={[48, 16]}>
           <Col xs={24} sm={12}>
             <Flex className={styles.block}>
               <Typography.Text className={styles.modalLabel}>Дата</Typography.Text>
@@ -101,81 +131,63 @@ export const FlightBookingModal = ({ flight, open, onClose }: Props) => {
               </Typography.Text>
             </Flex>
           </Col>
+          <Col xs={24} sm={12}>
+            <Flex className={styles.block}>
+              <Typography.Text className={styles.modalLabel}>Пассажиры</Typography.Text>
+              <Typography.Text className={styles.modalValue}>
+                {formatPassengersLabel(bookingDetails.passengers)}
+              </Typography.Text>
+            </Flex>
+          </Col>
 
-          {/* TODO: вернуть после добавления пассажиров в модель предложения */}
-          {/* <Flex vertical className={styles.block}>
-    <Flex align="center" gap={6}>
-      <Typography.Text className={styles.modalLabel}>Пассажиры</Typography.Text>
+          <Col xs={24} sm={12}>
+            <Flex className={styles.block}>
+              <Typography.Text className={styles.modalLabel}>Класс</Typography.Text>
+              <Typography.Text className={styles.modalValue}>
+                {formatServiceClass(bookingDetails.serviceClass)}
+              </Typography.Text>
+            </Flex>
+          </Col>
 
-      <Popover
-        content={<PassengerDetail />}
-        trigger="hover"
-        placement="right"
-        overlayStyle={{ maxWidth: 260 }}
-      >
-        <InfoCircleOutlined className={styles.modalInfoIcon} />
-      </Popover>
-    </Flex>
-
-    <Typography.Text className={styles.modalValue}>
-      {formatPassengers(passengersCount)}
-    </Typography.Text>
-  </Flex> */}
-
-          {/* TODO: вернуть после добавления класса обслуживания в модель предложения */}
-          {/* <Flex vertical className={styles.block}>
-    <Flex align="center" gap={6}>
-      <Typography.Text className={styles.modalLabel}>Класс</Typography.Text>
-
-      <Popover
-        content={<ClassDetail />}
-        trigger="hover"
-        placement="right"
-        overlayStyle={{ maxWidth: 260 }}
-      >
-        <InfoCircleOutlined className={styles.modalInfoIcon} />
-      </Popover>
-    </Flex>
-
-    <Typography.Text className={styles.modalValue}>
-      Эконом
-    </Typography.Text>
-  </Flex> */}
-
-          {/* TODO: вернуть после добавления багажа в модель предложения */}
-          {/* <Flex vertical className={styles.block}>
-    <Flex align="center" gap={6}>
-      <Typography.Text className={styles.modalLabel}>Багаж</Typography.Text>
-
-      <Popover
-        content={<BaggageDetail />}
-        trigger="hover"
-        placement="right"
-        overlayStyle={{ maxWidth: 300 }}
-      >
-        <InfoCircleOutlined className={styles.modalInfoIcon} />
-      </Popover>
-    </Flex>
-
-    <Typography.Text className={styles.modalValue}>
-      Ручная кладь · 10 кг
-    </Typography.Text>
-  </Flex> */}
+          <Col xs={24} sm={12}>
+            <Flex vertical className={styles.block}>
+              <Flex align="center" gap={6}>
+                <Typography.Text className={styles.modalLabel}>Багаж</Typography.Text>
+                <Popover
+                  content={
+                    <BaggageDetail
+                      selectedOption={selectedBaggageOption}
+                      alternativeOption={alternativeBaggageOption}
+                      onChange={setSelectedBaggageOption}
+                    />
+                  }
+                  trigger="hover"
+                  placement="right"
+                >
+                  <InfoCircleOutlined style={{ color: 'var(--color-accent)' }} />
+                </Popover>
+              </Flex>
+              <Typography.Text className={styles.modalValue}>
+                {selectedBaggageOption.label}
+              </Typography.Text>
+            </Flex>
+          </Col>
         </Row>
+
+        <Divider className={styles.divider} />
+
+        <Flex className={styles.block}>
+          <Typography.Text type="secondary" className={styles.modalLabel}>
+            Цена предложения
+          </Typography.Text>
+          <Typography.Title level={2}>
+            {priceFormatter.format(selectedBaggageOption.price)}
+          </Typography.Title>
+          <Button type="primary" size="large" onClick={handleBook}>
+            Забронировать
+          </Button>
+        </Flex>
       </Flex>
-      {/* 
-
-      <div className={styles.modalGrid}>...</div>
-
-      <div className={styles.modalDivider} />
-
-      <div className={styles.modalSegments}>...</div>
-
-      <div className={styles.modalDivider} />
-
-      <div className={styles.modalPriceRow}>...</div>
-
-      <div className={styles.modalBtnRow}>...</div> */}
     </Modal>
   );
 };

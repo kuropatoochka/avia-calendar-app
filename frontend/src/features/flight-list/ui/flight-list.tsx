@@ -1,4 +1,4 @@
-import type { FlightCardViewModel } from '../model/types';
+import type { FlightBookingDetails, FlightCardViewModel } from '../model/types';
 import { Button, Flex, Spin, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import type { TicketItemDto } from '@/shared/types';
@@ -12,6 +12,8 @@ type Props = {
   isLoading: boolean;
   error: string | null;
   isIdle: boolean;
+  bookingDetails: FlightBookingDetails | null;
+  onBook: (flight: FlightCardViewModel) => void;
 };
 
 const PREVIEW_COUNT = 3;
@@ -20,7 +22,14 @@ const isFlightCardViewModel = (value: FlightCardViewModel | null): value is Flig
   return value !== null;
 };
 
-export const FlightList = ({ flights, isLoading, error, isIdle }: Props) => {
+export const FlightList = ({
+  flights,
+  isLoading,
+  error,
+  isIdle,
+  bookingDetails,
+  onBook,
+}: Props) => {
   const [expanded, setExpanded] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState<FlightCardViewModel | null>(null);
 
@@ -61,7 +70,9 @@ export const FlightList = ({ flights, isLoading, error, isIdle }: Props) => {
   if (cards.length === 0) {
     return (
       <Flex justify="center" align="center" className={styles.placeholder}>
-        <Typography.Text type="secondary">Рейсов по заданным фильтрам не найдено</Typography.Text>
+        <Typography.Text type="secondary">
+          Упсс! Рейсов по заданным фильтрам не найдено
+        </Typography.Text>
       </Flex>
     );
   }
@@ -70,16 +81,14 @@ export const FlightList = ({ flights, isLoading, error, isIdle }: Props) => {
     <>
       <Flex vertical gap={16} className={styles.resultsBlock}>
         <Flex justify="space-between" align="center" gap={16} className={styles.header}>
-          <div>
-            <Typography.Title level={3} className={styles.title}>
+          <Flex vertical gap={8}>
+            <Typography.Title level={2} className={styles.title}>
               Доступные предложения
             </Typography.Title>
-
             <Typography.Text type="secondary" className={styles.foundCount}>
               Найдено {cards.length} предложений
             </Typography.Text>
-          </div>
-
+          </Flex>
           {canExpand && (
             <Button
               type="link"
@@ -98,11 +107,15 @@ export const FlightList = ({ flights, isLoading, error, isIdle }: Props) => {
         </Flex>
       </Flex>
 
-      <FlightBookingModal
-        open={selectedFlight !== null}
-        flight={selectedFlight}
-        onClose={() => setSelectedFlight(null)}
-      />
+      {selectedFlight && bookingDetails && (
+        <FlightBookingModal
+          open
+          flight={selectedFlight}
+          bookingDetails={bookingDetails}
+          onBook={onBook}
+          onClose={() => setSelectedFlight(null)}
+        />
+      )}
     </>
   );
 };
