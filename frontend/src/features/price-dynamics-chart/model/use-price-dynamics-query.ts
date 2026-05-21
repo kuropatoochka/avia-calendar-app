@@ -7,14 +7,17 @@ import type { PriceDynamicsRequest } from '@/shared/types';
 export const usePriceDynamicsQuery = () => {
   const loadPriceDynamics = useCallback(async (params: PriceDynamicsSearchParams) => {
     const requestParams: PriceDynamicsRequest = {
-      airport_from: params.airportFromId,
-      airport_to: params.airportToId,
-      from_date: params.dateFrom,
-      to_date: params.dateTo,
-      service_class: params.serviceClass,
-      passengers_number: params.passengersNumber,
-      children_number: params.childrenNumber,
-      toddlers_number: params.toddlersNumber,
+      originAirportId: String(params.airportFromId),
+      destinationAirportId: String(params.airportToId),
+      dateFrom: params.dateFrom,
+      dateTo: params.dateTo,
+      serviceClass: params.serviceClass,
+      passengers: {
+        adults: params.passengersNumber,
+        children: params.childrenNumber ?? 0,
+        toddler: params.toddlersNumber ?? 0,
+        animals: 0,
+      },
     };
 
     // TODO: Remove mock delay when real backend integration is ready.
@@ -22,9 +25,9 @@ export const usePriceDynamicsQuery = () => {
       setTimeout(resolve, 1200);
     });
 
-    const data = await FlightService.getPriceDynamics(requestParams);
+    const response = await FlightService.getPriceDynamics(requestParams);
 
-    return data;
+    return response.json() as Promise<{ departure_date: string; min_total_price: number }[]>;
   }, []);
 
   const [fetchPriceDynamics, isPriceDynamicsLoading, priceDynamicsError] =

@@ -2,7 +2,7 @@ import type { TripType } from '../model/types';
 import { Select } from 'antd';
 import { ArrowDown } from '@/shared/assets';
 import { cn } from '@/shared/utils';
-import { TRIP_TYPE_LABELS } from '../model/consts';
+import { TRIP_TYPE_LABELS } from '../model/labels';
 import styles from './search-form.module.css';
 
 interface Props {
@@ -28,7 +28,13 @@ export const TripTypeSelect = ({ value = 'oneWay', open, onOpenChange, onChange 
       variant="borderless"
       popupMatchSelectWidth={200}
       className={styles.field}
-      suffixIcon={<ArrowDown className={cn(styles.arrow, { [styles.arrowOpen]: open })} />}
+      suffixIcon={
+        <ArrowDown
+          className={cn(styles.arrow, {
+            [styles.arrowOpen]: open,
+          })}
+        />
+      }
     />
   );
 };

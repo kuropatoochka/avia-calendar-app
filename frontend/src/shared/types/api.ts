@@ -1,49 +1,112 @@
-type PaginatedResponse<T> = {
-  items: T[];
+export type AirportDto = {
+  id: string;
+  airport: string;
+  city: string;
+};
+
+export type AirportsDto = {
+  items: AirportDto[];
   total: number;
   offset: number;
   limit: number;
 };
 
-type CityDto = {
-  id: number;
-  name: string;
+export type Passengers = {
+  adults: number;
+  children: number;
+  toddler: number;
+  animals: number;
 };
 
-export type AirportDto = {
-  id: number;
-  name: string;
-  city: CityDto;
+export type ServiceClass = 'economy' | 'comfort' | 'business' | 'first';
+
+export type PriceDynamicsRequest = {
+  originAirportId: string;
+  destinationAirportId: string;
+  dateFrom: string;
+  dateTo: string;
+  passengers: Passengers;
+  serviceClass: ServiceClass;
 };
 
-export type AirportsDto = PaginatedResponse<AirportDto>;
+export type PriceDynamicsDto = {
+  date: string;
+  minPrice: number | null;
+};
+
+export type FlightFilters = {
+  maxStops?: number;
+  stopDurationRange?: [number, number];
+  maxFlightDuration?: number;
+  departureTimes?: string[];
+  arrivalTimes?: string[];
+  pricePerPassenger?: boolean;
+  priceRange?: [number, number];
+  baggageEnabled?: boolean;
+  baggageForAll?: boolean;
+  baggageWeights?: number[];
+  airlines?: string[];
+  petsEnabled?: boolean;
+  animalCount?: number;
+  animalWeights?: number[];
+};
+
+export type FlightsRequest = {
+  originAirportId: string;
+  destinationAirportId: string;
+  date: string;
+  passengers: Passengers;
+  serviceClass: ServiceClass;
+  filters?: FlightFilters;
+};
+
+export type FlightStop = {
+  airport: string;
+  city: string;
+  code: string;
+  durationMinutes: number;
+  legDurationMinutes: number;
+  legAirline?: string;
+};
+
+export type FlightDto = {
+  id: string;
+  origin: string;
+  destination: string;
+  date: string;
+  price: number;
+  originalPrice: number;
+  duration: number;
+  airline: string;
+  departureTime: string;
+  arrivalTime: string;
+  originAirport: string;
+  destinationAirport: string;
+  originCity: string;
+  destinationCity: string;
+  baggageIncluded: boolean;
+  baggageWeight: number;
+  stopsCount: number;
+  stops?: FlightStop[];
+  seatsLeft: { economy: number; comfort: number; business: number; first: number };
+  seatsLeftAlt: { economy: number; comfort: number; business: number; first: number };
+  petsAllowed: boolean;
+  availableSeats: number;
+};
+
+// --- Types from develop (real backend API shapes) ---
 
 export type CompanyDto = {
   id: number;
   name: string;
 };
 
-export type CompaniesDto = PaginatedResponse<CompanyDto>;
-
-export type ServiceClass = 'BUDGET' | 'COMFORT' | 'BUSINESS' | 'FIRST_CLASS';
-
-export type PriceDynamicsRequest = {
-  airport_from: number;
-  airport_to: number;
-  from_date: string;
-  to_date: string;
-  service_class: ServiceClass;
-  passengers_number: number;
-  children_number?: number;
-  toddlers_number?: number;
+export type CompaniesDto = {
+  items: CompanyDto[];
+  total: number;
+  offset: number;
+  limit: number;
 };
-
-export type PriceDynamicsDto = {
-  departure_date: string;
-  min_total_price: number;
-};
-
-export type PriceDynamicsResponse = PriceDynamicsDto[];
 
 export type TicketFiltersRequest = {
   departure_from_time?: string;
@@ -59,8 +122,8 @@ export type TicketFiltersRequest = {
 };
 
 export type TicketsRequest = {
-  airport_from: number;
-  airport_to: number;
+  airport_from: string;
+  airport_to: string;
   date: string;
   passengers_number: number;
   service_class: ServiceClass;
@@ -93,4 +156,9 @@ export type TicketItemDto = {
   prices: TicketPricesDto;
 };
 
-export type TicketsResponse = PaginatedResponse<TicketItemDto[]>;
+export type TicketsResponse = {
+  items: TicketItemDto[][];
+  total: number;
+  offset: number;
+  limit: number;
+};

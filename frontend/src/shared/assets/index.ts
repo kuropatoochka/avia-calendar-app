@@ -7,6 +7,7 @@ import ExclamationMark from './ExclamationMark.svg';
 import Fire from './Fire.svg';
 import Logo from './Logo.svg';
 import Person from './Person.svg';
+import Plane from './Plane.svg';
 import Search from './Search.svg';
 import Star from './Star.svg';
 import Swap from './Swap.svg';
@@ -26,4 +27,5 @@ export {
   Swap,
   Fire,
   ArrowRotateLeft,
+  Plane,
 };

@@ -1,0 +1,1204 @@
+/* ── Block wrapper ── */
+.resultsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.sectionTitle {
+  margin: 0 !important;
+  padding-left: 10px;
+  font-size: 18px !important; /* matches .chartTitle */
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+/* ── Offers section ── */
+.offersSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.offersHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 40px 0 10px;
+}
+
+.viewAll {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+  display: inline-block;
+}
+
+.viewAll:hover {
+  color: var(--color-primary);
+}
+
+.viewAll:active {
+  transform: scale(0.93);
+  color: var(--color-primary);
+}
+
+.viewAll:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Cards container ── */
+.cardsContainer {
+  background: var(--color-background-secondary);
+  border-radius: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  padding: 35px 25px;
+  width: 100%;
+}
+
+.cardsListExpanded {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 5px 10px;
+}
+
+/* ── Individual flight card ── */
+.card {
+  background: var(--color-background-primary);
+  border-radius: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  padding: 15px 15px 15px 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
+  width: 100%;
+  text-align: left;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.1s, border-color 0.2s;
+}
+
+.cardBooked {
+  border-color: var(--color-primary);
+}
+
+.bookedBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.bookedText {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family);
+  line-height: 30px;
+}
+
+.bookedCheck {
+  font-size: 24px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+/* Row 1: price + discount */
+.cardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.priceGroup {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.stopsBadgeGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stopsLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  padding: 3px 10px;
+  border-radius: 20px;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.stopsLabelDirect {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.stopsLabelTransfer {
+  background: var(--color-background-secondary);
+  color: var(--chart-strong);
+  border: 1px solid var(--chart-strong);
+}
+
+/* ── Tooltip ── */
+.tooltipContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 240px;
+}
+
+.tooltipDuration {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+/* Row 1: SVO ——✈—— SVX ——✈—— LED */
+.tooltipCodesRow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding-bottom: 20px;
+}
+
+.tooltipCode {
+  font-family: 'Rubik', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.tooltipSegment {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 40px;
+  padding: 0 8px;
+}
+
+.tooltipSegmentLine {
+  flex: 1;
+  height: 1px;
+  background: var(--border-primary);
+}
+
+.tooltipLegDuration {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  font-family: var(--font-family);
+  font-size: 10px;
+  color: var(--color-border-primary);
+  white-space: nowrap;
+}
+
+.tooltipPlane {
+  width: 18px;
+  height: 18px;
+  color: var(--color-border-primary);
+  transform: rotate(90deg);
+  flex-shrink: 0;
+}
+
+/* Row 2: city names spread under their codes */
+.tooltipCitiesRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tooltipCity {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.tooltipCitiesRow .tooltipCity:first-child {
+  text-align: left;
+}
+
+.tooltipCitiesRow .tooltipCity:last-child {
+  text-align: right;
+}
+
+.tooltipCitiesRow .tooltipCity:not(:first-child):not(:last-child) {
+  text-align: center;
+}
+
+.tooltipStops {
+  border-top: 1px solid var(--color-border-primary);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+.tooltipStopLine {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  color: var(--chart-strong);
+  white-space: normal;
+  word-break: break-word;
+}
+
+.price {
+  font-size: 30px;
+  font-weight: 500;
+  font-family: 'Rubik', sans-serif;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.originalPrice {
+  font-size: 30px;
+  font-weight: 500;
+  font-family: 'Rubik', sans-serif;
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+
+.discountGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discount {
+  font-size: 30px;
+  font-weight: 600;
+  font-family: 'Rubik', sans-serif;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.fireIcon {
+  width: 24px;
+  height: 30px;
+  flex-shrink: 0;
+  color: var(--chart-strong);
+}
+
+/* Row 2: airline + details + route */
+.cardDetails {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-left: 0;
+}
+
+/* Card airline circles */
+.airlineCircleStack {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 70px;   /* fixed: room for 2 circles (40 + 40 - 10 overlap) */
+  min-width: 70px;
+}
+
+.airlineLogoCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.airlineLogoCircle2 {
+  margin-left: -10px;
+  background: var(--color-primary-light);
+  /* box-shadow instead of border so size stays exactly 40×40 */
+  box-shadow: 0 0 0 2px white;
+  z-index: 1;
+}
+
+.detailCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 86px;
+  flex-shrink: 0;
+}
+
+.detailMain {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.detailSub {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  font-family: var(--font-family);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.routeCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+}
+
+.baggageIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.cardIconRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cardTagIcon {
+  font-size: 16px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+  cursor: help;
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.routeCity {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.routePlane {
+  width: 18px;
+  height: 18px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+  transform: rotate(90deg);
+}
+
+/* ── States ── */
+.error {
+  color: var(--text-muted);
+  padding: var(--space-md);
+}
+
+.empty {
+  color: var(--text-muted);
+  padding: var(--space-md);
+  text-align: center;
+}
+
+/* ── Modal ── */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+
+.modalWrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+}
+
+.modal {
+  position: relative;
+  background: var(--color-background-primary);
+  border-radius: 30px;
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalTitle {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+
+.modalClose:hover {
+  color: var(--text-primary);
+}
+
+.modalAirlineCircle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modalAirlineName {
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.modalFlightNumber {
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.modalDivider {
+  border: none;
+  border-top: 1px solid var(--color-border-primary);
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.modalLabel {
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.modalValue {
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+
+
+.modalPriceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalPriceGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.modalPricePerTicket {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.modalPrice {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 500;
+  font-size: 32px;
+  color: var(--text-primary);
+  min-width: 130px;
+  white-space: nowrap;
+}
+
+.modalOriginalPrice {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.modalSeatIconWrap {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.modalSeatIcon {
+  width: 13px;
+  height: 13px;
+  color: var(--color-primary);
+  transition: color 0.15s;
+}
+
+.modalClassValue {
+  color: var(--color-primary);
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* ── Class selector popover ── */
+.classDetail {
+  padding: 4px 0;
+  min-width: 220px;
+}
+
+.classDetailTitle {
+  margin: 0 0 10px;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.classOption {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: background 0.15s, border-color 0.15s;
+  margin-bottom: 4px;
+}
+
+.classOption:hover {
+  background: var(--color-background-secondary);
+}
+
+.classOptionSelected {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+}
+
+.classOptionIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.classOptionLabel {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.classOptionPrice {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.modalDiscountBadge {
+  background: var(--color-primary);
+  color: var(--color-background-primary);
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  padding: 5px 15px;
+  border-radius: 10px;
+}
+
+.modalBookBtn {
+  flex: 1;
+  background: var(--color-primary);
+  color: var(--color-background-primary);
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modalBookBtn:hover {
+  background: var(--color-primary);
+}
+
+.modalBookBtn:active {
+  transform: scale(0.98);
+}
+
+.modalBookBtnBooked {
+  flex: 1;
+  background: var(--color-primary);
+  color: var(--color-background-primary);
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.modalBookBtnBooked:hover {
+  background: var(--color-primary);
+}
+
+.modalBookBtnBooked:active {
+  transform: scale(0.98);
+}
+
+/* ── Modal: stops badge ── */
+.modalAirline {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.modalStopsBadge {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: var(--font-family);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.modalStopsBadgeDirect {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.modalStopsBadgeTransfer {
+  background: var(--color-background-secondary);
+  color: var(--chart-strong);
+  border: 1px solid var(--chart-strong);
+}
+
+/* ── Modal: label row with info icon ── */
+.modalLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+
+.modalLabelRow .modalLabel {
+  margin-bottom: 0;
+}
+
+.modalAirlineCircles {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 78px;   /* fixed: room for 2 modal circles (50 + 50 - 22 overlap) */
+  min-width: 78px;
+}
+
+.modalAirlineCircle2 {
+  margin-left: -12px;
+  background: var(--color-primary-light);
+  box-shadow: 0 0 0 2px white;
+  z-index: 1;
+}
+
+.modalAirlineInfo {
+  flex: 1;
+}
+
+.modalFlightMeta {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.modalDurationLabel {
+  display: block;
+  text-align: center;
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* ── Seats remaining ── */
+/* ── Seats remaining badge — same size/shape as stops badge ── */
+.seatsLeftBadge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+  padding: 3px 10px;
+  border-radius: 20px;
+  cursor: default;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.seatsLeftCritical {
+  background: var(--color-background-primary);
+  color: var(--chart-strong);
+  border: 1px solid var(--chart-soft);
+}
+
+.seatsLeftWarning {
+  background: var(--color-background-primary);
+  color: var(--chart-strong);
+  border: 1px solid var(--chart-soft);
+}
+
+.modalInfoIconWrap {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.modalInfoIcon {
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+
+.modalInfoIconWrap:hover .modalInfoIcon {
+  color: var(--color-primary);
+}
+
+/* ── Route detail popover ── */
+.routeDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.routeDetailTitle {
+  margin: 0;
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.routeDetailSub {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: -8px;
+}
+
+.routeDetailLeg {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.routeDetailLegInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.routeDetailAirlineCircle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.routeDetailAirlineName {
+  margin: 0;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.routeDetailLegTime {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.routeDetailPoints {
+  display: flex;
+  flex-direction: column;
+}
+
+.routeDetailPoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* Dot + vertical line column */
+.routeDetailDotCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 12px;
+}
+
+.routeDetailDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-primary);
+  background: var(--color-background-primary);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.routeDetailLine {
+  width: 2px;
+  background: var(--border-primary);
+  flex: 1;
+  min-height: 24px;
+  margin: 3px 0;
+}
+
+.routeDetailTime {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  min-width: 42px;
+}
+
+.routeDetailCity {
+  margin: 0;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.routeDetailAirport {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.routeDetailTransfer {
+  padding: 8px 12px;
+  background: var(--color-background-secondary);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.routeDetailTransferBadge {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--chart-strong);
+}
+
+.routeDetailNote {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.routeDetailNote_danger {
+  color: var(--color-error);
+}
+
+.routeDetailNote_warning {
+  color: var(--chart-strong);
+}
+
+.routeDetailNote_info {
+  color: var(--text-secondary);
+}
+
+/* ── Baggage detail popover ── */
+.baggageDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 240px;
+}
+
+.baggageDetailTitle {
+  margin: 0;
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.baggageDetailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.baggageDetailIconOk,
+.baggageDetailIconNo {
+  margin-top: 2px;
+}
+
+.baggageDetailText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.baggageDetailHint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.baggageDetailIconOk {
+  color: var(--color-primary);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.baggageDetailIconNo {
+  color: var(--color-border-primary);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.baggageDetailFooter {
+  margin: 0;
+  margin-top: 4px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  border-top: 1px solid var(--color-border-primary);
+  padding-top: 8px;
+}
+
+.changeFareLabel {
+  margin: 8px 0 4px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-primary, #222);
+}
+
+.changeFareBtn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary-light);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  transition: background 0.15s;
+}
+
+.changeFareBtn:hover {
+  background: var(--color-primary-light);
+}
+
+.changeFareBtnPressed {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-background-primary);
+  transition: background 0.15s;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.changeFareBtnPressed:hover {
+  background: var(--color-primary);
+}
+
+.changeFareBtnPressed .changeFarePrice {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.changeFarePrice {
+  font-weight: 600;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* ── Modal book button row ── */
+
+/* ── Modal book button row ── */
+.modalBtnRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modalAddOneBtn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background-primary);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.modalAddOneBtn:hover {
+  background: var(--color-primary-light);
+}
+
+.modalAddOneBtn:active {
+  transform: scale(0.93);
+}
+
+/* ── Price Chart / Calendar ── */
+.chartCard {
+  background: var(--color-background-primary);
+  border-radius: 20px;
+  padding: 24px 28px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chartTitle {
+  margin: 0 0 4px;
+  font-family: 'Rubik', sans-serif;
+  font-weight: var(--font-weight-semibold);
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.chartCity {
+  margin: 0 0 4px;
+  font-family: var(--font-family);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.chartHint {
+  margin: 0 0 8px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  color: var(--color-border-primary);
+  font-style: italic;
+}
+
+.chartSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}

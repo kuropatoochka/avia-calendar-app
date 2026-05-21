@@ -1,21 +1,17 @@
-import type { SelectOption } from './types';
 import { useCallback, useState } from 'react';
 import type { AirportDto } from '@/shared/types';
 import { useAirportsQuery } from './use-airports-query';
 
+type SelectOption = { value: string; label: string; option: AirportDto };
+
 const getOption = (option: AirportDto): SelectOption => ({
   value: option.id,
-  label: option.name,
-  option: {
-    id: option.id,
-    airport: option.name,
-    cityId: option.city.id,
-    city: option.city.name,
-  },
+  label: option.airport,
+  option,
 });
 
 const mergeOptions = (options: SelectOption[]) => {
-  const optionMap = new Map<number, SelectOption>();
+  const optionMap = new Map<string, SelectOption>();
 
   options.forEach((option) => {
     optionMap.set(option.value, option);

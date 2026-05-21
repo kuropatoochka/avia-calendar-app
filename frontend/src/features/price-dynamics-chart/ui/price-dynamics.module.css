@@ -1,132 +1,152 @@
-.container {
-  padding: var(--space-lg);
-  gap: var(--space-sm);
-  border-radius: var(--radius-md);
-  background-color: var(--background-section);
+.card {
+  border-radius: var(--radius-lg);
+  background: var(--background-section);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-xl);
 }
 
-.chart {
-  width: 100%;
-  min-width: 0;
-  padding: 8px 16px 0;
-  border-radius: var(--radius-sm);
-  background-color: var(--background-page);
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
-.chartScroll {
-  width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-text-secondary) transparent;
+.section + .section {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-primary);
 }
 
-.chartScroll::-webkit-scrollbar {
-  height: 6px;
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
 }
 
-.chartScroll::-webkit-scrollbar-track {
-  background: transparent;
+.sectionLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
 }
 
-.chartScroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background-color: var(--color-text-secondary);
+.subtitle {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
 }
 
-.chartScroll::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
-.chartSvg {
-  display: block;
-  flex-shrink: 0;
-}
-
-.barGroup {
-  cursor: pointer;
-  outline: none;
-}
-
-.barGroupDisabled {
-  cursor: default;
-  pointer-events: none;
-}
-
-.bar {
-  fill: var(--color-text-disabled);
-  opacity: 1;
-  transition:
-    opacity 0.2s ease,
-    fill 0.2s ease,
-    stroke 0.2s ease,
-    height 0.2s ease,
-    y 0.2s ease;
-}
-
-.barDisabled {
-  fill: var(--color-text-secondary);
-}
-
-.barSelected {
-  fill: var(--color-primary);
-}
-
-.barGroup:hover .bar {
-  opacity: 0.8;
-  fill: var(--color-primary);
-}
-
-.barGroup:focus-visible .bar {
-  opacity: 1;
-}
-
-.barRecommendedPrice {
-  fill: var(--chart-soft);
-}
-
-.barBestPrice {
-  fill: var(--chart-strong);
-}
-
-.barRecommendedPrice.barSelected,
-.barBestPrice.barSelected {
-  fill: var(--color-primary);
-} 
-
-.priceText {
-  font-size: 12px;
-  pointer-events: none;
-}
-
-.dateText {
-  font-size: 12px;
-  fill: var(--color-text-secondary);
-  pointer-events: none;
+.meta {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 .stateText {
-  padding: 24px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.chartScroll {
+  overflow-x: auto;
+}
+
+.chartGrid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-sm);
+  align-items: end;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--background-page);
+  border: 1px dashed var(--border-primary);
+  min-height: 200px;
+  min-width: 100%;
+  width: max-content;
+}
+
+.barColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 52px;
+  flex: 0 0 auto;
+}
+
+.barTrack {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 140px;
+  width: 100%;
+}
+
+.barButton {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.barButton:disabled {
+  cursor: not-allowed;
+}
+
+.barButton:focus-visible .bar {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.bar {
+  width: 100%;
+  max-width: 18px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: height 0.2s ease;
+}
+
+.barSelected {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.barUnavailable {
+  background: var(--color-text-muted);
+  border: 1px dashed var(--border-primary);
+  opacity: 0.35;
+}
+
+.priceLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
   text-align: center;
-  color: var(--color-text-secondary);
 }
 
-.bestBadgeGroup {
-  pointer-events: none;
+.priceUnavailable {
+  color: var(--text-muted);
 }
 
-.bestBadge {
-  fill: var(--color-primary);
+.dateLabel {
+  font-size: var(--font-size-2xs);
+  color: var(--text-secondary);
+  text-align: center;
 }
 
-.bestBadgeText {
-  font-weight: 700;
-  fill: var(--background-page);
-}
-
-.bestBadgeIcon {
-  color: var(--background-page);
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-lg);
 }

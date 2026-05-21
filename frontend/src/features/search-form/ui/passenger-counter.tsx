@@ -29,11 +29,7 @@ export const PassengerCounter = ({
           </Tooltip>
         )}
       </Space>
-      {subLabel && (
-        <Typography.Text type="secondary" className={styles.passengerSubLabel}>
-          {subLabel}
-        </Typography.Text>
-      )}
+      {subLabel && <span className={styles.passengerSubLabel}>{subLabel}</span>}
     </Space>
     <Flex gap={12} align="center">
       <Button

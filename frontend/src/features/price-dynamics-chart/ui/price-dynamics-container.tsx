@@ -33,7 +33,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
   const [outboundItems, setOutboundItems] = useState<PriceDynamicsChartItem[]>([]);
   const [inboundItems, setInboundItems] = useState<PriceDynamicsChartItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<PriceDynamicsSelection | null>(null);
-  const [airportNames, setAirportNames] = useState<Record<number, string>>({});
+  const [airportNames, setAirportNames] = useState<Record<string, string>>({});
 
   const {
     fetchPriceDynamics: fetchOutboundPriceDynamics,
@@ -102,16 +102,16 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
     const loadAirports = async () => {
       setAirportNames({});
       const airports = await fetchAirportsByIds(undefined, [
-        params.airportFromId,
-        params.airportToId,
+        String(params.airportFromId),
+        String(params.airportToId),
       ]);
 
       if (!isActual || !airports) {
         return;
       }
 
-      const nextNames = airports.reduce<Record<number, string>>((acc, airport) => {
-        acc[airport.id] = airport.name;
+      const nextNames = airports.reduce<Record<string, string>>((acc, airport) => {
+        acc[airport.id] = airport.airport;
         return acc;
       }, {});
 
@@ -179,10 +179,10 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
       : null;
 
   const outboundTitleFrom = params
-    ? (airportNames[params.airportFromId] ?? String(params.airportFromId))
+    ? (airportNames[String(params.airportFromId)] ?? String(params.airportFromId))
     : '';
   const outboundTitleTo = params
-    ? (airportNames[params.airportToId] ?? String(params.airportToId))
+    ? (airportNames[String(params.airportToId)] ?? String(params.airportToId))
     : '';
 
   if (!params) {

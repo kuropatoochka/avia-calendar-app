@@ -7,26 +7,19 @@ export const airportHandlers = [
     const url = new URL(request.url);
     const search = url.searchParams.get('search')?.toLowerCase().trim();
     const idsParam = url.searchParams.get('ids');
-    const ids = idsParam
-      ? idsParam
-          .split(',')
-          .map((id) => Number(id))
-          .filter((id) => !Number.isNaN(id))
-      : null;
+    const ids = idsParam ? idsParam.split(',').filter(Boolean) : null;
     const offset = Number(url.searchParams.get('offset')) || 0;
-    const limit = Number(url.searchParams.get('limit')) || 10;
+    const limit = Number(url.searchParams.get('limit')) || 20;
 
     const airportsByIds = ids?.length
       ? airportMock.filter((item) => ids.includes(item.id))
       : airportMock;
 
     const filteredAirports = search
-      ? airportsByIds.filter((item) => {
-          return (
-            item.name.toLowerCase().includes(search) ||
-            item.city.name.toLowerCase().includes(search)
-          );
-        })
+      ? airportsByIds.filter(
+          (item) =>
+            item.airport.toLowerCase().includes(search) || item.city.toLowerCase().includes(search),
+        )
       : airportsByIds;
 
     const paginatedAirports = filteredAirports.slice(offset, offset + limit);

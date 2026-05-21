@@ -2,8 +2,8 @@ import type { TripType } from '@/features/search-form';
 import type { ServiceClass } from '@/shared/types';
 
 export type PriceDynamicsSearchParams = {
-  airportFromId: number;
-  airportToId: number;
+  airportFromId: string;
+  airportToId: string;
   dateFrom: string;
   dateTo: string;
   tripType: TripType;
@@ -16,8 +16,8 @@ export type PriceDynamicsSearchParams = {
 export type PriceDynamicsDirection = 'outbound' | 'inbound';
 
 export type PriceDynamicsSelection = {
-  airportFromId: number;
-  airportToId: number;
+  airportFromId: string;
+  airportToId: string;
   date: string;
   direction: PriceDynamicsDirection;
 };

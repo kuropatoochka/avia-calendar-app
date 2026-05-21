@@ -1,73 +1,139 @@
-import type { SelectOption } from '../model/types';
-import { Flex, Select, Typography } from 'antd';
+import type { AirportOption } from '../model/types';
+import { Flex, Select, Spin, Typography } from 'antd';
 import { useState } from 'react';
 import { ArrowDown } from '@/shared/assets';
+import type { AirportDto } from '@/shared/types';
 import { cn } from '@/shared/utils';
+import { fetchAirportOptions } from '../model/fetch-airport-options';
 import styles from './search-form.module.css';
 
 interface Props {
   label: string;
   placeholder: string;
-  options: SelectOption[];
-  isLoading: boolean;
-  value?: number;
-  onChange?: (value: number) => void;
-  onSearch: (search: string) => void;
-  onOpenChange: (open: boolean) => void;
+  initialOption: AirportDto;
+  initialOptions?: AirportDto[];
+  value?: string;
+  onChange?: (value: string) => void;
   hasError?: boolean;
 }
+
+const mapSelectOption = (option: AirportDto): AirportOption => ({
+  value: option.id,
+  label: option.airport,
+  option: {
+    city: option.city,
+    airport: option.airport,
+    code: option.id,
+  },
+});
+
+const mergeOptions = (options: AirportOption[]) => {
+  const optionMap = new Map<string, AirportOption>();
+
+  options.forEach((option) => {
+    optionMap.set(option.value, option);
+  });
+
+  return Array.from(optionMap.values());
+};
 
 export const AirportSelect = ({
   label,
   placeholder,
-  options,
-  isLoading,
+  initialOption,
+  initialOptions = [initialOption],
   value,
   onChange,
-  onSearch,
-  onOpenChange,
   hasError = false,
 }: Props) => {
-  const [open, setOpen] = useState(false);
+  const initialSelectOptions = initialOptions.map(mapSelectOption);
+
+  const [options, setOptions] = useState<AirportOption[]>(initialSelectOptions);
+  const [isInitialOptionsLoaded, setIsInitialOptionsLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const selectedValue = value ?? initialOption.id;
+
+  const getOptions = async (search?: string) => {
+    setLoading(true);
+
+    try {
+      const data = await fetchAirportOptions(search);
+      const fetchedOptions = data.map(mapSelectOption);
+      const selectedOption = options.find((option) => option.value === selectedValue);
+
+      setOptions(
+        mergeOptions([
+          ...initialSelectOptions,
+          ...(selectedOption ? [selectedOption] : []),
+          ...fetchedOptions,
+        ]),
+      );
+
+      if (!search) {
+        setIsInitialOptionsLoaded(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Flex
-      className={cn(styles.field, styles.airportSelect, {
+      className={cn(styles.field, {
         [styles.fieldError]: hasError,
       })}
       vertical
       justify="space-around"
     >
-      <Typography.Paragraph className={styles.airportSelectLabel}>{label}</Typography.Paragraph>
+      <Typography.Paragraph className={styles.label}>{label}</Typography.Paragraph>
 
-      <Select<number, SelectOption>
-        value={value}
+      <Select<string, AirportOption>
+        value={selectedValue}
         options={options}
         placeholder={placeholder}
         variant="borderless"
-        suffixIcon={<ArrowDown className={cn(styles.arrow, { [styles.arrowOpen]: open })} />}
+        suffixIcon={
+          <ArrowDown
+            className={cn(styles.arrow, {
+              [styles.arrowOpen]: isOpen,
+            })}
+          />
+        }
         popupMatchSelectWidth={200}
-        loading={isLoading}
-        notFoundContent="Результаты не найдены"
+        loading={loading}
+        notFoundContent={loading ? <Spin size="small" /> : 'Ничего не найдено'}
         showSearch={{
           optionFilterProp: 'label',
           filterOption: false,
-          onSearch,
+          onSearch: (search) => {
+            void getOptions(search);
+          },
         }}
-        onOpenChange={(nextOpen) => {
-          setOpen(nextOpen);
-          onOpenChange(nextOpen);
+        onOpenChange={(open) => {
+          setIsOpen(open);
+
+          if (open && !isInitialOptionsLoaded) {
+            void getOptions();
+          }
         }}
-        onChange={(value) => {
-          onChange?.(value);
+        onChange={(nextValue) => {
+          onChange?.(nextValue);
         }}
         optionRender={(option) => {
-          const { airport, city } = option.data.option;
+          const airport = option.data.option;
 
           return (
-            <Flex vertical gap={2}>
-              <Typography.Text>{airport}</Typography.Text>
-              <Typography.Text type="secondary">{city}</Typography.Text>
+            <Flex vertical gap={4}>
+              <Flex gap={6} align="baseline">
+                <Typography.Text>{airport.airport}</Typography.Text>
+                <Typography.Text className={styles.airport_select__code}>
+                  {airport.code}
+                </Typography.Text>
+              </Flex>
+
+              <Typography.Text type="secondary">{airport.city}</Typography.Text>
             </Flex>
           );
         }}
