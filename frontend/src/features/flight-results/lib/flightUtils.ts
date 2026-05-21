@@ -112,23 +112,14 @@ export const applyFilters = (flights: FlightDto[], filters: FlightFiltersState):
     if (filters.maxFlightDuration > 0 && flight.duration > filters.maxFlightDuration * 60)
       return false;
 
-    const hour = parseInt(flight.departureTime.split(':')[0], 10);
-    if (!filters.departureTimes.includes(hourToTimeOfDay(hour))) return false;
+    if (filters.departureTime !== null) {
+      const hour = parseInt(flight.departureTime.split(':')[0], 10);
+      if (hourToTimeOfDay(hour) !== filters.departureTime) return false;
+    }
 
     if (filters.maxPrice < 200_000 && flight.price > filters.maxPrice) return false;
 
     if (filters.baggageEnabled && !flight.baggageIncluded) return false;
-
-    if (filters.airlines.length > 0 && !filters.airlines.includes(flight.airline)) return false;
-
-    if (flight.stops && flight.stops.length > 0) {
-      for (const stop of flight.stops) {
-        const stopHours = stop.durationMinutes / 60;
-        if (stopHours < filters.stopDurationRange[0] || stopHours > filters.stopDurationRange[1]) {
-          return false;
-        }
-      }
-    }
 
     return true;
   });

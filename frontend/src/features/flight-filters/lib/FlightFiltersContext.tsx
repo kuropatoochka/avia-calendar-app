@@ -8,14 +8,11 @@ type FlightFiltersContextValue = ReturnType<typeof useFlightFilters>;
 const noop = () => {};
 
 export const FlightFiltersContext = createContext<FlightFiltersContextValue>({
-  filters: DEFAULT_FLIGHT_FILTERS,
   draftFilters: DEFAULT_FLIGHT_FILTERS,
   updateDraftFilter: noop as FlightFiltersContextValue['updateDraftFilter'],
   addBaggageEntry: noop as FlightFiltersContextValue['addBaggageEntry'],
   removeBaggageEntry: noop as FlightFiltersContextValue['removeBaggageEntry'],
   updateAnimalCount: noop as FlightFiltersContextValue['updateAnimalCount'],
-  removeAnimalEntry: noop as FlightFiltersContextValue['removeAnimalEntry'],
-  applyFilters: noop,
   resetFilters: noop,
 });
 
@@ -25,4 +22,4 @@ export const useFlightFiltersShared = (): FlightFiltersContextValue =>
 
 /** <FlightResultsBlock /> calls this to read the current applied filter state. */
 export const useFlightFiltersContext = (): FlightFiltersState =>
-  useContext(FlightFiltersContext).filters;
+  useContext(FlightFiltersContext).draftFilters;

@@ -3,7 +3,7 @@ import type { ServiceClass } from '@/shared/types';
 import { companyMock } from '../mock/company-mock';
 import { generateFlights, getDateRange } from '../mock/generate-flight-mocks';
 
-const SERVICE_CLASSES: ServiceClass[] = ['BUDGET', 'COMFORT', 'BUSINESS', 'FIRST_CLASS'];
+const SERVICE_CLASSES: ServiceClass[] = ['economy', 'comfort', 'business', 'first'];
 
 const getServiceClass = (url: URL): ServiceClass => {
   const serviceClass = url.searchParams.get('service_class');
@@ -12,7 +12,7 @@ const getServiceClass = (url: URL): ServiceClass => {
     return serviceClass as ServiceClass;
   }
 
-  return 'BUDGET';
+  return 'economy';
 };
 
 const parseNumber = (value: string | null, fallback = 0) => {

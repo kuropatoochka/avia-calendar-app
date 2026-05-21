@@ -147,7 +147,7 @@ export const FlightResultsBlock = ({ searchParams }: Props) => {
           flight={selectedFlight}
           passengersCount={totalPassengers}
           passengers={passengers}
-          baggageAnimals={filters.petsEnabled ? filters.animalCount : 0}
+          baggageAnimals={filters.petsEnabled ? filters.animalWeights.length : 0}
           baggageAnimalWeights={filters.animalWeights}
           bookedCount={getBookedCount(selectedFlight.id)}
           fareOverride={fareOverrides.get(selectedFlight.id) ?? false}

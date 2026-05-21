@@ -20,10 +20,10 @@ const MINUTES_IN_DAY = 24 * 60;
 const WEEKEND = new Set([0, 6]);
 
 const SERVICE_CLASS_MULTIPLIERS: Record<ServiceClass, number> = {
-  BUDGET: 1,
-  COMFORT: 1.2,
-  BUSINESS: 1.6,
-  FIRST_CLASS: 2.1,
+  economy: 1,
+  comfort: 1.2,
+  business: 1.6,
+  first: 2.1,
 };
 
 const hashString = (value: string) => {
@@ -80,7 +80,7 @@ const getFlightCount = (seed: number, forceAvailable = false) => {
 const getStopsCount = (seed: number, serviceClass: ServiceClass) => {
   const stops = seed % 3;
 
-  if (serviceClass === 'BUSINESS' || serviceClass === 'FIRST_CLASS') {
+  if (serviceClass === 'business' || serviceClass === 'first') {
     return Math.min(stops, 1);
   }
 
@@ -235,7 +235,7 @@ export const generateFlights = ({
     );
     const childrenPrice = Math.round(price * 0.75);
     const todlersPrice = Math.round(price * 0.1);
-    const baggagePrice = service_class === 'BUDGET' ? 350 : 0;
+    const baggagePrice = service_class === 'economy' ? 350 : 0;
 
     const total = getPassengerTotalPrice({
       price,

@@ -177,8 +177,14 @@ const OfferPageContent = () => {
   };
 
   const handleSearch = (values: SearchFormValues) => {
-    const { originAirportId, destinationAirportId, dateRange, tripType, serviceClass, passengers } =
-      values;
+    const {
+      originAirport: originAirportId,
+      destinationAirport: destinationAirportId,
+      dateRange,
+      tripType,
+      serviceClass,
+      passengers,
+    } = values;
 
     const [dateFrom, dateTo] = dateRange;
 
