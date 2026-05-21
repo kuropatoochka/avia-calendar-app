@@ -45,6 +45,12 @@ CITIES = [
     (18, "Пермь",              False, False, True),
     (19, "Тюмень",             False, False, True),
     (20, "Мурманск",           False, False, True),
+    # Quiz destinations — regions mapped to nearest city with an airport
+    (21, "Петрозаводск",       True,  False, True),   # Карелия
+    (22, "Горно-Алтайск",      False, False, True),   # Алтай
+    (23, "Улан-Удэ",           False, False, True),   # Байкал
+    (24, "Петропавловск-Камчатский", True, False, True), # Камчатка
+    (25, "Махачкала",          True,  True,  True),   # Дагестан
 ]
 
 AIRPORTS = [
@@ -71,6 +77,11 @@ AIRPORTS = [
     (20, "Большое Савино (PEE)", 18),
     (21, "Рощино (TJM)",         19),
     (22, "Мурманск (MMK)",       20),
+    (23, "Бесовец (PES)",        21),   # Петрозаводск / Карелия
+    (24, "Горно-Алтайск (RGK)", 22),   # Алтай
+    (25, "Байкал (UUD)",         23),   # Улан-Удэ / Байкал
+    (26, "Елизово (PKC)",        24),   # Петропавловск-Камчатский / Камчатка
+    (27, "Уйташ (MCX)",          25),   # Махачкала / Дагестан
 ]
 
 COMPANIES = [
@@ -149,6 +160,19 @@ ROUTES = [
     (42, 14, 7, 3002, 215),   # IKT → SVX
     (43, 8, 14, 3101, 215),   # OVB → KJA
     (44, 14, 8, 3102, 215),   # KJA → OVB
+    # --- Quiz destinations (new cities) ---
+    (45, 1, 23, 3201,  90),   # SVO → PES  (Moscow → Петрозаводск / Карелия)
+    (46, 23, 1, 3202,  90),   # PES → SVO
+    (47, 4, 23, 3301,  60),   # LED → PES  (SPb → Петрозаводск, very close)
+    (48, 23, 4, 3302,  60),   # PES → LED
+    (49, 1, 24, 3401, 250),   # SVO → RGK  (Moscow → Горно-Алтайск / Алтай)
+    (50, 24, 1, 3402, 250),   # RGK → SVO
+    (51, 1, 25, 3501, 340),   # SVO → UUD  (Moscow → Улан-Удэ / Байкал)
+    (52, 25, 1, 3502, 340),   # UUD → SVO
+    (53, 1, 26, 3601, 510),   # SVO → PKC  (Moscow → Петропавловск-Камчатский)
+    (54, 26, 1, 3602, 510),   # PKC → SVO
+    (55, 1, 27, 3701, 155),   # SVO → MCX  (Moscow → Махачкала / Дагестан)
+    (56, 27, 1, 3702, 155),   # MCX → SVO
 ]
 
 # ---------------------------------------------------------------------------
@@ -203,6 +227,19 @@ ROUTE_CONFIG = {
     42: {"fpd": 1, "companies": [2],       "planes": [3, 5]},
     43: {"fpd": 1, "companies": [2],       "planes": [5, 6]},
     44: {"fpd": 1, "companies": [2],       "planes": [5, 6]},
+    # Quiz destinations
+    45: {"fpd": 1, "companies": [1, 5],    "planes": [5, 6]},   # SVO → Петрозаводск
+    46: {"fpd": 1, "companies": [1, 5],    "planes": [5, 6]},
+    47: {"fpd": 1, "companies": [5],       "planes": [5, 6]},   # LED → Петрозаводск
+    48: {"fpd": 1, "companies": [5],       "planes": [5, 6]},
+    49: {"fpd": 1, "companies": [1, 2],    "planes": [3, 5]},   # SVO → Горно-Алтайск
+    50: {"fpd": 1, "companies": [1, 2],    "planes": [3, 5]},
+    51: {"fpd": 1, "companies": [1, 2],    "planes": [2, 7]},   # SVO → Улан-Удэ
+    52: {"fpd": 1, "companies": [1, 2],    "planes": [2, 7]},
+    53: {"fpd": 1, "companies": [1],       "planes": [7, 8]},   # SVO → Камчатка
+    54: {"fpd": 1, "companies": [1],       "planes": [7, 8]},
+    55: {"fpd": 1, "companies": [1, 5],    "planes": [1, 3]},   # SVO → Махачкала
+    56: {"fpd": 1, "companies": [1, 5],    "planes": [1, 3]},
 }
 
 # Typical morning/afternoon/evening departure hours per slot index
