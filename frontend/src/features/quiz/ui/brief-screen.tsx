@@ -1,4 +1,5 @@
 import { Button } from 'antd';
+import { AnimatedEmoji } from './animated-emoji';
 import styles from './brief-screen.module.css';
 
 interface BriefScreenProps {
@@ -9,9 +10,9 @@ interface BriefScreenProps {
 export const BriefScreen = ({ totalQuestions, onStart }: BriefScreenProps) => {
   const WHAT_AWAITS = [
     { icon: '⚡', text: `${totalQuestions} быстрых вопросов` },
-    { icon: '☝', text: 'Только один вариант ответа' },
-    { icon: '🖼', text: 'Картинки вместо сложных решений' },
-    { icon: '🗺', text: 'В конце — направление по твоему настроению' },
+    { icon: '☝️', text: 'Только один вариант ответа' },
+    { icon: '📸', text: 'Картинки вместо сложных решений' },
+    { icon: '🌍', text: 'В конце — направление по твоему настроению' },
   ];
   return (
     <div className={styles.wrapper}>
@@ -34,7 +35,7 @@ export const BriefScreen = ({ totalQuestions, onStart }: BriefScreenProps) => {
       <ul className={styles.list}>
         {WHAT_AWAITS.map((item) => (
           <li key={item.text} className={styles.listItem}>
-            <span className={styles.listIcon}>{item.icon}</span>
+            <AnimatedEmoji emoji={item.icon} className={styles.listIcon} />
             <span>{item.text}</span>
           </li>
         ))}

@@ -1,8 +1,53 @@
 import type { AnswerScores, Question } from '../model/types';
-import { ArrowLeftOutlined, CloseOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, CloseOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { Button, Popconfirm, Progress } from 'antd';
 import { useState } from 'react';
+import { getEmojiUrl } from './emoji-utils';
 import styles from './question-screen.module.css';
+
+function getEmojiStaticUrl(emoji: string): string {
+  const codepoints = [...emoji]
+    .map((char) => char.codePointAt(0)!)
+    .filter((cp) => cp !== 0xfe0f && cp !== 0xfe0e) // strip variation selectors — Noto PNG filenames don't include them
+    .map((cp) => cp.toString(16))
+    .join('_');
+  return `https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@main/png/128/emoji_u${codepoints}.png`;
+}
+
+function AnswerEmoji({ emoji }: { emoji: string }) {
+  const [staticFailed, setStaticFailed] = useState(false);
+  const [animatedFailed, setAnimatedFailed] = useState(false);
+
+  const wrapperClass = [
+    styles.emojiWrapper,
+    staticFailed && styles.emojiAlwaysAnimated,
+    animatedFailed && styles.emojiStaticOnly,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <span className={wrapperClass}>
+      {!staticFailed && (
+        <img
+          className={styles.emojiStatic}
+          src={getEmojiStaticUrl(emoji)}
+          alt={emoji}
+          onError={() => setStaticFailed(true)}
+        />
+      )}
+      {!animatedFailed && (
+        <img
+          className={styles.emojiAnimated}
+          src={getEmojiUrl(emoji)}
+          alt=""
+          aria-hidden="true"
+          onError={() => setAnimatedFailed(true)}
+        />
+      )}
+    </span>
+  );
+}
 
 interface QuestionScreenProps {
   question: Question;
@@ -88,6 +133,8 @@ export const QuestionScreen = ({
           cancelText="Остаться"
           placement="bottomRight"
           disabled={isLocked}
+          icon={<ExclamationCircleFilled style={{ color: '#FF6B4A' }} />}
+          overlayClassName={styles.exitPopconfirm}
         >
           <Button
             type="text"
@@ -113,7 +160,7 @@ export const QuestionScreen = ({
                 onClick={() => handleSelect(answer.id, answer.scores, answer.flashMessage)}
                 disabled={isLocked}
               >
-                <span className={styles.emoji}>{answer.emoji}</span>
+                <AnswerEmoji emoji={answer.emoji} />
                 <span className={styles.label}>{answer.label}</span>
                 {answer.sublabel && <span className={styles.sublabel}>{answer.sublabel}</span>}
               </button>

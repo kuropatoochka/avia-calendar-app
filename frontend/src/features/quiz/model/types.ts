@@ -20,7 +20,6 @@ export type DestinationKey =
   | 'perm'
   | 'tyumen'
   | 'murmansk'
-  // Iconic regions (not in DB flights but valid destinations)
   | 'karelia'
   | 'altai'
   | 'baikal'
@@ -52,4 +51,4 @@ export interface Destination {
   descriptions: string[];
 }
 
-export type QuizScreen = 'landing' | 'brief' | 'quiz' | 'result';
+export type QuizScreen = 'landing' | 'brief' | 'quiz' | 'result' | 'deals';

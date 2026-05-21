@@ -11,9 +11,10 @@ import styles from './result-screen.module.css';
 interface ResultScreenProps {
   result: DestinationKey;
   onRestart: () => void;
+  onDoubt: () => void;
 }
 
-export const ResultScreen = ({ result, onRestart }: ResultScreenProps) => {
+export const ResultScreen = ({ result, onRestart, onDoubt }: ResultScreenProps) => {
   const navigate = useNavigate();
   const destination = DESTINATIONS[result];
   const description = useMemo(() => pickRandom(destination.descriptions), [destination]);
@@ -47,7 +48,7 @@ export const ResultScreen = ({ result, onRestart }: ResultScreenProps) => {
           <Button className={styles.secondaryButton} onClick={onRestart}>
             Пройти ещё раз
           </Button>
-          <Button className={styles.ghostButton} onClick={onRestart}>
+          <Button className={styles.ghostButton} onClick={onDoubt}>
             Я всё ещё сомневаюсь
           </Button>
         </div>

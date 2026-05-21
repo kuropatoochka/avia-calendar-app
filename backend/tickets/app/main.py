@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -14,6 +15,14 @@ from app.routers.tickets import router as tickets_router
 def create_app() -> FastAPI:
     cfg = get_settings()
     app = FastAPI(title=cfg.api_title, version=cfg.api_version)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["GET"],
+        allow_headers=["*"],
+    )
+
     app.include_router(airports_router)
     app.include_router(companies_router)
     app.include_router(tickets_router)

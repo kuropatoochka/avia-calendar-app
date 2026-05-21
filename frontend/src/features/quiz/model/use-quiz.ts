@@ -64,6 +64,10 @@ export const useQuiz = () => {
     setState(INITIAL_STATE);
   };
 
+  const goToDeals = () => {
+    setState((prev) => ({ ...prev, screen: 'deals' }));
+  };
+
   return {
     screen: state.screen,
     questionIndex: state.questionIndex,
@@ -76,5 +80,6 @@ export const useQuiz = () => {
     goBack,
     exitQuiz,
     restart,
+    goToDeals,
   };
 };

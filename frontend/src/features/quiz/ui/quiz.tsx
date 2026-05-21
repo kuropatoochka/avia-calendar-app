@@ -1,5 +1,6 @@
 import { useQuiz } from '../model/use-quiz';
 import { BriefScreen } from './brief-screen';
+import { DealsScreen } from './deals-screen';
 import { LandingScreen } from './landing-screen';
 import { QuestionScreen } from './question-screen';
 import { ResultScreen } from './result-screen';
@@ -17,10 +18,11 @@ export const Quiz = () => {
     goBack,
     exitQuiz,
     restart,
+    goToDeals,
   } = useQuiz();
 
   if (screen === 'landing') {
-    return <LandingScreen onStart={goToBrief} />;
+    return <LandingScreen onStart={goToBrief} onBrowse={goToDeals} />;
   }
 
   if (screen === 'brief') {
@@ -42,7 +44,11 @@ export const Quiz = () => {
   }
 
   if (screen === 'result' && result) {
-    return <ResultScreen result={result} onRestart={restart} />;
+    return <ResultScreen result={result} onRestart={restart} onDoubt={goToDeals} />;
+  }
+
+  if (screen === 'deals') {
+    return <DealsScreen result={result} onRestart={restart} />;
   }
 
   return null;

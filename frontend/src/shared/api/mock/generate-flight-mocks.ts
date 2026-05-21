@@ -226,8 +226,13 @@ export const generateFlights = ({
     const stopsCount = getStopsCount(seed + index, service_class);
     const segmentsCount = stopsCount + 1;
 
-    const basePrice = 2800 + (routeSeed % 1600) + (dateSeed % 700) + index * 260;
-    const stopPriceMultiplier = 1 + stopsCount * 0.18;
+    // Proxy для дистанции: чем больше разница airport ID, тем «дальше» маршрут.
+    // Диапазон ~0..1.8 даёт реалистичный разброс коротких/длинных рейсов.
+    const distanceFactor = Math.min(Math.abs(airport_to - airport_from) / 60, 1.8);
+    const basePrice = Math.round(
+      (999 + (routeSeed % 900) + (dateSeed % 400) + index * 160) * (1 + distanceFactor * 0.6),
+    );
+    const stopPriceMultiplier = 1 + stopsCount * 0.15;
     const serviceMultiplier = SERVICE_CLASS_MULTIPLIERS[service_class];
 
     const price = Math.round(

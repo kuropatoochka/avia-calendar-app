@@ -128,10 +128,66 @@
   box-shadow: var(--shadow-sm) !important;
 }
 
-.emoji {
-  font-size: clamp(28px, 3.5vw, 40px);
-  line-height: 1;
+/* ── Exit popconfirm overrides ── */
+.exitPopconfirm :global(.ant-popover-inner) {
+  padding: 8px 10px !important;
+}
+
+.exitPopconfirm :global(.ant-popconfirm-message) {
+  flex-direction: row-reverse;
+  gap: 6px;
+}
+
+.exitPopconfirm :global(.ant-popconfirm-buttons) {
+  margin-top: 6px !important;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Hover-animated emoji ── */
+.emojiWrapper {
+  position: relative;
+  width: clamp(28px, 3.5vw, 40px);
+  height: clamp(28px, 3.5vw, 40px);
   flex-shrink: 0;
+}
+
+.emojiStatic {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.15s ease;
+}
+
+.emojiAnimated {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.card:hover:not(:disabled) .emojiStatic {
+  opacity: 0;
+}
+
+.card:hover:not(:disabled) .emojiAnimated {
+  opacity: 1;
+}
+
+/* Static PNG failed — keep animated visible at all times */
+.emojiAlwaysAnimated .emojiAnimated {
+  opacity: 1;
+}
+
+/* Animated webp failed — keep static visible even on hover */
+.emojiStaticOnly .emojiStatic {
+  opacity: 1 !important;
 }
 
 .label {
