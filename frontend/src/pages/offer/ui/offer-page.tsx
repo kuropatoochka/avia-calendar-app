@@ -1,4 +1,4 @@
-import { Collapse, Flex, Space, Typography } from 'antd';
+import { Flex, Space, Typography } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import {
@@ -25,9 +25,7 @@ import {
 } from '@/features/recommendation-tags';
 import type { SearchFormValues } from '@/features/search-form';
 import { SearchForm } from '@/features/search-form';
-import { ArrowDown } from '@/shared/assets';
 import type { TicketsRequest } from '@/shared/types';
-import { cn } from '@/shared/utils';
 import styles from './offer-page.module.css';
 
 const DEFAULT_TICKETS_LIMIT = 100;
@@ -53,7 +51,6 @@ const OfferPageContent = () => {
   const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
   const [filterKey, setFilterKey] = useState(0);
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
-  const [priceDynamicsOpenKeys, setPriceDynamicsOpenKeys] = useState<string[]>(['price-dynamics']);
 
   const variant = useLaunchExperiment();
   const showRecommendationTags = variant === 'B';
@@ -272,28 +269,10 @@ const OfferPageContent = () => {
 
         <SearchForm onSearch={handleSearch} />
 
-        <Collapse
-          className={styles.collapse}
-          bordered={false}
-          activeKey={priceDynamicsOpenKeys}
-          onChange={(key) => {
-            setPriceDynamicsOpenKeys(Array.isArray(key) ? key : key ? [key] : []);
-          }}
-          expandIcon={({ isActive }) => (
-            <ArrowDown className={cn(styles.collapseArrow, isActive && styles.collapseArrowOpen)} />
-          )}
-          ghost
-          expandIconPlacement="end"
-          items={[
-            {
-              key: 'price-dynamics',
-              label: <Typography.Title level={2}>График цен</Typography.Title>,
-              children: (
-                <PriceDynamicsContainer params={searchParams} onSelect={handleShowFlights} />
-              ),
-            },
-          ]}
-        />
+        <Flex vertical gap={16}>
+          <Typography.Title level={2}>График цен</Typography.Title>
+          <PriceDynamicsContainer params={searchParams} onSelect={handleShowFlights} />
+        </Flex>
 
         <div className={styles.columns}>
           <Flex component="main" gap={24} vertical className={styles.resultsColumn}>

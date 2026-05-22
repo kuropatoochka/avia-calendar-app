@@ -38,6 +38,7 @@ export const PassengerSelect = ({
     <Flex vertical gap={12}>
       <PassengerCounter
         label="Взрослые"
+        subLabel="12 лет и старше"
         value={passengers.adults}
         min={1}
         onChange={(nextValue) => updatePassengers({ adults: nextValue })}

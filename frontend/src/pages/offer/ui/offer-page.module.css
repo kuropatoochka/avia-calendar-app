@@ -4,24 +4,6 @@
   padding: 0 var(--space-xl);
 }
 
-.collapse {
-  background: transparent;
-}
-
-.collapse :global(.ant-collapse-item > .ant-collapse-header) {
-  padding: 0 var(--space-md) var(--space-lg) 0;
-}
-
-.collapseArrow {
-  width: 17px;
-  height: 17px;
-  transition: transform 0.2s ease;
-}
-
-.collapseArrowOpen {
-  transform: rotate(180deg);
-}
-
 .columns {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 356px;
