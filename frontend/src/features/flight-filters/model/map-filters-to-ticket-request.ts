@@ -1,7 +1,8 @@
 import type { DepartureTime, FlightFiltersState } from './types';
 import type { TicketFiltersRequest } from '@/shared/types';
+import { MAX_PRICE_FILTER } from './defaults';
 
-const MAX_PRICE_DEFAULT = 200_000;
+const MAX_PRICE_DEFAULT = MAX_PRICE_FILTER;
 
 const TIME_RANGES: Record<DepartureTime, [string, string]> = {
   night: ['00:00:00', '05:59:00'],

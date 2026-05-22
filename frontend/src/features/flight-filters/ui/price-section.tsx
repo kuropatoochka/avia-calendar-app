@@ -1,5 +1,6 @@
 import type { FlightFiltersState } from '../model/types';
 import { Flex, Slider, Typography } from 'antd';
+import { MAX_PRICE_FILTER } from '../model/defaults';
 import { FieldRow } from './field-row';
 import styles from './flight-filters.module.css';
 
@@ -14,7 +15,7 @@ type PriceSectionProps = {
 };
 
 const priceTooltip = (value?: number) => {
-  if (Number(value) >= 90_000) {
+  if (Number(value) >= MAX_PRICE_FILTER) {
     return 'Любая';
   }
 
@@ -22,22 +23,24 @@ const priceTooltip = (value?: number) => {
 };
 
 export const PriceSection = ({ filters, updateFilter }: PriceSectionProps) => {
+  const maxPriceValue = Math.min(filters.maxPrice, MAX_PRICE_FILTER);
+
   return (
     <Flex vertical gap={4} className={styles.fullWidth}>
       <FieldRow label="Стоимость, руб.">
         <Typography.Text className={styles.sliderLabel}>
-          {filters.maxPrice >= 90_000
+          {maxPriceValue >= MAX_PRICE_FILTER
             ? 'Любая'
-            : `до ${filters.maxPrice.toLocaleString('ru-RU')} ₽`}
+            : `до ${maxPriceValue.toLocaleString('ru-RU')} ₽`}
         </Typography.Text>
       </FieldRow>
 
       <Slider
         className={styles.slider}
         min={1_000}
-        max={100_000}
+        max={MAX_PRICE_FILTER}
         step={100}
-        value={filters.maxPrice}
+        value={maxPriceValue}
         onChange={(value) => updateFilter('maxPrice', value)}
         tooltip={{ formatter: priceTooltip }}
       />
