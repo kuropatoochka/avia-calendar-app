@@ -1,6 +1,6 @@
 import { LaunchExperimentProvider } from '@/features/launch-experiment';
 import { ConfigProvider } from 'antd';
-import ruRU from 'antd/es/locale/ru_RU';
+import ruRU from 'antd/locale/ru_RU';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 import { StrictMode } from 'react';
