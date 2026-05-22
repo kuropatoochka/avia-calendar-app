@@ -20,6 +20,7 @@ export type PriceDynamicsSelection = {
   airportToId: number;
   date: string;
   direction: PriceDynamicsDirection;
+  searchViewId: string;
 };
 
 export type PriceDynamicsChartItem = {

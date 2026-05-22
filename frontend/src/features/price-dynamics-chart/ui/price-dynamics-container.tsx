@@ -290,7 +290,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
 
   const handleChartItemSelect = (
     item: PriceDynamicsChartItem,
-    selectionParams: Omit<PriceDynamicsSelection, 'date'>,
+    selectionParams: Omit<PriceDynamicsSelection, 'date' | 'searchViewId'>,
   ) => {
     if (!params) {
       return;
@@ -309,6 +309,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
       return;
     }
 
+    const searchViewId = crypto.randomUUID();
     const bestPriceRank = getBestPriceRank(item, chartItems);
     const isHighlighted = highlightBestPrices && bestPriceRank !== null;
 
@@ -329,9 +330,19 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
       },
     });
 
+    trackExperimentEvent({
+      goal: Goal.RecommendationFiltersView,
+      experiment: Experiment.RecommendationTags,
+      variant,
+      params: {
+        search_view_id: searchViewId,
+      },
+    });
+
     const nextSelection: PriceDynamicsSelection = {
       ...selectionParams,
       date: item.date,
+      searchViewId,
     };
 
     setSelectedItemState({
