@@ -1,0 +1,12 @@
+services:
+  analytics_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: ${DATABASE_URL}
+      TICKETS_URL: ${TICKETS_URL:-}
+    restart: unless-stopped

@@ -1,0 +1,22 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.logo {
+  color: var(--color-primary);
+}
+
+.menu {
+  min-width: 0;
+  flex: auto;
+  justify-content: flex-end;
+  border-bottom: none;
+}

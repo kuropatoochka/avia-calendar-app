@@ -1,0 +1,184 @@
+.form {
+  margin: 0;
+  padding: var(--space-lg);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: stretch;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.form :global(.ant-form-item) {
+  margin-bottom: 0;
+}
+
+.routeGroup {
+  flex: 0 1 380px;
+  min-width: 340px;
+}
+
+.airportItem {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.tripTypeItem {
+  flex: 0 1 160px;
+  min-width: 140px;
+}
+
+.passengerItem {
+  flex: 0 1 200px;
+  min-width: 160px;
+}
+
+.dateItem {
+  flex: 1 1 260px;
+  min-width: 250px;
+}
+
+.field {
+  width: 100%;
+  min-width: 0;
+  height: 64px;
+  padding: 8px 16px;
+  background: var(--color-background-primary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-primary);
+}
+
+.formAlert {
+  width: 100%;
+}
+
+.fieldError {
+  border-color: var(--color-error);
+}
+
+.field :global(.ant-typography) {
+  font-size: var(--font-size-2xs);
+  color: var(--text-secondary);
+}
+
+.field :global(.ant-select) {
+  margin: 0;
+  padding: 8px 0;
+  border: none;
+}
+
+.field :global(.ant-picker) {
+  padding: 0;
+}
+
+.field :global(.ant-picker-input) {
+  width: 100px;
+}
+
+.arrow {
+  width: 12px;
+  height: 12px;
+  display: block;
+  color: var(--text-secondary);
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+.airportSelect {
+  padding: 0;
+}
+
+.airportSelect :global(.ant-select) {
+  padding: 8px 16px;
+}
+
+.airportSelectLabel {
+  padding: 8px 16px 0;
+}
+
+:global(.ant-btn-icon)>svg.swapIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-background-primary);
+  transition: transform 0.2s ease;
+}
+
+.swapIconRotated {
+  transform: rotate(180deg);
+}
+
+.personIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.searchBtn {
+  width: 64px;
+  height: 64px;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.searchBtn:hover {
+  background: #eeecec;
+}
+
+.searchBtn:active {
+  transform: scale(0.97);
+}
+
+.searchIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.field:global(.ant-btn):hover {
+  color: var(--text-primary) !important;
+}
+
+.passengerText {
+  font-size: 14px !important;
+  color: var(--color-text-primary) !important;
+}
+
+.passengerSubLabel {
+  font-size: var(--font-size-2xs);
+}
+
+.serviceClassBtn {
+  padding: var(--space-xs);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.serviceClassBtnActive, 
+.serviceClassBtnActive:global(.ant-btn-default.ant-btn):hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-background-primary);
+}
+
+@media (max-width: 640px) {
+  .form > :global(.ant-form-item) {
+    flex-basis: 100%;
+  }
+
+  .form > :global(.ant-flex) {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .searchBtn {
+    flex-basis: 100%;
+  }
+}

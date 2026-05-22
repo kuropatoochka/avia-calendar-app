@@ -1,21 +1,20 @@
+import { LaunchExperimentProvider } from '@/features/launch-experiment';
 import { ConfigProvider } from 'antd';
+import ruRU from 'antd/lib/locale/ru_RU.js';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ru';
 import { StrictMode } from 'react';
 import { RouterProvider } from 'react-router';
-import { LaunchExperimentProvider } from '@/features/launch-experiment';
 import { router } from './config/router';
 import './styles';
+import { antdTheme } from './styles/antd-theme';
+
+dayjs.locale('ru');
 
 export const App = () => {
   return (
     <StrictMode>
-      <ConfigProvider
-        theme={{
-          token: {
-            colorPrimary: '#40a9ff',
-            fontFamily: 'Inter, Arial, sans-serif',
-          },
-        }}
-      >
+      <ConfigProvider theme={antdTheme} locale={ruRU}>
         <LaunchExperimentProvider>
           <RouterProvider router={router} />
         </LaunchExperimentProvider>

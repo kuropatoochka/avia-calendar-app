@@ -1,0 +1,132 @@
+.container {
+  padding: var(--space-lg);
+  gap: var(--space-sm);
+  border-radius: var(--radius-md);
+  background-color: var(--background-section);
+}
+
+.chart {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 16px 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--background-page);
+}
+
+.chartScroll {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-text-secondary) transparent;
+}
+
+.chartScroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.chartScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chartScroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background-color: var(--color-text-secondary);
+}
+
+.chartScroll::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.chartSvg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.barGroup {
+  cursor: pointer;
+  outline: none;
+}
+
+.barGroupDisabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.bar {
+  fill: var(--color-text-disabled);
+  opacity: 1;
+  transition:
+    opacity 0.2s ease,
+    fill 0.2s ease,
+    stroke 0.2s ease,
+    height 0.2s ease,
+    y 0.2s ease;
+}
+
+.barDisabled {
+  fill: var(--color-text-secondary);
+}
+
+.barSelected {
+  fill: var(--color-primary);
+}
+
+.barGroup:hover .bar {
+  opacity: 0.8;
+  fill: var(--color-primary);
+}
+
+.barGroup:focus-visible .bar {
+  opacity: 1;
+}
+
+.barRecommendedPrice {
+  fill: var(--chart-soft);
+}
+
+.barBestPrice {
+  fill: var(--chart-strong);
+}
+
+.barRecommendedPrice.barSelected,
+.barBestPrice.barSelected {
+  fill: var(--color-primary);
+} 
+
+.priceText {
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.dateText {
+  font-size: 12px;
+  fill: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.stateText {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.bestBadgeGroup {
+  pointer-events: none;
+}
+
+.bestBadge {
+  fill: var(--color-primary);
+}
+
+.bestBadgeText {
+  font-weight: 700;
+  fill: var(--background-page);
+}
+
+.bestBadgeIcon {
+  color: var(--background-page);
+}

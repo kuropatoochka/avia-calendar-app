@@ -1,0 +1,51 @@
+/**
+ * Ant Design global overrides
+ */
+
+div.ant-typography {
+  margin: 0;
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-sm);
+}
+
+h1.ant-typography,
+.ant-typography+h1.ant-typography {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-md);
+}
+
+
+h2.ant-typography,
+.ant-typography+h2.ant-typography {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-sm);
+}
+
+h3.ant-typography,
+.ant-typography+h3.ant-typography {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-sm);
+}
+
+.ant-layout-content {
+  padding: var(--space-xl);
+  padding-top: calc(64px + var(--space-xl));
+}
+
+.ant-layout-header {
+  padding: 0 var(--space-xl);
+}
+
+.ant-form-item {
+  margin: 0;
+}
+
+.ant-collapse-borderless >.ant-collapse-item>.ant-collapse-panel>.ant-collapse-body {
+  padding: 0;
+}

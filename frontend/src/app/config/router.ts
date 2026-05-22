@@ -1,13 +1,14 @@
 import type { RouteObject } from 'react-router';
 import { createBrowserRouter, replace } from 'react-router';
-import { LazyOfferPage } from '@/pages/OfferPage';
+import { LazyOfferPage } from '@/pages/offer';
+import { LazySearchPage } from '@/pages/search';
 import { PATHS } from '@/shared/consts';
-import { BaseLayout } from '../layout/BaseLayout';
+import { Layout } from '../layout/layout';
 
 const routes: RouteObject[] = [
   {
     path: PATHS.base,
-    Component: BaseLayout,
+    Component: Layout,
     children: [
       {
         index: true,
@@ -16,6 +17,10 @@ const routes: RouteObject[] = [
       {
         path: PATHS.offer,
         Component: LazyOfferPage,
+      },
+      {
+        path: PATHS.search,
+        Component: LazySearchPage,
       },
     ],
   },

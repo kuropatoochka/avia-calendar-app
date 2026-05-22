@@ -1,0 +1,71 @@
+/* Full-viewport blue background, fixed so nothing outside scrolls */
+.page {
+  position: fixed;
+  top: 64px; /* Ant Design header height */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(var(--space-xs), 2vh, var(--space-lg)) var(--space-xl);
+  gap: clamp(4px, 1vh, var(--space-sm));
+  overflow: hidden;
+  justify-content: flex-start;
+}
+
+/* ── Hero header (white text on blue) ── */
+.hero {
+  text-align: center;
+  flex-shrink: 1;
+  min-height: 0;
+}
+
+.heroTitle {
+  font-family: var(--font-family);
+  font-size: clamp(16px, min(3.5vw, 4.5vh), 36px);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-sm);
+  color: #fff;
+  margin: 0 0 2px;
+  letter-spacing: -0.01em;
+}
+
+.heroSubtitle {
+  font-family: var(--font-family);
+  font-size: clamp(11px, min(2vw, 2.5vh), 14px);
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
+  line-height: var(--line-height-md);
+}
+
+/* ── White quiz card — fills all remaining height ── */
+.card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 760px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 960px) {
+  .page {
+    padding: clamp(var(--space-xs), 2vh, var(--space-md)) var(--space-md);
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: clamp(4px, 1.5vh, var(--space-sm)) var(--space-sm);
+  }
+
+  .card {
+    border-radius: var(--radius-md);
+  }
+}

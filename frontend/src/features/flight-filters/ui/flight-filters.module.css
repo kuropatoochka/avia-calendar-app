@@ -1,0 +1,310 @@
+.container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.fullWidth {
+  width: 100%;
+  padding: var(--space-xs);
+}
+
+.resetBtn {
+  width: 24px;
+  height: 36px;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.resetBtn:hover {
+  background: #eeecec;
+}
+
+.resetBtn:active {
+  transform: scale(0.97);
+}
+
+.resetIcon {
+  width: 18px;
+  height: 18px;
+  fill: var(--text-secondary);
+}
+
+.panel {
+  width: 100%;
+  padding: var(--space-sm);
+  background: var(--background-section);
+  border-radius: var(--radius-md);
+}
+
+.collapse {
+  width: 100%;
+  background: transparent;
+}
+
+.collapseIcon {
+  width: 12px;
+  height: 12px;
+  color: var(--text-secondary) !important;
+  transition: transform 0.2s ease;
+}
+
+.collapseIconOpen {
+  transform: rotate(180deg);
+}
+
+.collapse :global(.ant-collapse-item) {
+  padding: var(--space-2xs) 0;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.collapse :global(.ant-collapse-item:last-child) {
+  border-bottom: none;
+}
+
+.actions {
+  padding: var(--space-sm) 0;
+}
+
+.applyButton {
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.applyButton:hover {
+  background: #eeecec;
+}
+
+.applyButton:active {
+  transform: scale(0.97);
+}
+
+.sectionTitle {
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.label {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  line-height: var(--line-height-md);
+  min-width: 0;
+  word-break: break-word;
+}
+
+.sliderLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.numberInput {
+  width: 88px;
+  flex-shrink: 0;
+}
+
+.numberInput :global(.ant-input-number-group-addon) {
+  width: 36px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.unitLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.select {
+  width: 100%;
+}
+
+.select :global(.ant-select-selection-item) {
+  background-color: var(--color-primary-light) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.select :global(.ant-select-selection-item-remove) {
+  color: var(--color-primary) !important;
+}
+
+.selectSearchIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.selectClearIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.selectClearIcon:hover {
+  color: var(--color-primary);
+}
+
+.slider :global(.ant-slider-track) {
+  background-color: var(--color-primary) !important;
+}
+
+.slider :global(.ant-slider-handle::after) {
+  box-shadow: 0 0 0 2px var(--color-primary) !important;
+}
+
+.slider:hover :global(.ant-slider-track) {
+  background-color: var(--ant-color-primary-hover) !important;
+}
+
+.slider:hover :global(.ant-slider-handle::after) {
+  box-shadow: 0 0 0 2px var(--ant-color-primary-hover) !important;
+}
+
+.slider:global(.ant-slider-disabled) :global(.ant-slider-track) {
+  background-color: var(--border-primary) !important;
+}
+
+.slider:global(.ant-slider-disabled) :global(.ant-slider-handle::after) {
+  box-shadow: 0 0 0 2px var(--border-primary) !important;
+}
+
+.timeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs) var(--space-sm);
+}
+
+.timeSectionLast {
+  margin-bottom: var(--space-sm);
+}
+
+.infoIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.infoIcon:hover {
+  color: var(--color-primary);
+}
+
+.removeButton {
+  padding: 0 !important;
+  min-width: unset !important;
+  height: auto !important;
+  color: var(--text-muted) !important;
+  flex-shrink: 0;
+}
+
+.removeButton:hover {
+  color: var(--color-primary) !important;
+}
+
+.removeIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.passengerSelect {
+  width: 100%;
+}
+
+.passengerSelectArrow {
+  transition: transform 0.2s ease;
+}
+
+.passengerSelectArrowOpen {
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+.btnLabelFull {
+  display: inline;
+}
+
+.btnLabelShort {
+  display: none;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
+/* Narrow sidebar (960 px breakpoint matches the page grid change) */
+@media (max-width: 960px) {
+  .panel {
+    padding: var(--space-sm);
+    border-radius: 20px;
+  }
+
+  .collapse :global(.ant-collapse-content-box) {
+    padding: 0 0 var(--space-md) !important;
+  }
+
+  .numberInput {
+    width: 76px;
+  }
+
+  .applyButton {
+    min-width: 140px;
+  }
+}
+
+/* Full-width filter (single-column page layout at 768 px) */
+@media (max-width: 768px) {
+  .panel {
+    border-radius: 16px;
+  }
+
+  .actions {
+    padding-top: var(--space-sm);
+  }
+
+  .applyButton {
+    min-width: unset;
+    width: 100%;
+  }
+}
+
+/* Very narrow screens */
+@media (max-width: 480px) {
+  .panel {
+    padding: var(--space-xs);
+    border-radius: 12px;
+  }
+
+  .collapse :global(.ant-collapse-header) {
+    padding: var(--space-xs) 0 !important;
+  }
+
+  .collapse :global(.ant-collapse-content-box) {
+    padding: 0 0 var(--space-sm) !important;
+  }
+
+  .numberInput {
+    width: 68px;
+  }
+
+  /* Stack time-of-day checkboxes into a single column */
+  .timeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Shorten baggage button labels so the row doesn't expand the block */
+@media (max-width: 400px) {
+  .btnLabelFull {
+    display: none;
+  }
+
+  .btnLabelShort {
+    display: inline;
+  }
+}

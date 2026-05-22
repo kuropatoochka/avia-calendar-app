@@ -11,7 +11,7 @@ async function enableMocking() {
   const { worker } = await import('./msw/browser');
 
   await worker.start({
-    onUnhandledRequest: 'bypass',
+    onUnhandledRequest: 'warn',
   });
 }
 

@@ -1,0 +1,195 @@
+.wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg) var(--space-xl) var(--space-sm);
+  overflow: hidden;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 520px;
+  gap: clamp(var(--space-sm), 2.5vh, var(--space-lg));
+  width: 100%;
+}
+
+.verdict {
+  font-family: var(--font-family);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: clamp(var(--space-sm), 2vh, var(--space-lg));
+  animation: fadeSlideUp 0.4s ease both;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.destination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(var(--space-xs), 1.5vh, var(--space-md));
+  animation: fadeSlideUp 0.4s ease 0.15s both;
+}
+
+.destinationEmoji {
+  filter: drop-shadow(0 4px 16px rgb(0 0 0 / 14%));
+  animation: fadeSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.destinationText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.destinationLabel {
+  font-family: var(--font-family);
+  font-size: clamp(10px, 1.5vw, 12px);
+  color: var(--color-text-secondary);
+}
+
+.destinationName {
+  font-family: var(--font-family);
+  font-size: clamp(22px, 4vw, 40px);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.destinationTagline {
+  font-family: var(--font-family);
+  font-size: clamp(12px, 1.8vw, 14px);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.descriptionCard {
+  background: var(--color-primary-light);
+  border-radius: var(--radius-md);
+  padding: clamp(var(--space-xs), 1.5vh, var(--space-md)) clamp(var(--space-sm), 2vw, var(--space-lg));
+  width: 100%;
+  animation: fadeSlideUp 0.4s ease 0.28s both;
+}
+
+.description {
+  font-family: var(--font-family);
+  font-size: clamp(12px, 1.8vw, 14px);
+  line-height: var(--line-height-md);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  animation: fadeSlideUp 0.4s ease 0.4s both;
+}
+
+
+/* ── Action buttons (override antd defaults) ── */
+.primaryButton {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--color-accent) !important;
+  color: #fff !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  border: none !important;
+  border-radius: var(--radius-full) !important;
+  padding: var(--space-sm) var(--space-2xl) !important;
+  height: auto !important;
+  width: 100% !important;
+  max-width: 320px !important;
+  box-shadow: none !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+.primaryButton:not(:disabled):hover {
+  opacity: 0.88 !important;
+  transform: translateY(-1px) !important;
+  background: var(--color-accent) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.primaryButton:not(:disabled):active {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  background: var(--color-accent) !important;
+}
+
+.secondaryButton {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  color: var(--color-text-primary) !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-xs) !important;
+  font-weight: var(--font-weight-medium) !important;
+  border: 1.5px solid var(--color-border-primary) !important;
+  border-radius: var(--radius-full) !important;
+  padding: var(--space-xs) var(--space-xl) !important;
+  height: auto !important;
+  width: 100% !important;
+  max-width: 320px !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, background 0.15s ease !important;
+}
+
+.secondaryButton:not(:disabled):hover {
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary-light) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: none !important;
+}
+
+.ghostButton {
+  background: none !important;
+  border: none !important;
+  color: var(--color-text-muted) !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-2xs) !important;
+  padding: 4px var(--space-xs) !important;
+  height: auto !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+  box-shadow: none !important;
+  transition: color 0.15s ease !important;
+}
+
+.ghostButton:not(:disabled):hover {
+  color: var(--color-text-secondary) !important;
+  background: none !important;
+}
+
+.footnote {
+  font-family: var(--font-family);
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  animation: fadeSlideUp 0.4s ease 0.52s both;
+}
