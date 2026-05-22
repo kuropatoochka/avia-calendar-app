@@ -6,6 +6,8 @@ export const Goal = {
 
   RecommendationFiltersView: 'RECOMMENDATION_FILTERS_VIEW',
   AdditionalFiltersApply: 'ADDITIONAL_FILTERS_APPLY',
+
+  QuizProgress: 'QUIZ_PROGRESS',
 } as const;
 
 export type GoalName = (typeof Goal)[keyof typeof Goal];
@@ -13,6 +15,7 @@ export type GoalName = (typeof Goal)[keyof typeof Goal];
 export const Experiment = {
   PriceDynamicsBestDates: 'price_dynamics_best_dates',
   RecommendationTags: 'recommendation_tags',
+  QuizAutoAdvance: 'quiz_auto_advance',
 } as const;
 
 export type ExperimentName = (typeof Experiment)[keyof typeof Experiment];

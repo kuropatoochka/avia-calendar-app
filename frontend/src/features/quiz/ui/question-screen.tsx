@@ -2,7 +2,6 @@ import type { AnswerScores, Question } from '../model/types';
 import { ArrowLeftOutlined, CloseOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { Button, Popconfirm, Progress } from 'antd';
 import { useState } from 'react';
-import { useLaunchExperiment } from '@/features/launch-experiment';
 import { getEmojiUrl } from './emoji-utils';
 import styles from './question-screen.module.css';
 
@@ -54,6 +53,7 @@ interface QuestionScreenProps {
   question: Question;
   questionIndex: number;
   totalQuestions: number;
+  autoAdvance: boolean;
   onAnswer: (scores: AnswerScores) => void;
   onBack: () => void;
   onExit: () => void;
@@ -63,12 +63,11 @@ export const QuestionScreen = ({
   question,
   questionIndex,
   totalQuestions,
+  autoAdvance,
   onAnswer,
   onBack,
   onExit,
 }: QuestionScreenProps) => {
-  const variant = useLaunchExperiment();
-  const autoAdvance = variant === 'B';
   const [selected, setSelected] = useState<string | null>(null);
   const [pendingScores, setPendingScores] = useState<AnswerScores | null>(null);
   const [pendingFlash, setPendingFlash] = useState<string | undefined>(undefined);
