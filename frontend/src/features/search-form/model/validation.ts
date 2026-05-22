@@ -11,7 +11,7 @@ const SEARCH_FORM_ERRORS: Record<'sameAirport' | 'sameCity' | 'emptyDates', Sear
   },
   emptyDates: {
     fields: ['dateRange'],
-    message: 'Без дат самолёты немного теряются. Выберите даты поездки, и мы покажем варианты',
+    message: 'Укажите период поиска — самолёты найдутся, а мы покажем минимальные цены по дням',
   },
 };
 

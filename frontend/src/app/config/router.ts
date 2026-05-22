@@ -1,5 +1,5 @@
 import type { RouteObject } from 'react-router';
-import { createBrowserRouter, replace } from 'react-router';
+import { createBrowserRouter } from 'react-router';
 import { LazyOfferPage } from '@/pages/offer';
 import { LazySearchPage } from '@/pages/search';
 import { PATHS } from '@/shared/consts';
@@ -12,7 +12,7 @@ const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        loader: () => replace(PATHS.offer),
+        Component: LazyOfferPage,
       },
       {
         path: PATHS.offer,
