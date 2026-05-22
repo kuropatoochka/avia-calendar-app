@@ -6,8 +6,16 @@ export type DestinationTagId = 'has_sea' | 'has_warm' | 'has_nature';
 export type DepartureTimeTagId = 'morning_departure' | 'night_departure';
 export type StopsTagId = 'direct_flight';
 export type BaggageTagId = 'baggage_included';
+export type PriceTagId = 'price_up_to_5000';
+export type AirlineTagId = 'airline_aeroflot';
 
-export type TagId = DestinationTagId | DepartureTimeTagId | StopsTagId | BaggageTagId;
+export type TagId =
+  | DestinationTagId
+  | DepartureTimeTagId
+  | StopsTagId
+  | BaggageTagId
+  | PriceTagId
+  | AirlineTagId;
 
 type BaseRecommendationTag = {
   id: TagId;
@@ -38,11 +46,25 @@ type BaggageRecommendationTag = BaseRecommendationTag & {
   type: 'baggage';
 };
 
+type PriceRecommendationTag = BaseRecommendationTag & {
+  id: PriceTagId;
+  type: 'price';
+  maxPrice: number;
+};
+
+type AirlineRecommendationTag = BaseRecommendationTag & {
+  id: AirlineTagId;
+  type: 'airline';
+  companyName: string;
+};
+
 export type RecommendationTag =
   | DestinationRecommendationTag
   | DepartureTimeRecommendationTag
   | StopsRecommendationTag
-  | BaggageRecommendationTag;
+  | BaggageRecommendationTag
+  | PriceRecommendationTag
+  | AirlineRecommendationTag;
 
 export const RECOMMENDATION_TAGS: RecommendationTag[] = [
   {
@@ -54,6 +76,18 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
     id: 'baggage_included',
     type: 'baggage',
     label: 'С багажом',
+  },
+  {
+    id: 'price_up_to_5000',
+    type: 'price',
+    label: 'до 5 000 ₽',
+    maxPrice: 5_000,
+  },
+  {
+    id: 'airline_aeroflot',
+    type: 'airline',
+    label: 'Аэрофлот',
+    companyName: 'Аэрофлот',
   },
 
   {

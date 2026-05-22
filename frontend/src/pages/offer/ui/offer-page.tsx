@@ -33,6 +33,8 @@ import styles from './offer-page.module.css';
 const DEFAULT_TICKETS_LIMIT = 100;
 
 const DEFAULT_BAGGAGE_WEIGHT = 20;
+const PRICE_TAG_MAX = 5_000;
+const AEROFLOT_COMPANY_NAME = 'Аэрофлот';
 
 const getPassengerCount = (params: PriceDynamicsSearchParams | null) => {
   if (!params) {
@@ -67,7 +69,9 @@ const OfferPageContent = () => {
       tagId !== 'morning_departure' &&
       tagId !== 'night_departure' &&
       tagId !== 'direct_flight' &&
-      tagId !== 'baggage_included'
+      tagId !== 'baggage_included' &&
+      tagId !== 'price_up_to_5000' &&
+      tagId !== 'airline_aeroflot'
     ) {
       return;
     }
@@ -100,6 +104,26 @@ const OfferPageContent = () => {
           extraBaggageEntries: selected
             ? nextFilters.extraBaggageEntries
             : DEFAULT_FLIGHT_FILTERS.extraBaggageEntries,
+        };
+      }
+
+      if (tagId === 'price_up_to_5000') {
+        return {
+          ...nextFilters,
+          maxPrice: selected ? PRICE_TAG_MAX : DEFAULT_FLIGHT_FILTERS.maxPrice,
+        };
+      }
+
+      if (tagId === 'airline_aeroflot') {
+        const aeroflotCompany = companies.find((company) => company.name === AEROFLOT_COMPANY_NAME);
+
+        if (!aeroflotCompany) {
+          return nextFilters;
+        }
+
+        return {
+          ...nextFilters,
+          airlines: selected ? [aeroflotCompany.id] : DEFAULT_FLIGHT_FILTERS.airlines,
         };
       }
 
