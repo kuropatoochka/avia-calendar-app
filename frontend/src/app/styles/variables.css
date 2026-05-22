@@ -13,10 +13,11 @@
   --color-primary-light: #EEF5FF;
 
   --color-accent: #FF6B4A;
+  --color-accent-light: #FFF0EB;
 
   /* chart */
-  --chart-soft: #FFB199; 
-  --chart-strong: var(--color-accent); 
+  --chart-soft: #FFB199;
+  --chart-strong: var(--color-accent);
 
   --color-error: #FF4D4F;
 

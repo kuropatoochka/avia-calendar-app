@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-lg) var(--space-xl) var(--space-sm);
   overflow: hidden;
 }
 
@@ -13,7 +13,7 @@
   align-items: center;
   text-align: center;
   max-width: 520px;
-  gap: var(--space-lg);
+  gap: clamp(var(--space-sm), 2.5vh, var(--space-lg));
   width: 100%;
 }
 
@@ -24,6 +24,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-text-muted);
+  margin-top: clamp(var(--space-sm), 2vh, var(--space-lg));
   animation: fadeSlideUp 0.4s ease both;
 }
 
@@ -42,7 +43,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-md);
+  gap: clamp(var(--space-xs), 1.5vh, var(--space-md));
   animation: fadeSlideUp 0.4s ease 0.15s both;
 }
 
@@ -60,13 +61,13 @@
 
 .destinationLabel {
   font-family: var(--font-family);
-  font-size: var(--font-size-2xs);
+  font-size: clamp(10px, 1.5vw, 12px);
   color: var(--color-text-secondary);
 }
 
 .destinationName {
   font-family: var(--font-family);
-  font-size: clamp(26px, 4vw, 40px);
+  font-size: clamp(22px, 4vw, 40px);
   font-weight: var(--font-weight-bold);
   line-height: 1;
   color: var(--color-text-primary);
@@ -75,7 +76,7 @@
 
 .destinationTagline {
   font-family: var(--font-family);
-  font-size: var(--font-size-xs);
+  font-size: clamp(12px, 1.8vw, 14px);
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -83,14 +84,14 @@
 .descriptionCard {
   background: var(--color-primary-light);
   border-radius: var(--radius-md);
-  padding: var(--space-md) var(--space-lg);
+  padding: clamp(var(--space-xs), 1.5vh, var(--space-md)) clamp(var(--space-sm), 2vw, var(--space-lg));
   width: 100%;
   animation: fadeSlideUp 0.4s ease 0.28s both;
 }
 
 .description {
   font-family: var(--font-family);
-  font-size: var(--font-size-xs);
+  font-size: clamp(12px, 1.8vw, 14px);
   line-height: var(--line-height-md);
   color: var(--color-text-primary);
   margin: 0;

@@ -2,6 +2,7 @@ import type { AnswerScores, Question } from '../model/types';
 import { ArrowLeftOutlined, CloseOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { Button, Popconfirm, Progress } from 'antd';
 import { useState } from 'react';
+import { useLaunchExperiment } from '@/features/launch-experiment';
 import { getEmojiUrl } from './emoji-utils';
 import styles from './question-screen.module.css';
 
@@ -66,6 +67,8 @@ export const QuestionScreen = ({
   onBack,
   onExit,
 }: QuestionScreenProps) => {
+  const variant = useLaunchExperiment();
+  const autoAdvance = variant === 'B';
   const [selected, setSelected] = useState<string | null>(null);
   const [pendingScores, setPendingScores] = useState<AnswerScores | null>(null);
   const [pendingFlash, setPendingFlash] = useState<string | undefined>(undefined);
@@ -75,24 +78,34 @@ export const QuestionScreen = ({
   const progress = (questionIndex / totalQuestions) * 100;
   const current = questionIndex + 1;
 
+  const advance = (scores: AnswerScores, flash?: string) => {
+    if (flash) {
+      setFlashMessage(flash);
+      setTimeout(() => {
+        setFlashMessage(null);
+        onAnswer(scores);
+      }, 1600);
+    } else {
+      onAnswer(scores);
+    }
+  };
+
   const handleSelect = (answerId: string, scores: AnswerScores, flash?: string) => {
-    if (isLocked) return;
+    if (isLocked || (autoAdvance && selected !== null)) return;
     setSelected(answerId);
-    setPendingScores(scores);
-    setPendingFlash(flash);
+    if (autoAdvance) {
+      // Brief delay so the selected (orange) state renders before advancing
+      const delay = flash ? 50 : 300;
+      setTimeout(() => advance(scores, flash), delay);
+    } else {
+      setPendingScores(scores);
+      setPendingFlash(flash);
+    }
   };
 
   const handleNext = () => {
     if (!pendingScores || isLocked) return;
-    if (pendingFlash) {
-      setFlashMessage(pendingFlash);
-      setTimeout(() => {
-        setFlashMessage(null);
-        onAnswer(pendingScores);
-      }, 1600);
-    } else {
-      onAnswer(pendingScores);
-    }
+    advance(pendingScores, pendingFlash);
   };
 
   return (
@@ -168,15 +181,17 @@ export const QuestionScreen = ({
           })}
         </div>
 
-        <div className={styles.footer}>
-          <Button
-            className={styles.nextButton}
-            onClick={handleNext}
-            disabled={!selected || isLocked}
-          >
-            Далее
-          </Button>
-        </div>
+        {!autoAdvance && (
+          <div className={styles.footer}>
+            <Button
+              className={styles.nextButton}
+              onClick={handleNext}
+              disabled={!selected || isLocked}
+            >
+              Далее
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

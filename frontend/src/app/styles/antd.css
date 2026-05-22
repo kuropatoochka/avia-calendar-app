@@ -15,7 +15,8 @@ h1.ant-typography,
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-md);
 }
-  
+
+
 h2.ant-typography,
 .ant-typography+h2.ant-typography {
   margin: 0;
@@ -34,6 +35,7 @@ h3.ant-typography,
 
 .ant-layout-content {
   padding: var(--space-xl);
+  padding-top: calc(64px + var(--space-xl));
 }
 
 .ant-layout-header {
