@@ -187,13 +187,6 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
       chartViewIdsRef.current[direction] = chartViewId;
       viewTrackedRef.current[direction] = true;
 
-      console.log('trackPriceDynamicsView', {
-        chart_view_id: chartViewId,
-        direction,
-        trip_type: params.tripType,
-        dates_count: datesCount,
-      });
-
       trackExperimentEvent({
         goal: Goal.PriceDynamicsView,
         experiment: Experiment.PriceDynamicsBestDates,
