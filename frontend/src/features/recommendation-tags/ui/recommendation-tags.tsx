@@ -1,5 +1,4 @@
 import type { TagId } from '../consts/tags';
-import { Flex } from 'antd';
 import { cn, reachGoal } from '@/shared/utils';
 import { RECOMMENDATION_TAGS } from '../consts/tags';
 import { RECOMMENDATION_TAGS_METRIKA_GOALS } from '../lib/metrika-goals';
@@ -14,7 +13,7 @@ export const RecommendationTags = ({ onTagToggle }: RecommendationTagsProps) => 
   const { toggleTag, isTagSelected } = useRecommendationTags();
 
   return (
-    <Flex wrap gap={8} className={styles.tags} role="group" aria-label="Быстрые фильтры">
+    <div className={styles.tags} role="group" aria-label="Быстрые фильтры">
       {RECOMMENDATION_TAGS.map((tag) => {
         const selected = isTagSelected(tag.id);
         const nextSelected = !selected;
@@ -42,6 +41,6 @@ export const RecommendationTags = ({ onTagToggle }: RecommendationTagsProps) => 
           </button>
         );
       })}
-    </Flex>
+    </div>
   );
 };

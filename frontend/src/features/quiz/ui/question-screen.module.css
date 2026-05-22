@@ -119,11 +119,12 @@
 
 .card:disabled {
   cursor: default;
+  opacity: 1;
 }
 
 .cardSelected {
   border-color: var(--color-accent) !important;
-  background: #fff4f1 !important;
+  background: var(--color-accent-light) !important;
   transform: translateY(-1px) !important;
   box-shadow: var(--shadow-sm) !important;
 }
