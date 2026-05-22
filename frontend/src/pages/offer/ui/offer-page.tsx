@@ -5,12 +5,18 @@ import {
   DEFAULT_FLIGHT_FILTERS,
   filterTicketGroups,
   FlightFilters as FlightFiltersSection,
+  getActiveFiltersCount,
   mapFiltersToTicketRequest,
   useCompaniesQuery,
 } from '@/features/flight-filters';
 import type { FlightBookingPayload } from '@/features/flight-list';
 import { FlightList, useTicketsQuery } from '@/features/flight-list';
-import { useLaunchExperiment } from '@/features/launch-experiment';
+import {
+  Experiment,
+  Goal,
+  trackExperimentEvent,
+  useLaunchExperiment,
+} from '@/features/launch-experiment';
 import type {
   PriceDynamicsSearchParams,
   PriceDynamicsSelection,
@@ -34,6 +40,8 @@ type BuildTicketsRequestParams = {
   params?: PriceDynamicsSearchParams | null;
   filters?: FlightFiltersState | null;
 };
+
+type AdditionalFiltersApplySource = 'panel' | 'tag';
 
 const getPassengerCount = (params: PriceDynamicsSearchParams | null) => {
   if (!params) {
@@ -113,6 +121,26 @@ const OfferPageContent = () => {
       },
     };
   }, [searchParams, activeFilters]);
+
+  const trackAdditionalFiltersApply = useCallback(
+    (source: AdditionalFiltersApplySource, activeFiltersCount: number) => {
+      if (!selectedPriceDate?.searchViewId) {
+        return;
+      }
+
+      trackExperimentEvent({
+        goal: Goal.AdditionalFiltersApply,
+        experiment: Experiment.RecommendationTags,
+        variant,
+        params: {
+          search_view_id: selectedPriceDate.searchViewId,
+          source,
+          active_filters_count: activeFiltersCount,
+        },
+      });
+    },
+    [selectedPriceDate, variant],
+  );
 
   const buildTicketsRequest = useCallback(
     ({
@@ -226,6 +254,8 @@ const OfferPageContent = () => {
       filters: updatedFilters,
     });
 
+    trackAdditionalFiltersApply('tag', getActiveFiltersCount(updatedFilters));
+
     void loadFirstTicketsPage(request);
   };
 
@@ -236,6 +266,8 @@ const OfferPageContent = () => {
       offset: 0,
       filters,
     });
+
+    trackAdditionalFiltersApply('panel', getActiveFiltersCount(filters));
 
     void loadFirstTicketsPage(request);
   };

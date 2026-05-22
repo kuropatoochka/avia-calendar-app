@@ -1,5 +1,8 @@
 import { MoonFilled, SunFilled } from '@ant-design/icons';
+import { Avatar } from 'antd';
 import React from 'react';
+import { BriefcaseFill, ThunderboltFill } from '@/shared/assets';
+import { aeroflotLogo } from '@/shared/assets/airlines';
 import type { TicketFiltersRequest } from '@/shared/types';
 
 export type DestinationTagId = 'has_sea' | 'has_warm' | 'has_nature';
@@ -71,11 +74,13 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
     id: 'direct_flight',
     type: 'stops',
     label: 'Прямой рейс',
+    icon: React.createElement(ThunderboltFill, { style: { color: '#FF6B4A' } }),
   },
   {
     id: 'baggage_included',
     type: 'baggage',
     label: 'С багажом',
+    icon: React.createElement(BriefcaseFill, { style: { color: '#4FAF9A' } }),
   },
   {
     id: 'price_up_to_5000',
@@ -88,6 +93,11 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
     type: 'airline',
     label: 'Аэрофлот',
     companyName: 'Аэрофлот',
+    icon: React.createElement(Avatar, {
+      size: 16,
+      src: aeroflotLogo,
+      alt: 'Аэрофлот',
+    }),
   },
 
   {
