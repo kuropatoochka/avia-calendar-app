@@ -1,4 +1,5 @@
 import type { ServiceClass, TicketItemDto, TicketsResponse } from '@/shared/types';
+import { airportMock } from './airport-mock';
 import { companyMock } from './company-mock';
 
 type GenerateFlightsParams = {
@@ -24,6 +25,46 @@ const SERVICE_CLASS_MULTIPLIERS: Record<ServiceClass, number> = {
   COMFORT: 1.2,
   BUSINESS: 1.6,
   FIRST_CLASS: 2.1,
+};
+
+const airportById = new Map(airportMock.map((airport) => [airport.id, airport]));
+
+const getAirportById = (airportId: number) => airportById.get(airportId);
+
+const getCityNameByAirportId = (airportId: number) =>
+  getAirportById(airportId)?.city.name ?? `Город ${airportId}`;
+
+const getAirportNameById = (airportId: number) =>
+  getAirportById(airportId)?.name ?? `Аэропорт ${airportId}`;
+
+const getRouteAirportIds = (
+  originAirportId: number,
+  destinationAirportId: number,
+  segmentsCount: number,
+  seed: number,
+) => {
+  const transferCount = Math.max(segmentsCount - 1, 0);
+  const availableAirportIds = airportMock
+    .map((airport) => airport.id)
+    .filter((airportId) => airportId !== originAirportId && airportId !== destinationAirportId);
+
+  if (transferCount === 0) {
+    return [originAirportId, destinationAirportId];
+  }
+
+  if (availableAirportIds.length === 0) {
+    return [
+      originAirportId,
+      ...Array.from({ length: transferCount }, () => destinationAirportId),
+      destinationAirportId,
+    ];
+  }
+
+  const transitAirportIds = Array.from({ length: transferCount }, (_, index) => {
+    return availableAirportIds[(seed + index) % availableAirportIds.length];
+  });
+
+  return [originAirportId, ...transitAirportIds, destinationAirportId];
 };
 
 const hashString = (value: string) => {
@@ -134,14 +175,11 @@ const getPassengerTotalPrice = ({
 };
 
 const createSegment = ({
-  airportFrom,
-  airportTo,
-  cityFrom,
-  cityTo,
+  airportFromId,
+  airportToId,
   date,
   seed,
   segmentIndex,
-  segmentsCount,
   departureMinutes,
   duration,
   total,
@@ -150,14 +188,11 @@ const createSegment = ({
   todlersPrice,
   baggagePrice,
 }: {
-  airportFrom: number;
-  airportTo: number;
-  cityFrom: string;
-  cityTo: string;
+  airportFromId: number;
+  airportToId: number;
   date: string;
   seed: number;
   segmentIndex: number;
-  segmentsCount: number;
   departureMinutes: number;
   duration: number;
   total: number;
@@ -171,16 +206,16 @@ const createSegment = ({
 
   const arrivalMinutes = departureMinutes + duration;
 
-  const isFirstSegment = segmentIndex === 0;
-  const isLastSegment = segmentIndex === segmentsCount - 1;
-
-  const transitName = `Транзит ${segmentIndex}`;
+  const cityFrom = getCityNameByAirportId(airportFromId);
+  const cityTo = getCityNameByAirportId(airportToId);
+  const airportFrom = getAirportNameById(airportFromId);
+  const airportTo = getAirportNameById(airportToId);
 
   return {
-    city_from: isFirstSegment ? cityFrom : transitName,
-    city_to: isLastSegment ? cityTo : `Транзит ${segmentIndex + 1}`,
-    airport_from: isFirstSegment ? `Аэропорт ${airportFrom}` : `Аэропорт ${transitName}`,
-    airport_to: isLastSegment ? `Аэропорт ${airportTo}` : `Аэропорт Транзит ${segmentIndex + 1}`,
+    city_from: cityFrom,
+    city_to: cityTo,
+    airport_from: airportFrom,
+    airport_to: airportTo,
     flight_number: 1000 + ((seed + segmentIndex * 97) % 9000),
     company_name: company.name,
     duration,
@@ -254,19 +289,20 @@ export const generateFlights = ({
 
     const firstDepartureMinutes = getDepartureMinutes(seed, index);
 
+    const routeAirportIds = getRouteAirportIds(airport_from, airport_to, segmentsCount, seed);
+
     const group = Array.from({ length: segmentsCount }, (_, segmentIndex) => {
       const departureMinutes =
         firstDepartureMinutes + segmentIndex * (segmentDuration + layoverDuration);
+      const airportFromId = routeAirportIds[segmentIndex] ?? airport_from;
+      const airportToId = routeAirportIds[segmentIndex + 1] ?? airport_to;
 
       return createSegment({
-        airportFrom: airport_from,
-        airportTo: airport_to,
-        cityFrom: `Город ${airport_from}`,
-        cityTo: `Город ${airport_to}`,
+        airportFromId,
+        airportToId,
         date,
         seed,
         segmentIndex,
-        segmentsCount,
         departureMinutes,
         duration: segmentDuration,
         total,
