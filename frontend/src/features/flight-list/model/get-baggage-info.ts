@@ -1,4 +1,4 @@
-import type { BaggageOption } from './types';
+import type { BaggageOption, FlightBookingDetails } from './types';
 import type { TicketPricesDto } from '@/shared/types';
 
 type Params = {
@@ -38,4 +38,18 @@ export const getBaggageOptions = ({
     withBaggage,
     withoutBaggage,
   };
+};
+
+export const getBaggageLabel = (bookingDetails?: FlightBookingDetails | null) => {
+  if (!bookingDetails) {
+    return null;
+  }
+
+  if (!bookingDetails.baggage.enabled) {
+    return 'Ручная кладь';
+  }
+
+  const weight = bookingDetails.baggage.weights[0];
+
+  return weight ? `Багаж · ${weight} кг` : 'Багаж';
 };

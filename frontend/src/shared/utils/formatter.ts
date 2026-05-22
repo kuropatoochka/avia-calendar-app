@@ -4,6 +4,12 @@ export const formatDate = (date: string) => {
   return dayjs(date).format('DD.MM.YYYY');
 };
 
+export const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'short',
+  weekday: 'short',
+});
+
 export const timeFormatter = (time: string) => {
   return time.slice(0, 5);
 };

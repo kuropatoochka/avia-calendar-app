@@ -1,60 +1,31 @@
-import type { FlightCardViewModel } from '../model/types';
+import type { FlightBookingDetails, FlightCardViewModel } from '../model/types';
+import { Avatar, Flex, Tooltip, Typography } from 'antd';
+import { dateFormatter, priceFormatter } from '@/shared/utils';
+import { formatServiceClass } from '../model/formatter';
+import { getBaggageLabel } from '../model/get-baggage-info';
+import { getAirlineLogo, getCompanyShortName } from '../model/get-company-info';
+import { getPassengersLabel } from '../model/get-passanger-info';
 import styles from './flight-list.module.css';
+import { RouteScale } from './route-scale';
 
 type Props = {
   flight: FlightCardViewModel;
+  bookingDetails?: FlightBookingDetails | null;
   onClick?: () => void;
 };
 
-const priceFormatter = new Intl.NumberFormat('ru-RU', {
-  style: 'currency',
-  currency: 'RUB',
-  maximumFractionDigits: 0,
-});
+export const FlightCard = ({ flight, bookingDetails, onClick }: Props) => {
+  const passengersLabel = getPassengersLabel(bookingDetails);
+  const baggageLabel = getBaggageLabel(bookingDetails);
+  const serviceClass = bookingDetails?.serviceClass
+    ? formatServiceClass(bookingDetails.serviceClass)
+    : undefined;
 
-const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
-  day: 'numeric',
-  month: 'short',
-});
+  const { departureDate, price } = flight;
 
-const formatTime = (time: string) => {
-  return time.slice(0, 5);
-};
-
-const formatDate = (date: string) => {
-  return dateFormatter.format(new Date(date));
-};
-
-const formatDuration = (durationMinutes: number) => {
-  const hours = Math.floor(durationMinutes / 60);
-  const minutes = durationMinutes % 60;
-
-  if (hours === 0) {
-    return `${minutes} мин`;
-  }
-
-  if (minutes === 0) {
-    return `${hours} ч`;
-  }
-
-  return `${hours} ч ${minutes} мин`;
-};
-
-const formatStops = (stopsCount: number) => {
-  if (stopsCount === 0) {
-    return 'Прямой рейс';
-  }
-
-  if (stopsCount === 1) {
-    return '1 пересадка';
-  }
-
-  return `${stopsCount} пересадки`;
-};
-
-export const FlightCard = ({ flight, onClick }: Props) => {
   return (
-    <article
+    <Flex
+      component="article"
       className={styles.card}
       role="button"
       tabIndex={0}
@@ -66,50 +37,35 @@ export const FlightCard = ({ flight, onClick }: Props) => {
         }
       }}
     >
-      <div className={styles.cardTop}>
-        <div className={styles.priceBlock}>
-          <span className={styles.price}>{priceFormatter.format(flight.price)}</span>
-          <span className={styles.priceCaption}>за всех пассажиров</span>
-        </div>
+      <Flex justify="space-between" align="flex-start" gap={24}>
+        <Flex className={styles.block}>
+          <Typography.Title className={styles.cardPrice}>
+            {priceFormatter.format(price)}
+          </Typography.Title>
 
-        <span className={flight.stopsCount === 0 ? styles.directBadge : styles.transferBadge}>
-          {formatStops(flight.stopsCount)}
-        </span>
-      </div>
+          <RouteScale flight={flight} />
+        </Flex>
+      </Flex>
 
-      <div className={styles.cardMain}>
-        <div className={styles.timeBlock}>
-          <span className={styles.time}>{formatTime(flight.departureTime)}</span>
-          <span className={styles.airport}>{flight.airportFrom}</span>
-          <span className={styles.city}>{flight.cityFrom}</span>
-        </div>
+      <Flex className={styles.block}>
+        <Avatar.Group>
+          {flight.companyNames.map((company) => (
+            <Tooltip key={company} title={company}>
+              <Avatar src={getAirlineLogo(company)} className={styles.companyAvatar}>
+                {!getAirlineLogo(company) && getCompanyShortName(company)}
+              </Avatar>
+            </Tooltip>
+          ))}
+        </Avatar.Group>
 
-        <div className={styles.routeBlock}>
-          <span className={styles.duration}>{formatDuration(flight.duration)}</span>
+        <Typography.Text strong>{dateFormatter.format(new Date(departureDate))}</Typography.Text>
 
-          <div className={styles.routeLine}>
-            <span className={styles.routeDot} />
-            <span className={styles.routeDash} />
-            <span className={styles.routeDot} />
-          </div>
+        {passengersLabel && <Typography.Text strong>{passengersLabel}</Typography.Text>}
 
-          <span className={styles.date}>
-            {formatDate(flight.departureDate)}
-            {flight.arrivalDate !== flight.departureDate && ` — ${formatDate(flight.arrivalDate)}`}
-          </span>
-        </div>
+        {passengersLabel && <Typography.Text type="secondary">{serviceClass}</Typography.Text>}
 
-        <div className={styles.timeBlockRight}>
-          <span className={styles.time}>{formatTime(flight.arrivalTime)}</span>
-          <span className={styles.airport}>{flight.airportTo}</span>
-          <span className={styles.city}>{flight.cityTo}</span>
-        </div>
-      </div>
-
-      <div className={styles.cardBottom}>
-        <span>{flight.companyNames.join(', ')}</span>
-        <span>{flight.planeTypes.join(', ')}</span>
-      </div>
-    </article>
+        {baggageLabel && <Typography.Text strong>{baggageLabel}</Typography.Text>}
+      </Flex>
+    </Flex>
   );
 };

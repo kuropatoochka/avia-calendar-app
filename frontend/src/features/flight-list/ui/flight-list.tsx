@@ -26,6 +26,7 @@ type ContentProps = {
   isLoading: boolean;
   error: string | null;
   cards: FlightCardViewModel[];
+  bookingDetails: FlightBookingDetails | null;
   expanded: boolean;
   onSelectFlight: (flight: FlightCardViewModel) => void;
 };
@@ -36,7 +37,15 @@ const isFlightCardViewModel = (value: FlightCardViewModel | null): value is Flig
   return value !== null;
 };
 
-const Content = ({ isIdle, isLoading, error, cards, expanded, onSelectFlight }: ContentProps) => {
+const Content = ({
+  isIdle,
+  isLoading,
+  error,
+  cards,
+  expanded,
+  onSelectFlight,
+  bookingDetails,
+}: ContentProps) => {
   const visibleCards = expanded ? cards : cards.slice(0, PREVIEW_COUNT);
 
   if (isIdle) {
@@ -66,10 +75,17 @@ const Content = ({ isIdle, isLoading, error, cards, expanded, onSelectFlight }: 
     );
   }
 
+  console.log(visibleCards);
+
   return (
     <>
       {visibleCards.map((flight) => (
-        <FlightCard key={flight.id} flight={flight} onClick={() => onSelectFlight(flight)} />
+        <FlightCard
+          key={flight.id}
+          flight={flight}
+          bookingDetails={bookingDetails}
+          onClick={() => onSelectFlight(flight)}
+        />
       ))}
     </>
   );
@@ -115,7 +131,7 @@ export const FlightList = ({
         )}
       </Flex>
 
-      <Flex vertical justify="center" align="center" className={styles.placeholder}>
+      <Flex vertical justify="center" align="center" gap={12} className={styles.placeholder}>
         <Content
           isIdle={isIdle}
           isLoading={isLoading}
@@ -123,6 +139,7 @@ export const FlightList = ({
           cards={cards}
           expanded={expanded}
           onSelectFlight={setSelectedFlight}
+          bookingDetails={bookingDetails}
         />
       </Flex>
 

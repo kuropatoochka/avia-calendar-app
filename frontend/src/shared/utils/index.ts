@@ -1,8 +1,9 @@
 export { cn } from './cn';
 export {
+  dateFormatter,
+  durationFormatter,
   formatDate,
   priceFormatter,
-  durationFormatter,
   stopsFormatter,
   timeFormatter,
 } from './formatter';
