@@ -1,6 +1,12 @@
-import type { FlightCardViewModel } from '../model/types';
-import { Button, Flex, Spin, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import type {
+  FlightBookingDetails,
+  FlightBookingPayload,
+  FlightCardViewModel,
+} from '../model/types';
+import type { UIEvent } from 'react';
+import { Flex, Spin, Typography } from 'antd';
+import { useCallback, useMemo, useState } from 'react';
+import { Eyes } from '@/shared/assets';
 import type { TicketItemDto } from '@/shared/types';
 import { mapTicketGroupToCard } from '../model/map-ticket-group-to-card';
 import { FlightBookingModal } from './flight-booking-modal';
@@ -10,99 +16,154 @@ import styles from './flight-list.module.css';
 type Props = {
   flights: TicketItemDto[][];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: string | null;
   isIdle: boolean;
+  bookingDetails: FlightBookingDetails | null;
+  onBook: (flight: FlightBookingPayload) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
 };
 
-const PREVIEW_COUNT = 3;
+type ContentProps = {
+  isIdle: boolean;
+  isLoading: boolean;
+  error: string | null;
+  cards: FlightCardViewModel[];
+  bookingDetails: FlightBookingDetails | null;
+  onSelectFlight: (flight: FlightCardViewModel) => void;
+};
 
 const isFlightCardViewModel = (value: FlightCardViewModel | null): value is FlightCardViewModel => {
   return value !== null;
 };
 
-export const FlightList = ({ flights, isLoading, error, isIdle }: Props) => {
-  const [expanded, setExpanded] = useState(false);
+const Content = ({
+  isIdle,
+  isLoading,
+  error,
+  cards,
+  onSelectFlight,
+  bookingDetails,
+}: ContentProps) => {
+  if (isIdle) {
+    return (
+      <Typography.Text type="secondary">
+        Выберите дату на графике цен, чтобы увидеть рейсы
+      </Typography.Text>
+    );
+  }
+
+  if (isLoading) {
+    return <Spin spinning={isLoading} tip="Загружаем предложения..." />;
+  }
+
+  if (error) {
+    return <Typography.Text type="danger">{error}</Typography.Text>;
+  }
+
+  if (cards.length === 0) {
+    return (
+      <>
+        <Eyes />
+        <Typography.Text type="secondary">
+          Упсс! Рейсов по заданным фильтрам не найдено
+        </Typography.Text>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {cards.map((flight) => (
+        <FlightCard
+          key={flight.id}
+          flight={flight}
+          bookingDetails={bookingDetails}
+          onClick={() => onSelectFlight(flight)}
+        />
+      ))}
+    </>
+  );
+};
+
+export const FlightList = ({
+  flights,
+  isLoading,
+  isLoadingMore,
+  error,
+  isIdle,
+  bookingDetails,
+  onBook,
+  onLoadMore,
+  hasMore = false,
+}: Props) => {
   const [selectedFlight, setSelectedFlight] = useState<FlightCardViewModel | null>(null);
 
   const cards = useMemo(
     () => flights.map(mapTicketGroupToCard).filter(isFlightCardViewModel),
     [flights],
   );
+  const canLoadMore =
+    Boolean(onLoadMore) && hasMore && !isLoadingMore && !isLoading && !isIdle && !error;
 
-  const visibleCards = expanded ? cards : cards.slice(0, PREVIEW_COUNT);
-  const canExpand = cards.length > PREVIEW_COUNT;
+  const handleScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      if (!canLoadMore || !onLoadMore) {
+        return;
+      }
 
-  if (isIdle) {
-    return (
-      <Flex justify="center" align="center" className={styles.placeholder}>
-        <Typography.Text type="secondary">
-          Выберите дату на графике цен, чтобы увидеть рейсы
-        </Typography.Text>
-      </Flex>
-    );
-  }
+      const target = event.currentTarget;
+      const threshold = 200;
+      const remaining = target.scrollHeight - target.scrollTop - target.clientHeight;
 
-  if (isLoading) {
-    return (
-      <Flex justify="center" align="center" className={styles.placeholder}>
-        <Spin spinning={isLoading} tip="Загружаем предложения..." />
-      </Flex>
-    );
-  }
-
-  if (error) {
-    return (
-      <Flex justify="center" align="center" className={styles.placeholder}>
-        <Typography.Text type="danger">{error}</Typography.Text>
-      </Flex>
-    );
-  }
-
-  if (cards.length === 0) {
-    return (
-      <Flex justify="center" align="center" className={styles.placeholder}>
-        <Typography.Text type="secondary">Рейсов по заданным фильтрам не найдено</Typography.Text>
-      </Flex>
-    );
-  }
+      if (remaining <= threshold) {
+        onLoadMore();
+      }
+    },
+    [canLoadMore, onLoadMore],
+  );
 
   return (
-    <>
-      <Flex vertical gap={16} className={styles.resultsBlock}>
-        <Flex justify="space-between" align="center" gap={16} className={styles.header}>
-          <div>
-            <Typography.Title level={3} className={styles.title}>
-              Доступные предложения
-            </Typography.Title>
-
-            <Typography.Text type="secondary" className={styles.foundCount}>
-              Найдено {cards.length} предложений
-            </Typography.Text>
-          </div>
-
-          {canExpand && (
-            <Button
-              type="link"
-              className={styles.viewAllButton}
-              onClick={() => setExpanded((prev) => !prev)}
-            >
-              {expanded ? 'Свернуть' : 'Посмотреть все'}
-            </Button>
-          )}
-        </Flex>
-
-        <Flex vertical gap={12}>
-          {visibleCards.map((flight) => (
-            <FlightCard key={flight.id} flight={flight} onClick={() => setSelectedFlight(flight)} />
-          ))}
+    <Flex vertical gap={16} className={styles.resultsBlock}>
+      <Flex justify="space-between" align="center" gap={16} className={styles.header}>
+        <Flex vertical gap={8}>
+          <Typography.Title level={2} className={styles.title}>
+            Доступные предложения
+          </Typography.Title>
+          <Typography.Text type="secondary" className={styles.foundCount}>
+            Найдено {cards.length} предложений
+          </Typography.Text>
         </Flex>
       </Flex>
 
-      <FlightBookingModal
-        open={selectedFlight !== null}
-        flight={selectedFlight}
-        onClose={() => setSelectedFlight(null)}
-      />
-    </>
+      <div className={styles.listContainer} onScroll={handleScroll}>
+        <Flex vertical justify="center" align="center" gap={12} className={styles.placeholder}>
+          <Content
+            isIdle={isIdle}
+            isLoading={isLoading}
+            error={error}
+            cards={cards}
+            onSelectFlight={setSelectedFlight}
+            bookingDetails={bookingDetails}
+          />
+        </Flex>
+        {isLoadingMore && (
+          <div className={styles.loadMore}>
+            <Spin size="small" />
+          </div>
+        )}
+      </div>
+
+      {selectedFlight && bookingDetails && (
+        <FlightBookingModal
+          open
+          flight={selectedFlight}
+          bookingDetails={bookingDetails}
+          onBook={onBook}
+          onClose={() => setSelectedFlight(null)}
+        />
+      )}
+    </Flex>
   );
 };

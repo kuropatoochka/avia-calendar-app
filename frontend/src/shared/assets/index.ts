@@ -1,9 +1,11 @@
 import ArrowDown from './ArrowDown.svg';
+import ArrowRight from './ArrowRight.svg';
 import ArrowRotateLeft from './ArrowRotateLeft.svg';
 import ArrowUp from './ArrowUp.svg';
 import Cross from './Cross.svg';
 import Down from './Down.svg';
 import ExclamationMark from './ExclamationMark.svg';
+import Eyes from './Eyes.svg';
 import Fire from './Fire.svg';
 import Logo from './Logo.svg';
 import Person from './Person.svg';
@@ -13,17 +15,19 @@ import Swap from './Swap.svg';
 import Up from './Up.svg';
 
 export {
-  Logo,
-  Up,
-  Star,
+  ArrowDown,
+  ArrowRight,
+  ArrowRotateLeft,
+  ArrowUp,
+  Cross,
   Down,
+  ExclamationMark,
+  Eyes,
+  Fire,
+  Logo,
   Person,
   Search,
-  ArrowUp,
-  ArrowDown,
-  ExclamationMark,
-  Cross,
+  Star,
   Swap,
-  Fire,
-  ArrowRotateLeft,
+  Up,
 };

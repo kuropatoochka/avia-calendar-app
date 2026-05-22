@@ -1,0 +1,56 @@
+.block {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stopsBadge {
+  width: fit-content;
+  padding: 4px 14px;
+  border-radius: 999px;
+}
+
+.stopsDirect {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.stopsTransfer {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+.duration {
+    font-size: var(--font-size-2xs);
+}
+
+.divider {
+    margin: 8px 0;
+}
+
+.modalLabel {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-2xs);
+}
+
+.modalValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.switchButton {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.switchText {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+}
+
+.switchText:last-child {
+  font-weight: var(--font-weight-semibold);
+}

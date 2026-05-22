@@ -66,6 +66,20 @@
   padding: var(--space-sm) 0;
 }
 
+.applyButton {
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+}
+
+.applyButton:hover {
+  background: #eeecec;
+}
+
+.applyButton:active {
+  transform: scale(0.97);
+}
+
 .sectionTitle {
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;

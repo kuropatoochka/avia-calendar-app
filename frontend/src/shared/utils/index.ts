@@ -1,3 +1,10 @@
 export { cn } from './cn';
-export { formatDate } from './formatData';
+export {
+  dateFormatter,
+  durationFormatter,
+  formatDate,
+  priceFormatter,
+  stopsFormatter,
+  timeFormatter,
+} from './formatter';
 export { initYandexMetrika, reachGoal, trackPageView } from './yandexMetrika';

@@ -1,5 +1,6 @@
 import type { FlightCardViewModel } from './types';
 import type { TicketItemDto } from '@/shared/types';
+import { getRouteDuration } from './get-route-info';
 
 export const mapTicketGroupToCard = (
   ticketGroup: TicketItemDto[],
@@ -12,6 +13,9 @@ export const mapTicketGroupToCard = (
     return null;
   }
 
+  const prices = firstTicket.prices;
+  const duration = getRouteDuration(ticketGroup);
+
   return {
     id: `${firstTicket.flight_number}-${firstTicket.departure_date}-${firstTicket.departure_time}-${index}`,
     segments: ticketGroup,
@@ -23,8 +27,9 @@ export const mapTicketGroupToCard = (
     departureTime: firstTicket.departure_time,
     arrivalDate: lastTicket.arrival_date,
     arrivalTime: lastTicket.arrival_time,
-    duration: ticketGroup.reduce((sum, ticket) => sum + ticket.duration, 0),
-    price: firstTicket.prices.total,
+    duration,
+    price: prices.total,
+    prices,
     companyNames: [...new Set(ticketGroup.map((ticket) => ticket.company_name))],
     stopsCount: Math.max(ticketGroup.length - 1, 0),
     planeTypes: [...new Set(ticketGroup.map((ticket) => ticket.plane_type))],

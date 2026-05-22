@@ -1,17 +1,24 @@
 import type { FlightFiltersState } from './types';
 import { useState } from 'react';
-import { DEFAULT_FLIGHT_FILTERS } from './defaults';
+import { DEFAULT_FLIGHT_FILTERS, MAX_PRICE_FILTER } from './defaults';
+
+const clampMaxPrice = (value: number) => Math.min(value, MAX_PRICE_FILTER);
 
 export const useFlightFilters = (initialFilters?: FlightFiltersState | null) => {
-  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(
-    initialFilters ?? DEFAULT_FLIGHT_FILTERS,
-  );
+  const normalizedInitialFilters = initialFilters
+    ? { ...initialFilters, maxPrice: clampMaxPrice(initialFilters.maxPrice) }
+    : DEFAULT_FLIGHT_FILTERS;
+
+  const [draftFilters, setDraftFilters] = useState<FlightFiltersState>(normalizedInitialFilters);
 
   const updateDraftFilter = <K extends keyof FlightFiltersState>(
     key: K,
     value: FlightFiltersState[K],
   ) => {
-    setDraftFilters((prev) => ({ ...prev, [key]: value }));
+    setDraftFilters((prev) => ({
+      ...prev,
+      [key]: key === 'maxPrice' && typeof value === 'number' ? clampMaxPrice(value) : value,
+    }));
   };
 
   const addBaggageEntry = (passengerIndex: number) => {
