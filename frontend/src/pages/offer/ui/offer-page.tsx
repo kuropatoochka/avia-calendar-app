@@ -8,7 +8,7 @@ import {
   mapFiltersToTicketRequest,
   useCompaniesQuery,
 } from '@/features/flight-filters';
-import type { FlightCardViewModel } from '@/features/flight-list';
+import type { FlightBookingPayload } from '@/features/flight-list';
 import { FlightList, useTicketsQuery } from '@/features/flight-list';
 import { useLaunchExperiment } from '@/features/launch-experiment';
 import type {
@@ -149,7 +149,7 @@ const OfferPageContent = () => {
     };
   }, [searchParams, activeFilters]);
 
-  const handleBookFlight = (flight: FlightCardViewModel) => {
+  const handleBookFlight = (flight: FlightBookingPayload) => {
     // TODO: вызвать ручку бронирования
     // flight.id
     // searchParams.serviceClass
