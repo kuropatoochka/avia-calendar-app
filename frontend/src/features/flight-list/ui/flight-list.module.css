@@ -2,6 +2,12 @@
   width: 100%;
 }
 
+.listContainer {
+  width: 100%;
+  max-height: 640px;
+  overflow-y: auto;
+}
+
 .placeholder {
   min-height: 180px;
   padding: 24px;
@@ -22,10 +28,10 @@
   margin-top: 4px;
 }
 
-.viewAllButton {
-  padding: 0;
-  color: var(--color-primary);
-  font-weight: 500;
+.loadMore {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
 }
 
 .block {

@@ -3,8 +3,9 @@ import type {
   FlightBookingPayload,
   FlightCardViewModel,
 } from '../model/types';
-import { Button, Flex, Spin, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import type { UIEvent } from 'react';
+import { Flex, Spin, Typography } from 'antd';
+import { useCallback, useMemo, useState } from 'react';
 import { Eyes } from '@/shared/assets';
 import type { TicketItemDto } from '@/shared/types';
 import { mapTicketGroupToCard } from '../model/map-ticket-group-to-card';
@@ -15,10 +16,13 @@ import styles from './flight-list.module.css';
 type Props = {
   flights: TicketItemDto[][];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: string | null;
   isIdle: boolean;
   bookingDetails: FlightBookingDetails | null;
   onBook: (flight: FlightBookingPayload) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
 };
 
 type ContentProps = {
@@ -27,11 +31,8 @@ type ContentProps = {
   error: string | null;
   cards: FlightCardViewModel[];
   bookingDetails: FlightBookingDetails | null;
-  expanded: boolean;
   onSelectFlight: (flight: FlightCardViewModel) => void;
 };
-
-const PREVIEW_COUNT = 3;
 
 const isFlightCardViewModel = (value: FlightCardViewModel | null): value is FlightCardViewModel => {
   return value !== null;
@@ -42,12 +43,9 @@ const Content = ({
   isLoading,
   error,
   cards,
-  expanded,
   onSelectFlight,
   bookingDetails,
 }: ContentProps) => {
-  const visibleCards = expanded ? cards : cards.slice(0, PREVIEW_COUNT);
-
   if (isIdle) {
     return (
       <Typography.Text type="secondary">
@@ -75,11 +73,9 @@ const Content = ({
     );
   }
 
-  console.log(visibleCards);
-
   return (
     <>
-      {visibleCards.map((flight) => (
+      {cards.map((flight) => (
         <FlightCard
           key={flight.id}
           flight={flight}
@@ -94,20 +90,39 @@ const Content = ({
 export const FlightList = ({
   flights,
   isLoading,
+  isLoadingMore,
   error,
   isIdle,
   bookingDetails,
   onBook,
+  onLoadMore,
+  hasMore = false,
 }: Props) => {
-  const [expanded, setExpanded] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState<FlightCardViewModel | null>(null);
 
   const cards = useMemo(
     () => flights.map(mapTicketGroupToCard).filter(isFlightCardViewModel),
     [flights],
   );
+  const canLoadMore =
+    Boolean(onLoadMore) && hasMore && !isLoadingMore && !isLoading && !isIdle && !error;
 
-  const canExpand = cards.length > PREVIEW_COUNT;
+  const handleScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      if (!canLoadMore || !onLoadMore) {
+        return;
+      }
+
+      const target = event.currentTarget;
+      const threshold = 200;
+      const remaining = target.scrollHeight - target.scrollTop - target.clientHeight;
+
+      if (remaining <= threshold) {
+        onLoadMore();
+      }
+    },
+    [canLoadMore, onLoadMore],
+  );
 
   return (
     <Flex vertical gap={16} className={styles.resultsBlock}>
@@ -120,28 +135,25 @@ export const FlightList = ({
             Найдено {cards.length} предложений
           </Typography.Text>
         </Flex>
-        {canExpand && (
-          <Button
-            type="link"
-            className={styles.viewAllButton}
-            onClick={() => setExpanded((prev) => !prev)}
-          >
-            {expanded ? 'Свернуть' : 'Посмотреть все'}
-          </Button>
-        )}
       </Flex>
 
-      <Flex vertical justify="center" align="center" gap={12} className={styles.placeholder}>
-        <Content
-          isIdle={isIdle}
-          isLoading={isLoading}
-          error={error}
-          cards={cards}
-          expanded={expanded}
-          onSelectFlight={setSelectedFlight}
-          bookingDetails={bookingDetails}
-        />
-      </Flex>
+      <div className={styles.listContainer} onScroll={handleScroll}>
+        <Flex vertical justify="center" align="center" gap={12} className={styles.placeholder}>
+          <Content
+            isIdle={isIdle}
+            isLoading={isLoading}
+            error={error}
+            cards={cards}
+            onSelectFlight={setSelectedFlight}
+            bookingDetails={bookingDetails}
+          />
+        </Flex>
+        {isLoadingMore && (
+          <div className={styles.loadMore}>
+            <Spin size="small" />
+          </div>
+        )}
+      </div>
 
       {selectedFlight && bookingDetails && (
         <FlightBookingModal

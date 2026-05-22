@@ -1,5 +1,5 @@
 import { Flex, Space, Typography } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import {
   DEFAULT_FLIGHT_FILTERS,
@@ -17,22 +17,23 @@ import type {
 } from '@/features/price-dynamics-chart';
 import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
 import type { TagId } from '@/features/recommendation-tags';
-import {
-  getRecommendationTagFilters,
-  RecommendationTags,
-  RecommendationTagsProvider,
-  useRecommendationTags,
-} from '@/features/recommendation-tags';
+import { RecommendationTags, RecommendationTagsProvider } from '@/features/recommendation-tags';
 import type { SearchFormValues } from '@/features/search-form';
 import { SearchForm } from '@/features/search-form';
-import type { TicketsRequest } from '@/shared/types';
+import type { TicketItemDto, TicketsRequest } from '@/shared/types';
 import styles from './offer-page.module.css';
 
 const DEFAULT_TICKETS_LIMIT = 100;
-
 const DEFAULT_BAGGAGE_WEIGHT = 20;
 const PRICE_TAG_MAX = 5_000;
 const AEROFLOT_COMPANY_NAME = 'Аэрофлот';
+
+type BuildTicketsRequestParams = {
+  offset: number;
+  selectedDate?: PriceDynamicsSelection | null;
+  params?: PriceDynamicsSearchParams | null;
+  filters?: FlightFiltersState | null;
+};
 
 const getPassengerCount = (params: PriceDynamicsSearchParams | null) => {
   if (!params) {
@@ -46,87 +47,51 @@ const getDefaultBaggageWeights = (params: PriceDynamicsSearchParams | null) => {
   return Array.from({ length: getPassengerCount(params) }, () => DEFAULT_BAGGAGE_WEIGHT);
 };
 
+const isSupportedRecommendationTag = (tagId: TagId) => {
+  return (
+    tagId === 'morning_departure' ||
+    tagId === 'night_departure' ||
+    tagId === 'direct_flight' ||
+    tagId === 'baggage_included' ||
+    tagId === 'price_up_to_5000' ||
+    tagId === 'airline_aeroflot'
+  );
+};
+
 const OfferPageContent = () => {
   const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(null);
   const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
   const [filterKey, setFilterKey] = useState(0);
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
+  const [ticketGroups, setTicketGroups] = useState<TicketItemDto[][]>([]);
+  const [ticketsTotal, setTicketsTotal] = useState(0);
 
   const variant = useLaunchExperiment();
   const showRecommendationTags = variant === 'B';
 
-  const { selectedTagIds } = useRecommendationTags();
+  const { fetchTickets, fetchMoreTickets, isTicketsLoading, isLoadingMore, ticketsError } =
+    useTicketsQuery();
 
-  const handleRecommendationTagToggle = (tagId: TagId, selected: boolean) => {
-    if (!showRecommendationTags) {
-      return;
-    }
+  const { companies } = useCompaniesQuery();
 
-    if (
-      tagId !== 'morning_departure' &&
-      tagId !== 'night_departure' &&
-      tagId !== 'direct_flight' &&
-      tagId !== 'baggage_included' &&
-      tagId !== 'price_up_to_5000' &&
-      tagId !== 'airline_aeroflot'
-    ) {
-      return;
-    }
+  const companyOptions = useMemo(
+    () =>
+      companies.map((company) => ({
+        value: company.id,
+        label: company.name,
+      })),
+    [companies],
+  );
 
-    setActiveFilters((prev) => {
-      const nextFilters = prev ?? DEFAULT_FLIGHT_FILTERS;
+  const visibleTicketGroups = useMemo(
+    () => filterTicketGroups(ticketGroups, activeFilters),
+    [ticketGroups, activeFilters],
+  );
 
-      if (tagId === 'morning_departure' || tagId === 'night_departure') {
-        return {
-          ...nextFilters,
-          departureTime: selected ? (tagId === 'morning_departure' ? 'morning' : 'night') : null,
-        };
-      }
-
-      if (tagId === 'direct_flight') {
-        return {
-          ...nextFilters,
-          stopsFilterType: selected ? 'direct' : null,
-          maxStops: selected ? 0 : DEFAULT_FLIGHT_FILTERS.maxStops,
-        };
-      }
-
-      if (tagId === 'baggage_included') {
-        return {
-          ...nextFilters,
-          baggageEnabled: selected,
-          baggageWeights: selected
-            ? getDefaultBaggageWeights(searchParams)
-            : DEFAULT_FLIGHT_FILTERS.baggageWeights,
-          extraBaggageEntries: selected
-            ? nextFilters.extraBaggageEntries
-            : DEFAULT_FLIGHT_FILTERS.extraBaggageEntries,
-        };
-      }
-
-      if (tagId === 'price_up_to_5000') {
-        return {
-          ...nextFilters,
-          maxPrice: selected ? PRICE_TAG_MAX : DEFAULT_FLIGHT_FILTERS.maxPrice,
-        };
-      }
-
-      if (tagId === 'airline_aeroflot') {
-        const aeroflotCompany = companies.find((company) => company.name === AEROFLOT_COMPANY_NAME);
-
-        if (!aeroflotCompany) {
-          return nextFilters;
-        }
-
-        return {
-          ...nextFilters,
-          airlines: selected ? [aeroflotCompany.id] : DEFAULT_FLIGHT_FILTERS.airlines,
-        };
-      }
-
-      return nextFilters;
-    });
-  };
+  const filtersKey = useMemo(
+    () => `${filterKey}-${JSON.stringify(activeFilters ?? DEFAULT_FLIGHT_FILTERS)}`,
+    [filterKey, activeFilters],
+  );
 
   const bookingDetails = useMemo(() => {
     if (!searchParams) {
@@ -149,84 +114,176 @@ const OfferPageContent = () => {
     };
   }, [searchParams, activeFilters]);
 
-  const handleBookFlight = (flight: FlightBookingPayload) => {
-    // TODO: вызвать ручку бронирования
-    // flight.id
-    // searchParams.serviceClass
-    // passengers
-    // baggage
+  const buildTicketsRequest = useCallback(
+    ({
+      offset,
+      selectedDate = selectedPriceDate,
+      params = searchParams,
+      filters = activeFilters,
+    }: BuildTicketsRequestParams): TicketsRequest | null => {
+      if (!selectedDate || !params) {
+        return null;
+      }
 
-    console.log(flight);
-  };
-
-  const { ticketGroups, fetchTickets, resetTickets, isTicketsLoading, ticketsError } =
-    useTicketsQuery();
-  const { companies } = useCompaniesQuery();
-
-  const companyOptions = useMemo(
-    () =>
-      companies.map((company) => ({
-        value: company.id,
-        label: company.name,
-      })),
-    [companies],
+      return {
+        airport_from: selectedDate.airportFromId,
+        airport_to: selectedDate.airportToId,
+        date: selectedDate.date,
+        service_class: params.serviceClass,
+        passengers_number: params.passengersNumber,
+        children_number: params.childrenNumber ?? 0,
+        todlers_number: params.toddlersNumber ?? 0,
+        offset,
+        limit: DEFAULT_TICKETS_LIMIT,
+        ...(filters ? mapFiltersToTicketRequest(filters) : {}),
+      };
+    },
+    [activeFilters, searchParams, selectedPriceDate],
   );
 
-  const visibleTicketGroups = useMemo(
-    () => filterTicketGroups(ticketGroups, activeFilters),
-    [ticketGroups, activeFilters],
+  const loadFirstTicketsPage = useCallback(
+    async (request: TicketsRequest | null) => {
+      setTicketGroups([]);
+      setTicketsTotal(0);
+
+      if (!request) {
+        return;
+      }
+
+      const data = await fetchTickets(request);
+
+      if (!data) {
+        return;
+      }
+
+      setTicketGroups(data.items);
+      setTicketsTotal(data.total);
+    },
+    [fetchTickets],
   );
 
-  console.log('[FRONT] visible tickets', {
-    raw: ticketGroups.length,
-    visible: visibleTicketGroups.length,
-    stops: visibleTicketGroups.map((group) => group.length - 1),
-    durations: visibleTicketGroups.map((group) =>
-      group.reduce((sum, ticket) => sum + ticket.duration, 0),
-    ),
-  });
-
-  const filtersKey = useMemo(
-    () => `${filterKey}-${JSON.stringify(activeFilters ?? DEFAULT_FLIGHT_FILTERS)}`,
-    [filterKey, activeFilters],
-  );
-
-  useEffect(() => {
-    if (!selectedPriceDate || !searchParams) {
+  const handleRecommendationTagToggle = (tagId: TagId, selected: boolean) => {
+    if (!showRecommendationTags || !isSupportedRecommendationTag(tagId)) {
       return;
     }
 
-    const request: TicketsRequest = {
-      airport_from: selectedPriceDate.airportFromId,
-      airport_to: selectedPriceDate.airportToId,
-      date: selectedPriceDate.date,
-      service_class: searchParams.serviceClass,
-      passengers_number: searchParams.passengersNumber,
-      children_number: searchParams.childrenNumber ?? 0,
-      todlers_number: searchParams.toddlersNumber ?? 0,
-      offset: 0,
-      limit: DEFAULT_TICKETS_LIMIT,
-      ...(activeFilters ? mapFiltersToTicketRequest(activeFilters) : {}),
-      ...(showRecommendationTags ? getRecommendationTagFilters(selectedTagIds) : {}),
-    };
+    const nextFilters = activeFilters ?? DEFAULT_FLIGHT_FILTERS;
 
-    void fetchTickets(request);
-  }, [
-    selectedPriceDate,
-    activeFilters,
-    searchParams,
-    selectedTagIds,
-    fetchTickets,
-    showRecommendationTags,
-  ]);
+    let updatedFilters: FlightFiltersState = nextFilters;
+
+    if (tagId === 'morning_departure' || tagId === 'night_departure') {
+      updatedFilters = {
+        ...nextFilters,
+        departureTime: selected ? (tagId === 'morning_departure' ? 'morning' : 'night') : null,
+      };
+    }
+
+    if (tagId === 'direct_flight') {
+      updatedFilters = {
+        ...nextFilters,
+        stopsFilterType: selected ? 'direct' : null,
+        maxStops: selected ? 0 : DEFAULT_FLIGHT_FILTERS.maxStops,
+      };
+    }
+
+    if (tagId === 'baggage_included') {
+      updatedFilters = {
+        ...nextFilters,
+        baggageEnabled: selected,
+        baggageWeights: selected
+          ? getDefaultBaggageWeights(searchParams)
+          : DEFAULT_FLIGHT_FILTERS.baggageWeights,
+        extraBaggageEntries: selected
+          ? nextFilters.extraBaggageEntries
+          : DEFAULT_FLIGHT_FILTERS.extraBaggageEntries,
+      };
+    }
+
+    if (tagId === 'price_up_to_5000') {
+      updatedFilters = {
+        ...nextFilters,
+        maxPrice: selected ? PRICE_TAG_MAX : DEFAULT_FLIGHT_FILTERS.maxPrice,
+      };
+    }
+
+    if (tagId === 'airline_aeroflot') {
+      const aeroflotCompany = companies.find((company) => company.name === AEROFLOT_COMPANY_NAME);
+
+      if (!aeroflotCompany) {
+        return;
+      }
+
+      updatedFilters = {
+        ...nextFilters,
+        airlines: selected ? [aeroflotCompany.id] : DEFAULT_FLIGHT_FILTERS.airlines,
+      };
+    }
+
+    setActiveFilters(updatedFilters);
+
+    const request = buildTicketsRequest({
+      offset: 0,
+      filters: updatedFilters,
+    });
+
+    void loadFirstTicketsPage(request);
+  };
 
   const handleApplyFilters = (filters: FlightFiltersState) => {
     setActiveFilters(filters);
+
+    const request = buildTicketsRequest({
+      offset: 0,
+      filters,
+    });
+
+    void loadFirstTicketsPage(request);
   };
 
   const handleShowFlights = (selection: PriceDynamicsSelection) => {
     setSelectedPriceDate(selection);
+
+    const request = buildTicketsRequest({
+      offset: 0,
+      selectedDate: selection,
+    });
+
+    void loadFirstTicketsPage(request);
   };
+
+  const handleLoadMore = useCallback(() => {
+    if (isTicketsLoading || isLoadingMore) {
+      return;
+    }
+
+    if (ticketGroups.length >= ticketsTotal) {
+      return;
+    }
+
+    const request = buildTicketsRequest({
+      offset: ticketGroups.length,
+    });
+
+    if (!request) {
+      return;
+    }
+
+    void fetchMoreTickets(request).then((data) => {
+      if (!data) {
+        return;
+      }
+
+      setTicketGroups((prev) => [...prev, ...data.items]);
+      setTicketsTotal(data.total);
+    });
+  }, [
+    buildTicketsRequest,
+    fetchMoreTickets,
+    isLoadingMore,
+    isTicketsLoading,
+    ticketGroups.length,
+    ticketsTotal,
+  ]);
 
   const handleSearch = (values: SearchFormValues) => {
     const { originAirportId, destinationAirportId, dateRange, tripType, serviceClass, passengers } =
@@ -251,10 +308,17 @@ const OfferPageContent = () => {
     };
 
     setSelectedPriceDate(null);
-    resetTickets();
+    setTicketGroups([]);
+    setTicketsTotal(0);
     setActiveFilters(null);
     setSearchParams(params);
     setFilterKey((key) => key + 1);
+  };
+
+  const handleBookFlight = (flight: FlightBookingPayload) => {
+    // TODO: уточнить контракт бронирования для составных маршрутов.
+    // Сейчас API принимает один flight_instance_id, а предложение может состоять из нескольких segments.
+    console.log(flight);
   };
 
   return (
@@ -283,10 +347,13 @@ const OfferPageContent = () => {
             <FlightList
               flights={visibleTicketGroups}
               isLoading={isTicketsLoading}
+              isLoadingMore={isLoadingMore}
               error={ticketsError}
               isIdle={selectedPriceDate === null}
               bookingDetails={bookingDetails}
               onBook={handleBookFlight}
+              onLoadMore={handleLoadMore}
+              hasMore={ticketGroups.length < ticketsTotal}
             />
           </Flex>
 
@@ -300,8 +367,8 @@ const OfferPageContent = () => {
                 searchParams
                   ? {
                       adults: searchParams.passengersNumber,
-                      children: searchParams?.childrenNumber ?? 0,
-                      toddler: searchParams?.toddlersNumber ?? 0,
+                      children: searchParams.childrenNumber ?? 0,
+                      toddler: searchParams.toddlersNumber ?? 0,
                     }
                   : undefined
               }
