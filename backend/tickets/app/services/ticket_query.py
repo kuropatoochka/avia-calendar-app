@@ -150,6 +150,7 @@ WHERE af.id = CAST(:airport_from AS integer)
 
 LIST_TICKETS_SQL_TEMPLATE = f"""
 SELECT
+  fi.id AS flight_instance_id,
   c_from.name AS city_from,
   c_to.name AS city_to,
   af.name AS airport_from,
@@ -221,6 +222,7 @@ def _rows_to_items(rows: Sequence[Any]) -> list[dict[str, Any]]:
     for row in rows:
         items.append(
             {
+                "flight_instance_id": row["flight_instance_id"],
                 "city_from": row["city_from"],
                 "city_to": row["city_to"],
                 "airport_from": row["airport_from"],

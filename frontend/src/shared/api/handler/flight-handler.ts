@@ -4,6 +4,7 @@ import { companyMock } from '../mock/company-mock';
 import { generateFlights, getDateRange } from '../mock/generate-flight-mocks';
 
 const SERVICE_CLASSES: ServiceClass[] = ['BUDGET', 'COMFORT', 'BUSINESS', 'FIRST_CLASS'];
+const bookedFlightInstanceIds = new Set<number>();
 
 const getServiceClass = (url: URL): ServiceClass => {
   const serviceClass = url.searchParams.get('service_class');
@@ -155,6 +156,44 @@ const applyTicketRequestFilters = (ticketGroups: ReturnType<typeof generateFligh
   });
 };
 
+const excludeBookedGroups = (ticketGroups: ReturnType<typeof generateFlights>) => {
+  if (bookedFlightInstanceIds.size === 0) {
+    return ticketGroups;
+  }
+
+  return ticketGroups.filter((group) =>
+    group.every((segment) => !bookedFlightInstanceIds.has(segment.flight_instance_id)),
+  );
+};
+
+type BookingRequestItem = {
+  flight_instance_id: number;
+  passengers_number: number;
+  service_class: string;
+};
+
+const isValidBookingRequest = (body: unknown): body is BookingRequestItem[] => {
+  if (!Array.isArray(body) || body.length === 0) {
+    return false;
+  }
+
+  return body.every((item) => {
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+
+    const candidate = item as Record<string, unknown>;
+
+    return (
+      typeof candidate.flight_instance_id === 'number' &&
+      Number.isFinite(candidate.flight_instance_id) &&
+      typeof candidate.passengers_number === 'number' &&
+      Number.isFinite(candidate.passengers_number) &&
+      typeof candidate.service_class === 'string'
+    );
+  });
+};
+
 export const flightHandlers = [
   http.get('/api/tickets/range', ({ request }) => {
     const url = new URL(request.url);
@@ -254,15 +293,41 @@ export const flightHandlers = [
       service_class: serviceClass,
     });
 
-    const filteredItems = applyTicketRequestFilters(items, url).sort((firstGroup, secondGroup) => {
-      return getTicketGroupPrice(firstGroup) - getTicketGroupPrice(secondGroup);
-    });
+    const filteredItems = excludeBookedGroups(applyTicketRequestFilters(items, url)).sort(
+      (firstGroup, secondGroup) => {
+        return getTicketGroupPrice(firstGroup) - getTicketGroupPrice(secondGroup);
+      },
+    );
 
     return HttpResponse.json({
       items: filteredItems.slice(offset, offset + limit),
       total: filteredItems.length,
       offset,
       limit,
+    });
+  }),
+
+  http.post('/api/tickets/', async ({ request }) => {
+    const body = await request.json().catch(() => null);
+
+    if (!isValidBookingRequest(body)) {
+      return HttpResponse.json({ message: 'Invalid request body' }, { status: 422 });
+    }
+
+    const flightInstanceIds = body.map((item) => item.flight_instance_id);
+
+    if (flightInstanceIds.some((id) => bookedFlightInstanceIds.has(id))) {
+      return HttpResponse.json({ message: 'Already booked' }, { status: 409 });
+    }
+
+    flightInstanceIds.forEach((id) => bookedFlightInstanceIds.add(id));
+
+    return HttpResponse.json({
+      message: 'Tickets booked successfully',
+      items: flightInstanceIds.map((flightInstanceId) => ({
+        flight_instance_id: flightInstanceId,
+        seats_remaining: 0,
+      })),
     });
   }),
 ];
