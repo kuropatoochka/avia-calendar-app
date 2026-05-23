@@ -4,7 +4,7 @@ import type {
   FlightCardViewModel,
 } from '../model/types';
 import type { UIEvent } from 'react';
-import { Flex, Spin, Typography } from 'antd';
+import { Button, Flex, Spin, Typography } from 'antd';
 import { useCallback, useMemo, useState } from 'react';
 import { Eyes } from '@/shared/assets';
 import type { TicketItemDto } from '@/shared/types';
@@ -23,6 +23,7 @@ type Props = {
   onBook: (flight: FlightBookingPayload) => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
+  onScrollToPriceDynamics?: () => void;
 };
 
 type ContentProps = {
@@ -97,6 +98,7 @@ export const FlightList = ({
   onBook,
   onLoadMore,
   hasMore = false,
+  onScrollToPriceDynamics,
 }: Props) => {
   const [selectedFlight, setSelectedFlight] = useState<FlightCardViewModel | null>(null);
 
@@ -126,11 +128,13 @@ export const FlightList = ({
 
   return (
     <Flex vertical gap={16} className={styles.resultsBlock}>
-      <Flex justify="space-between" align="center" gap={16} className={styles.header}>
+      <Flex justify="space-between" align="center" className={styles.header}>
         <Typography.Title level={2}>Доступные предложения</Typography.Title>
-        <Typography.Text type="secondary" className={styles.foundCount}>
-          найдено {cards.length}
-        </Typography.Text>
+        {!isIdle && (
+          <Button type="link" onClick={onScrollToPriceDynamics}>
+            К графику
+          </Button>
+        )}
       </Flex>
 
       <div className={styles.listContainer}>

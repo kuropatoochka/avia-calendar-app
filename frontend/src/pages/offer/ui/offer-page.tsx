@@ -1,5 +1,5 @@
 import { Flex, Space, Typography } from 'antd';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import {
   DEFAULT_FLIGHT_FILTERS,
@@ -73,6 +73,8 @@ const OfferPageContent = () => {
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
   const [ticketGroups, setTicketGroups] = useState<TicketItemDto[][]>([]);
   const [ticketsTotal, setTicketsTotal] = useState(0);
+
+  const priceDynamicsRef = useRef<HTMLDivElement | null>(null);
 
   const variant = useLaunchExperiment();
   const showRecommendationTags = variant === 'B';
@@ -353,6 +355,15 @@ const OfferPageContent = () => {
     console.log(flight);
   };
 
+  const handleScrollToPriceDynamics = () => {
+    requestAnimationFrame(() => {
+      priceDynamicsRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  };
+
   return (
     <div className={styles.page}>
       <Flex vertical gap={32}>
@@ -365,7 +376,7 @@ const OfferPageContent = () => {
 
         <SearchForm onSearch={handleSearch} />
 
-        <Flex vertical gap={16}>
+        <Flex vertical gap={16} ref={priceDynamicsRef}>
           <Typography.Title level={2}>График цен</Typography.Title>
           <PriceDynamicsContainer params={searchParams} onSelect={handleShowFlights} />
         </Flex>
@@ -386,6 +397,7 @@ const OfferPageContent = () => {
               onBook={handleBookFlight}
               onLoadMore={handleLoadMore}
               hasMore={ticketGroups.length < ticketsTotal}
+              onScrollToPriceDynamics={handleScrollToPriceDynamics}
             />
           </Flex>
 
