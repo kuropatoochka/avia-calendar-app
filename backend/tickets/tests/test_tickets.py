@@ -179,11 +179,13 @@ def test_book_sql_resolves_tarif_by_class_and_decrements_seats() -> None:
 def test_book_unknown_service_class_returns_422() -> None:
     response = client.post(
         "/tickets/",
-        json={
-            "flight_instance_id": 1,
-            "passengers_number": 1,
-            "service_class": "VIP",
-        },
+        json=[
+            {
+                "flight_instance_id": 1,
+                "passengers_number": 1,
+                "service_class": "VIP",
+            },
+        ],
     )
     assert response.status_code == 422
     assert "unknown service_class" in response.json()["detail"]
@@ -192,9 +194,28 @@ def test_book_unknown_service_class_returns_422() -> None:
 def test_book_invalid_passengers_number_returns_422() -> None:
     response = client.post(
         "/tickets/",
+        json=[
+            {
+                "flight_instance_id": 1,
+                "passengers_number": 0,
+                "service_class": "BUDGET",
+            },
+        ],
+    )
+    assert response.status_code == 422
+
+
+def test_book_empty_array_returns_422() -> None:
+    response = client.post("/tickets/", json=[])
+    assert response.status_code == 422
+
+
+def test_book_single_object_body_returns_422() -> None:
+    response = client.post(
+        "/tickets/",
         json={
             "flight_instance_id": 1,
-            "passengers_number": 0,
+            "passengers_number": 1,
             "service_class": "BUDGET",
         },
     )

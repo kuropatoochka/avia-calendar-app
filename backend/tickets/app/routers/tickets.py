@@ -11,6 +11,7 @@ from app.schemas.tickets import (
     TarifPricePatchItem,
     TicketBookRequest,
     TicketBookResponse,
+    TicketBookResultItem,
     TicketItem,
     TicketNextMonthItem,
     TicketPricesPatchResponse,
@@ -22,7 +23,7 @@ from app.services.ticket_book import (
     FlightInstanceNotFoundError,
     InsufficientSeatsError,
     TicketBookParams,
-    book_ticket,
+    book_tickets,
 )
 from app.services.ticket_next_month_query import (
     TicketNextMonthParams,
@@ -51,25 +52,38 @@ router = APIRouter(tags=["tickets"])
 
 
 @router.post("/tickets/", response_model=TicketBookResponse)
-def book_tickets(
+def book_tickets_endpoint(
     db: Annotated[Session, Depends(get_db)],
-    body: TicketBookRequest,
+    body: Annotated[
+        list[TicketBookRequest],
+        Body(
+            min_length=1,
+            description=(
+                "Сегменты маршрута: один объект — прямой рейс, "
+                "несколько — составной маршрут"
+            ),
+        ),
+    ],
 ) -> TicketBookResponse:
-    try:
-        class_token = parse_single_service_class(body.service_class)
-    except ValueError as exc:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(exc),
-        ) from exc
+    params_list: list[TicketBookParams] = []
+    for item in body:
+        try:
+            class_token = parse_single_service_class(item.service_class)
+        except ValueError as exc:
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(exc),
+            ) from exc
+        params_list.append(
+            TicketBookParams(
+                flight_instance_id=item.flight_instance_id,
+                passengers_number=item.passengers_number,
+                service_class=class_token,
+            ),
+        )
 
-    params = TicketBookParams(
-        flight_instance_id=body.flight_instance_id,
-        passengers_number=body.passengers_number,
-        service_class=class_token,
-    )
     try:
-        seats_remaining = book_ticket(db, params)
+        seats_remaining_list = book_tickets(db, params_list)
     except FlightInstanceNotFoundError as exc:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
@@ -82,8 +96,18 @@ def book_tickets(
         ) from exc
 
     return TicketBookResponse(
-        message="Ticket booked successfully",
-        seats_remaining=seats_remaining,
+        message="Tickets booked successfully",
+        items=[
+            TicketBookResultItem(
+                flight_instance_id=item.flight_instance_id,
+                seats_remaining=seats_remaining,
+            )
+            for item, seats_remaining in zip(
+                body,
+                seats_remaining_list,
+                strict=True,
+            )
+        ],
     )
 
 

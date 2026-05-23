@@ -1,5 +1,6 @@
 """Бронирование: уменьшение seats в тарифе выбранного класса."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from sqlalchemy import text
@@ -48,12 +49,8 @@ class InsufficientSeatsError(ValueError):
     """В тарифе недостаточно свободных мест."""
 
 
-def book_ticket(db: Session, params: TicketBookParams) -> int:
-    """
-    Уменьшает seats в тарифе класса service_class для flight_instance.
-
-    Возвращает оставшееся число мест в тарифе. Фиксирует транзакцию (commit).
-    """
+def _book_ticket_segment(db: Session, params: TicketBookParams) -> int:
+    """Уменьшает seats в тарифе; транзакцию не фиксирует."""
     row = (
         db.execute(
             _RESOLVE_TARIF_SQL,
@@ -84,6 +81,24 @@ def book_ticket(db: Session, params: TicketBookParams) -> int:
             "not enough seats in tariff for the requested passengers_number",
         )
 
-    seats_remaining = int(result[0])
-    db.commit()
+    return int(result[0])
+
+
+def book_tickets(db: Session, items: Sequence[TicketBookParams]) -> list[int]:
+    """
+    Бронирует каждый сегмент: уменьшает seats в соответствующих тарифах.
+
+    Возвращает оставшиеся места по порядку элементов. Одна транзакция (commit).
+    """
+    if not items:
+        return []
+
+    seats_remaining: list[int] = []
+    try:
+        for params in items:
+            seats_remaining.append(_book_ticket_segment(db, params))
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return seats_remaining
