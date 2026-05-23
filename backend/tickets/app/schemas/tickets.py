@@ -23,6 +23,9 @@ class ServiceClassPrices(BaseModel):
 
 
 class TicketItem(BaseModel):
+    flight_instance_id: int = Field(
+        description="Id экземпляра рейса (flight_instance)",
+    )
     city_from: str
     city_to: str
     airport_from: str
