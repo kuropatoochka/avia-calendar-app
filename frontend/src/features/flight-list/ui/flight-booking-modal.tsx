@@ -27,10 +27,20 @@ type Props = {
   bookingDetails: FlightBookingDetails;
   open: boolean;
   onClose: () => void;
-  onBook: (payload: FlightBookingPayload) => void;
+  onBook: (payload: FlightBookingPayload) => Promise<boolean>;
+  isBookingLoading?: boolean;
+  bookingError?: string | null;
 };
 
-export const FlightBookingModal = ({ flight, bookingDetails, open, onBook, onClose }: Props) => {
+export const FlightBookingModal = ({
+  flight,
+  bookingDetails,
+  open,
+  onBook,
+  onClose,
+  isBookingLoading = false,
+  bookingError = null,
+}: Props) => {
   const { cityFrom, cityTo, companyNames, stopsCount, duration } = flight;
 
   const baggageOptions = useMemo(
@@ -50,12 +60,16 @@ export const FlightBookingModal = ({ flight, bookingDetails, open, onBook, onClo
     ? baggageOptions.withoutBaggage
     : baggageOptions.withBaggage;
 
-  const handleBook = () => {
-    onBook({
+  const handleBook = async () => {
+    const isBooked = await onBook({
       flight,
       baggage: selectedBaggageOption,
       price: selectedBaggageOption.price,
     });
+
+    if (isBooked) {
+      onClose();
+    }
   };
 
   return (
@@ -183,9 +197,18 @@ export const FlightBookingModal = ({ flight, bookingDetails, open, onBook, onClo
           <Typography.Title level={2}>
             {priceFormatter.format(selectedBaggageOption.price)}
           </Typography.Title>
-          <Button type="primary" size="large" onClick={handleBook}>
+          <Button
+            type="primary"
+            size="large"
+            onClick={handleBook}
+            loading={isBookingLoading}
+            disabled={isBookingLoading}
+          >
             Забронировать
           </Button>
+          {bookingError && !isBookingLoading && (
+            <Typography.Text type="danger">{bookingError}</Typography.Text>
+          )}
         </Flex>
       </Flex>
     </Modal>

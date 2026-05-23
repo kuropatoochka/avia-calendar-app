@@ -1,5 +1,6 @@
 import { Flex, Space, Typography } from 'antd';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { addBookedFlight } from '@/features/booking-flight';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import {
   DEFAULT_FLIGHT_FILTERS,
@@ -11,6 +12,7 @@ import {
 } from '@/features/flight-filters';
 import type { FlightBookingPayload } from '@/features/flight-list';
 import { FlightList, useTicketsQuery } from '@/features/flight-list';
+import { useBookTickets } from '@/features/flight-list';
 import {
   Experiment,
   Goal,
@@ -81,6 +83,7 @@ const OfferPageContent = () => {
 
   const { fetchTickets, fetchMoreTickets, isTicketsLoading, isLoadingMore, ticketsError } =
     useTicketsQuery();
+  const { bookTickets, bookingError, isBookingLoading, resetBooking } = useBookTickets();
 
   const { companies } = useCompaniesQuery();
 
@@ -349,11 +352,51 @@ const OfferPageContent = () => {
     setFilterKey((key) => key + 1);
   };
 
-  const handleBookFlight = (flight: FlightBookingPayload) => {
-    // TODO: уточнить контракт бронирования для составных маршрутов.
-    // Сейчас API принимает один flight_instance_id, а предложение может состоять из нескольких segments.
-    console.log(flight);
-  };
+  const handleBookFlight = useCallback(
+    async (flight: FlightBookingPayload) => {
+      if (!bookingDetails) {
+        return false;
+      }
+
+      const bookingPassengersNumber =
+        bookingDetails.passengers.adults +
+        bookingDetails.passengers.children +
+        bookingDetails.passengers.toddler;
+
+      const body = flight.flight.segments.map((segment) => ({
+        flight_instance_id: segment.flight_instance_id,
+        passengers_number: bookingPassengersNumber,
+        service_class: bookingDetails.serviceClass,
+      }));
+
+      const result = await bookTickets(body);
+
+      if (!result) {
+        return false;
+      }
+
+      addBookedFlight({
+        id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        bookedAt: new Date().toISOString(),
+        cityFrom: flight.flight.cityFrom,
+        cityTo: flight.flight.cityTo,
+        departureDate: flight.flight.departureDate,
+        departureTime: flight.flight.departureTime,
+        arrivalDate: flight.flight.arrivalDate,
+        arrivalTime: flight.flight.arrivalTime,
+        price: flight.price,
+        serviceClass: bookingDetails.serviceClass,
+        passengers: bookingPassengersNumber,
+        segments: flight.flight.segments,
+      });
+
+      const request = buildTicketsRequest({ offset: 0 });
+      await loadFirstTicketsPage(request);
+
+      return true;
+    },
+    [bookingDetails, bookTickets, buildTicketsRequest, loadFirstTicketsPage],
+  );
 
   const handleScrollToPriceDynamics = () => {
     requestAnimationFrame(() => {
@@ -395,6 +438,9 @@ const OfferPageContent = () => {
               isIdle={selectedPriceDate === null}
               bookingDetails={bookingDetails}
               onBook={handleBookFlight}
+              bookingError={bookingError}
+              isBookingLoading={isBookingLoading}
+              onBookingClose={resetBooking}
               onLoadMore={handleLoadMore}
               hasMore={ticketGroups.length < ticketsTotal}
               onScrollToPriceDynamics={handleScrollToPriceDynamics}

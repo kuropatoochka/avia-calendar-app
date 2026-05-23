@@ -20,7 +20,10 @@ type Props = {
   error: string | null;
   isIdle: boolean;
   bookingDetails: FlightBookingDetails | null;
-  onBook: (flight: FlightBookingPayload) => void;
+  onBook: (flight: FlightBookingPayload) => Promise<boolean>;
+  isBookingLoading?: boolean;
+  bookingError?: string | null;
+  onBookingClose?: () => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
   onScrollToPriceDynamics?: () => void;
@@ -96,6 +99,9 @@ export const FlightList = ({
   isIdle,
   bookingDetails,
   onBook,
+  isBookingLoading,
+  bookingError,
+  onBookingClose,
   onLoadMore,
   hasMore = false,
   onScrollToPriceDynamics,
@@ -164,7 +170,12 @@ export const FlightList = ({
           flight={selectedFlight}
           bookingDetails={bookingDetails}
           onBook={onBook}
-          onClose={() => setSelectedFlight(null)}
+          isBookingLoading={isBookingLoading}
+          bookingError={bookingError}
+          onClose={() => {
+            setSelectedFlight(null);
+            onBookingClose?.();
+          }}
         />
       )}
     </Flex>
