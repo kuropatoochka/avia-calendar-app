@@ -224,11 +224,11 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
   - **Ответ:** массив объектов по **каждому** дню от `from_date` до `to_date` включительно, по возрастанию даты: `departure_date`, `min_total_price`. Сумма за день: `price * passengers_number + children_price * children_number + toddler_price * toddlers_number` по тарифу выбранного класса на конкретном экземпляре рейса; в выборку попадают только рейсы, где **`tarif.seats`** и число мест соответствующего класса в **`plane`** не меньше суммы `passengers_number + children_number + toddlers_number`. `min_total_price` — минимум по всем таким рейсам в этот день; если подходящих рейсов нет — **`null`**.
   - Реализация: `app/routers/tickets.py`, `app/services/ticket_range_query.py` (`fetch_ticket_range`), разбор класса — `parse_single_service_class` в `app/services/ticket_query.py`, `app/schemas/tickets.py` (`TicketRangeItem`).
 
-- **`POST /tickets/`** — бронирование: уменьшение **`tarif.seats`** на число пассажиров в тарифе выбранного класса.
-  - **Тело:** `flight_instance_id` (≥ 1), `passengers_number` (≥ 1), `service_class` — одно из `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS` (регистр не важен).
-  - **Ответ:** `{ message, seats_remaining }` — сообщение об успехе и оставшееся число мест в тарифе.
-  - **Ошибки:** **404** — `flight_instance` не найден; **409** — в тарифе недостаточно мест (`seats < passengers_number`); **422** — неизвестный `service_class`.
-  - Реализация: `app/routers/tickets.py`, `app/services/ticket_book.py` (`book_ticket`), `app/schemas/tickets.py` (`TicketBookRequest`, `TicketBookResponse`).
+- **`POST /tickets/`** — бронирование одного или нескольких сегментов маршрута: для каждого элемента тела уменьшается **`tarif.seats`** на `passengers_number` в тарифе выбранного класса. Прямой рейс — массив из одного объекта; составной маршрут — несколько объектов (порядок сегментов сохраняется). Все сегменты в одной транзакции: при ошибке на любом сегменте изменения откатываются.
+  - **Тело:** JSON-массив (не пустой) объектов `{ flight_instance_id, passengers_number, service_class }`: `flight_instance_id` (≥ 1), `passengers_number` (≥ 1), `service_class` — одно из `BUDGET`, `BUSINESS`, `COMFORT`, `FIRST_CLASS` (регистр не важен).
+  - **Ответ:** `{ message, items }` — `items` — массив `{ flight_instance_id, seats_remaining }` в том же порядке, что и тело запроса.
+  - **Ошибки:** **404** — `flight_instance` не найден; **409** — в тарифе недостаточно мест (`seats < passengers_number`); **422** — пустой массив, одиночный объект вместо массива, неизвестный `service_class` или невалидные поля.
+  - Реализация: `app/routers/tickets.py`, `app/services/ticket_book.py` (`book_tickets`), `app/schemas/tickets.py` (`TicketBookRequest`, `TicketBookResultItem`, `TicketBookResponse`).
 
 - **`PATCH /tickets/prices`** — пакетное обновление цен в таблице **`tarif`**.
   - **Тело:** JSON-массив объектов `{ tarif_id, price, children_price, toddler_price }` (все поля обязательны, цены ≥ 0, `tarif_id` ≥ 1). Повторяющийся `tarif_id` в одном запросе → **422**.

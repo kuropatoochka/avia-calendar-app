@@ -55,7 +55,7 @@ const Content = ({
   }
 
   if (isLoading) {
-    return <Spin spinning={isLoading} tip="Загружаем предложения..." />;
+    return <Spin spinning={isLoading} description="Загружаем предложения..." />;
   }
 
   if (error) {
@@ -128,31 +128,32 @@ export const FlightList = ({
     <Flex vertical gap={16} className={styles.resultsBlock}>
       <Flex justify="space-between" align="center" gap={16} className={styles.header}>
         <Flex vertical gap={8}>
-          <Typography.Title level={2} className={styles.title}>
-            Доступные предложения
-          </Typography.Title>
+          <Typography.Title level={2}>Доступные предложения</Typography.Title>
           <Typography.Text type="secondary" className={styles.foundCount}>
             Найдено {cards.length} предложений
           </Typography.Text>
         </Flex>
       </Flex>
 
-      <div className={styles.listContainer} onScroll={handleScroll}>
-        <Flex vertical justify="center" align="center" gap={12} className={styles.placeholder}>
-          <Content
-            isIdle={isIdle}
-            isLoading={isLoading}
-            error={error}
-            cards={cards}
-            onSelectFlight={setSelectedFlight}
-            bookingDetails={bookingDetails}
-          />
-        </Flex>
-        {isLoadingMore && (
-          <div className={styles.loadMore}>
-            <Spin size="small" />
-          </div>
-        )}
+      <div className={styles.listContainer}>
+        <div className={styles.listScroll} onScroll={handleScroll}>
+          <Flex vertical justify="center" align="center" gap={12} className={styles.placeholder}>
+            <Content
+              isIdle={isIdle}
+              isLoading={isLoading}
+              error={error}
+              cards={cards}
+              onSelectFlight={setSelectedFlight}
+              bookingDetails={bookingDetails}
+            />
+          </Flex>
+
+          {isLoadingMore && (
+            <div className={styles.loadMore}>
+              <Spin size="small" />
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedFlight && bookingDetails && (

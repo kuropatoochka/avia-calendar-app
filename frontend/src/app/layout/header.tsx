@@ -16,7 +16,7 @@ export const Header = () => {
 
   return (
     <Layout.Header className={styles.header}>
-      <Link to={PATHS.base} className={styles.logo}>
+      <Link to={PATHS.offer} className={styles.logo}>
         <Logo />
       </Link>
       <Menu items={items} selectedKeys={[pathname]} mode="horizontal" className={styles.menu} />
