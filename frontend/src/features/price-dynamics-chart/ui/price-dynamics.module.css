@@ -19,26 +19,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
-  scrollbar-color: var(--color-text-secondary) transparent;
-}
-
-.chartScroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.chartScroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.chartScroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background-color: var(--color-text-secondary);
-}
-
-.chartScroll::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
+  scrollbar-color: #888 transparent;
 }
 
 .chartSvg {
