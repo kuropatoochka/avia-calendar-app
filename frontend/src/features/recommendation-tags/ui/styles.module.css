@@ -13,7 +13,7 @@
   border: 1px solid transparent;
   background-color: var(--color-background-primary);
   color: var(--color-primary);
-  box-shadow: 0 4px 8px rgb(20 20 20 / 15%);
+  box-shadow: var(--shadow-md);
   cursor: pointer;
   transition:
     border-color 0.15s,

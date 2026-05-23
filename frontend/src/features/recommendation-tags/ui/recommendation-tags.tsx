@@ -19,7 +19,7 @@ export const RecommendationTags = ({ onTagToggle }: RecommendationTagsProps) => 
   };
 
   return (
-    <div className={styles.tags} role="group" aria-label="Быстрые фильтры">
+    <div className={styles.tags} role="group">
       {RECOMMENDATION_TAGS.map((tag) => {
         const selected = isTagSelected(tag.id);
 

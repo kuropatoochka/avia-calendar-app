@@ -127,12 +127,10 @@ export const FlightList = ({
   return (
     <Flex vertical gap={16} className={styles.resultsBlock}>
       <Flex justify="space-between" align="center" gap={16} className={styles.header}>
-        <Flex vertical gap={8}>
-          <Typography.Title level={2}>Доступные предложения</Typography.Title>
-          <Typography.Text type="secondary" className={styles.foundCount}>
-            Найдено {cards.length} предложений
-          </Typography.Text>
-        </Flex>
+        <Typography.Title level={2}>Доступные предложения</Typography.Title>
+        <Typography.Text type="secondary" className={styles.foundCount}>
+          найдено {cards.length}
+        </Typography.Text>
       </Flex>
 
       <div className={styles.listContainer}>
