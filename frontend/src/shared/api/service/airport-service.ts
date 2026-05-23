@@ -1,4 +1,5 @@
 import type { AirportsDto } from '@/shared/types';
+import { API_URL } from '../../consts/api';
 import { getSearchParams } from '../../utils/getSearchParams';
 
 type Params = {
@@ -15,7 +16,8 @@ export default class AirportService {
       ids: params.ids?.length ? params.ids.join(',') : undefined,
     };
     const queryString = getSearchParams(normalizedParams);
-    const url = queryString ? `/api/airports?${queryString}` : '/api/airports';
+    const baseUrl = `${API_URL}/airports`;
+    const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
     const response = await fetch(url, {
       method: 'GET',

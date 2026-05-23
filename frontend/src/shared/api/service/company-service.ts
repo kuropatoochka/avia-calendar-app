@@ -1,4 +1,5 @@
 import type { CompaniesDto } from '@/shared/types';
+import { API_URL } from '../../consts/api';
 import { getSearchParams } from '../../utils/getSearchParams';
 
 type Params = {
@@ -16,7 +17,8 @@ export default class CompanyService {
       ...params,
     };
     const queryString = getSearchParams(paramsWithDefaults);
-    const url = queryString ? `/api/companies?${queryString}` : '/api/companies';
+    const baseUrl = `${API_URL}/companies`;
+    const url = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
     const response = await fetch(url, {
       method: 'GET',
