@@ -1,4 +1,4 @@
-import type { ServiceClass, TicketItemDto, TicketsResponse } from '@/shared/types';
+import type { AirportDto, ServiceClass, TicketItemDto, TicketsResponse } from '@/shared/types';
 import { airportMock } from './airport-mock';
 import { companyMock } from './company-mock';
 
@@ -31,40 +31,157 @@ const airportById = new Map(airportMock.map((airport) => [airport.id, airport]))
 
 const getAirportById = (airportId: number) => airportById.get(airportId);
 
-const getCityNameByAirportId = (airportId: number) =>
-  getAirportById(airportId)?.city.name ?? `Город ${airportId}`;
+const areSameCity = (airportFromId: number, airportToId: number) => {
+  const airportFrom = getAirportById(airportFromId);
+  const airportTo = getAirportById(airportToId);
 
-const getAirportNameById = (airportId: number) =>
-  getAirportById(airportId)?.name ?? `Аэропорт ${airportId}`;
+  if (!airportFrom || !airportTo) {
+    return true;
+  }
 
-const getRouteAirportIds = (
-  originAirportId: number,
-  destinationAirportId: number,
-  segmentsCount: number,
-  seed: number,
-) => {
-  const transferCount = Math.max(segmentsCount - 1, 0);
-  const availableAirportIds = airportMock
-    .map((airport) => airport.id)
-    .filter((airportId) => airportId !== originAirportId && airportId !== destinationAirportId);
+  return airportFrom.city.id === airportTo.city.id;
+};
 
-  if (transferCount === 0) {
+const getAvailableTransitAirports = ({
+  usedAirportIds,
+  previousCityId,
+  destinationCityId,
+}: {
+  usedAirportIds: Set<number>;
+  previousCityId: number;
+  destinationCityId: number;
+}) => {
+  return airportMock.filter((airport) => {
+    if (usedAirportIds.has(airport.id)) {
+      return false;
+    }
+
+    if (airport.city.id === previousCityId) {
+      return false;
+    }
+
+    if (airport.city.id === destinationCityId) {
+      return false;
+    }
+
+    return true;
+  });
+};
+
+const pickTransitAirport = ({
+  availableAirports,
+  seed,
+  index,
+}: {
+  availableAirports: AirportDto[];
+  seed: number;
+  index: number;
+}) => {
+  if (availableAirports.length === 0) {
+    return undefined;
+  }
+
+  return availableAirports[(seed + index) % availableAirports.length];
+};
+
+const buildRouteAirports = ({
+  originAirportId,
+  destinationAirportId,
+  stopsCount,
+  seed,
+}: {
+  originAirportId: number;
+  destinationAirportId: number;
+  stopsCount: number;
+  seed: number;
+}) => {
+  const origin = getAirportById(originAirportId);
+  const destination = getAirportById(destinationAirportId);
+
+  if (!origin || !destination) {
+    return [];
+  }
+
+  if (areSameCity(originAirportId, destinationAirportId)) {
+    return [];
+  }
+
+  if (stopsCount <= 0) {
     return [originAirportId, destinationAirportId];
   }
 
-  if (availableAirportIds.length === 0) {
-    return [
-      originAirportId,
-      ...Array.from({ length: transferCount }, () => destinationAirportId),
-      destinationAirportId,
-    ];
+  const routeAirportIds: number[] = [originAirportId];
+  const usedAirportIds = new Set([originAirportId, destinationAirportId]);
+  let previousCityId = origin.city.id;
+
+  for (let stopIndex = 0; stopIndex < stopsCount; stopIndex += 1) {
+    const availableAirports = getAvailableTransitAirports({
+      usedAirportIds,
+      previousCityId,
+      destinationCityId: destination.city.id,
+    });
+    const transitAirport = pickTransitAirport({
+      availableAirports,
+      seed,
+      index: stopIndex,
+    });
+
+    if (!transitAirport) {
+      break;
+    }
+
+    routeAirportIds.push(transitAirport.id);
+    usedAirportIds.add(transitAirport.id);
+    previousCityId = transitAirport.city.id;
   }
 
-  const transitAirportIds = Array.from({ length: transferCount }, (_, index) => {
-    return availableAirportIds[(seed + index) % availableAirportIds.length];
-  });
+  routeAirportIds.push(destinationAirportId);
 
-  return [originAirportId, ...transitAirportIds, destinationAirportId];
+  return routeAirportIds;
+};
+
+const isValidRoute = (routeAirportIds: number[]) => {
+  if (routeAirportIds.length < 2) {
+    return false;
+  }
+
+  for (let index = 0; index < routeAirportIds.length - 1; index += 1) {
+    if (areSameCity(routeAirportIds[index], routeAirportIds[index + 1])) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const isValidGroup = (group: TicketItemDto[]) => {
+  if (group.length === 0) {
+    return false;
+  }
+
+  for (let index = 0; index < group.length; index += 1) {
+    const segment = group[index];
+
+    if (segment.city_from === segment.city_to) {
+      return false;
+    }
+
+    if (segment.airport_from === segment.airport_to) {
+      return false;
+    }
+
+    if (index > 0) {
+      const previousSegment = group[index - 1];
+      if (
+        previousSegment.city_to !== segment.city_from ||
+        previousSegment.airport_to !== segment.airport_from
+      ) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 };
 
 const hashString = (value: string) => {
@@ -175,8 +292,8 @@ const getPassengerTotalPrice = ({
 };
 
 const createSegment = ({
-  airportFromId,
-  airportToId,
+  airportFrom,
+  airportTo,
   date,
   seed,
   segmentIndex,
@@ -188,8 +305,8 @@ const createSegment = ({
   todlersPrice,
   baggagePrice,
 }: {
-  airportFromId: number;
-  airportToId: number;
+  airportFrom: AirportDto;
+  airportTo: AirportDto;
   date: string;
   seed: number;
   segmentIndex: number;
@@ -206,16 +323,11 @@ const createSegment = ({
 
   const arrivalMinutes = departureMinutes + duration;
 
-  const cityFrom = getCityNameByAirportId(airportFromId);
-  const cityTo = getCityNameByAirportId(airportToId);
-  const airportFrom = getAirportNameById(airportFromId);
-  const airportTo = getAirportNameById(airportToId);
-
   return {
-    city_from: cityFrom,
-    city_to: cityTo,
-    airport_from: airportFrom,
-    airport_to: airportTo,
+    city_from: airportFrom.city.name,
+    city_to: airportTo.city.name,
+    airport_from: airportFrom.name,
+    airport_to: airportTo.name,
     flight_number: 1000 + ((seed + segmentIndex * 97) % 9000),
     company_name: company.name,
     duration,
@@ -246,6 +358,17 @@ export const generateFlights = ({
   baggage_size = 0,
   forceAvailable = false,
 }: GenerateFlightsParams): TicketItemDto[][] => {
+  const originAirport = getAirportById(airport_from);
+  const destinationAirport = getAirportById(airport_to);
+
+  if (!originAirport || !destinationAirport) {
+    return [];
+  }
+
+  if (areSameCity(airport_from, airport_to)) {
+    return [];
+  }
+
   const baseSeed = hashString(`${airport_from}-${airport_to}-${date}-${service_class}`);
   const routeSeed = hashString(`${airport_from}-${airport_to}`);
   const dateSeed = hashString(date);
@@ -258,8 +381,20 @@ export const generateFlights = ({
 
   for (let index = 0; index < flightsCount; index += 1) {
     const seed = hashString(`${baseSeed}-${index}`);
-    const stopsCount = getStopsCount(seed + index, service_class);
-    const segmentsCount = stopsCount + 1;
+    const desiredStopsCount = getStopsCount(seed + index, service_class);
+    const routeAirportIds = buildRouteAirports({
+      originAirportId: airport_from,
+      destinationAirportId: airport_to,
+      stopsCount: desiredStopsCount,
+      seed,
+    });
+
+    if (!isValidRoute(routeAirportIds)) {
+      continue;
+    }
+
+    const segmentsCount = routeAirportIds.length - 1;
+    const stopsCount = Math.max(segmentsCount - 1, 0);
 
     // Proxy для дистанции: чем больше разница airport ID, тем «дальше» маршрут.
     // Диапазон ~0..1.8 даёт реалистичный разброс коротких/длинных рейсов.
@@ -293,32 +428,43 @@ export const generateFlights = ({
     const layoverDuration = 45 + (seed % 75);
 
     const firstDepartureMinutes = getDepartureMinutes(seed, index);
+    const group: TicketItemDto[] = [];
+    let isGroupValid = true;
 
-    const routeAirportIds = getRouteAirportIds(airport_from, airport_to, segmentsCount, seed);
-
-    const group = Array.from({ length: segmentsCount }, (_, segmentIndex) => {
+    for (let segmentIndex = 0; segmentIndex < segmentsCount; segmentIndex += 1) {
       const departureMinutes =
         firstDepartureMinutes + segmentIndex * (segmentDuration + layoverDuration);
-      const airportFromId = routeAirportIds[segmentIndex] ?? airport_from;
-      const airportToId = routeAirportIds[segmentIndex + 1] ?? airport_to;
+      const airportFromId = routeAirportIds[segmentIndex];
+      const airportToId = routeAirportIds[segmentIndex + 1];
+      const airportFrom = airportFromId !== undefined ? getAirportById(airportFromId) : undefined;
+      const airportTo = airportToId !== undefined ? getAirportById(airportToId) : undefined;
 
-      return createSegment({
-        airportFromId,
-        airportToId,
-        date,
-        seed,
-        segmentIndex,
-        departureMinutes,
-        duration: segmentDuration,
-        total,
-        price,
-        childrenPrice,
-        todlersPrice,
-        baggagePrice,
-      });
-    });
+      if (!airportFrom || !airportTo || areSameCity(airportFromId, airportToId)) {
+        isGroupValid = false;
+        break;
+      }
 
-    ticketGroups.push(group);
+      group.push(
+        createSegment({
+          airportFrom,
+          airportTo,
+          date,
+          seed,
+          segmentIndex,
+          departureMinutes,
+          duration: segmentDuration,
+          total,
+          price,
+          childrenPrice,
+          todlersPrice,
+          baggagePrice,
+        }),
+      );
+    }
+
+    if (isGroupValid && isValidGroup(group)) {
+      ticketGroups.push(group);
+    }
   }
 
   return ticketGroups;
