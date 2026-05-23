@@ -4,7 +4,7 @@ import type {
   FlightCardViewModel,
 } from '../model/types';
 import type { UIEvent } from 'react';
-import { Flex, Spin, Typography } from 'antd';
+import { Button, Flex, Spin, Typography } from 'antd';
 import { useCallback, useMemo, useState } from 'react';
 import { Eyes } from '@/shared/assets';
 import type { TicketItemDto } from '@/shared/types';
@@ -20,9 +20,13 @@ type Props = {
   error: string | null;
   isIdle: boolean;
   bookingDetails: FlightBookingDetails | null;
-  onBook: (flight: FlightBookingPayload) => void;
+  onBook: (flight: FlightBookingPayload) => Promise<boolean>;
+  isBookingLoading?: boolean;
+  bookingError?: string | null;
+  onBookingClose?: () => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
+  onScrollToPriceDynamics?: () => void;
 };
 
 type ContentProps = {
@@ -95,8 +99,12 @@ export const FlightList = ({
   isIdle,
   bookingDetails,
   onBook,
+  isBookingLoading,
+  bookingError,
+  onBookingClose,
   onLoadMore,
   hasMore = false,
+  onScrollToPriceDynamics,
 }: Props) => {
   const [selectedFlight, setSelectedFlight] = useState<FlightCardViewModel | null>(null);
 
@@ -126,13 +134,13 @@ export const FlightList = ({
 
   return (
     <Flex vertical gap={16} className={styles.resultsBlock}>
-      <Flex justify="space-between" align="center" gap={16} className={styles.header}>
-        <Flex vertical gap={8}>
-          <Typography.Title level={2}>Доступные предложения</Typography.Title>
-          <Typography.Text type="secondary" className={styles.foundCount}>
-            Найдено {cards.length} предложений
-          </Typography.Text>
-        </Flex>
+      <Flex justify="space-between" align="center" className={styles.header}>
+        <Typography.Title level={2}>Доступные предложения</Typography.Title>
+        {!isIdle && (
+          <Button type="link" onClick={onScrollToPriceDynamics}>
+            К графику
+          </Button>
+        )}
       </Flex>
 
       <div className={styles.listContainer}>
@@ -162,7 +170,12 @@ export const FlightList = ({
           flight={selectedFlight}
           bookingDetails={bookingDetails}
           onBook={onBook}
-          onClose={() => setSelectedFlight(null)}
+          isBookingLoading={isBookingLoading}
+          bookingError={bookingError}
+          onClose={() => {
+            setSelectedFlight(null);
+            onBookingClose?.();
+          }}
         />
       )}
     </Flex>

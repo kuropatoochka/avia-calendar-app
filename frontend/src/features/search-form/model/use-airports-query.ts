@@ -2,13 +2,23 @@ import { useCallback } from 'react';
 import { AirportService } from '@/shared/api';
 import { useFetch } from '@/shared/hooks';
 
+const DEFAULT_AIRPORTS_LIMIT = 20;
+const MAX_AIRPORTS_LIMIT = 500;
+
+const getAirportsLimit = (ids?: number[]) => {
+  if (!ids?.length) {
+    return DEFAULT_AIRPORTS_LIMIT;
+  }
+
+  return Math.min(ids.length, MAX_AIRPORTS_LIMIT);
+};
+
 export const useAirportsQuery = () => {
   const loadAirports = useCallback(async (search?: string, ids?: number[]) => {
-    const shouldPaginate = !ids?.length;
     const data = await AirportService.getAirports({
-      search: search?.trim(),
-      offset: shouldPaginate ? 0 : undefined,
-      limit: shouldPaginate ? 20 : undefined,
+      search: search?.trim() || undefined,
+      offset: 0,
+      limit: getAirportsLimit(ids),
       ids,
     });
 

@@ -1,6 +1,8 @@
 import type {
   PriceDynamicsRequest,
   PriceDynamicsResponse,
+  TicketBookRequestItem,
+  TicketBookResponse,
   TicketsRequest,
   TicketsResponse,
 } from '../../types/api';
@@ -58,5 +60,42 @@ export default class FlightService {
     }
 
     return response.json() as Promise<PriceDynamicsResponse>;
+  }
+
+  static async bookTickets(body: TicketBookRequestItem[]): Promise<TicketBookResponse> {
+    const url = new URL(`${API_URL}/tickets/`, window.location.origin);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (response.status === 409) {
+      throw new Error('Недостаточно мест для бронирования выбранного предложения.');
+    }
+
+    if (response.status === 404) {
+      throw new Error('Выбранный рейс не найден. Попробуйте обновить список предложений.');
+    }
+
+    if (!response.ok) {
+      throw new Error(`Не удалось забронировать билеты. Код ошибки: ${response.status}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+
+    if (!contentType?.includes('application/json')) {
+      console.error('Ticket booking response has invalid content type', {
+        contentType,
+        url: response.url,
+      });
+
+      throw new Error('Не удалось забронировать билеты. Попробуйте повторить попытку.');
+    }
+
+    return response.json() as Promise<TicketBookResponse>;
   }
 }

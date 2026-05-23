@@ -1,0 +1,30 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+}
+
+.route {
+  font-size: 14px;
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  font-variant-numeric: tabular-nums;
+}
+
+.card :global(.ant-card-body) {
+  padding: 12px;
+}
+
+.empty {
+  display: block;
+}

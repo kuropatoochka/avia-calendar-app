@@ -81,6 +81,7 @@ export type TicketItemDto = {
   city_to: string;
   airport_from: string;
   airport_to: string;
+  flight_instance_id: number;
   flight_number: number;
   company_name: string;
   duration: number;
@@ -94,3 +95,19 @@ export type TicketItemDto = {
 };
 
 export type TicketsResponse = PaginatedResponse<TicketItemDto[]>;
+
+export type TicketBookRequestItem = {
+  flight_instance_id: number;
+  passengers_number: number;
+  service_class: ServiceClass;
+};
+
+export type TicketBookResponseItem = {
+  flight_instance_id: number;
+  seats_remaining: number;
+};
+
+export type TicketBookResponse = {
+  message: string;
+  items: TicketBookResponseItem[];
+};
