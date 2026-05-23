@@ -322,12 +322,16 @@ const createSegment = ({
   const planeType = PLANE_TYPES[(seed + segmentIndex) % PLANE_TYPES.length];
 
   const arrivalMinutes = departureMinutes + duration;
+  const flightInstanceId = hashString(
+    [seed, segmentIndex, airportFrom.id, airportTo.id, date, departureMinutes].join('-'),
+  );
 
-  return {
+  const segment: TicketItemDto = {
     city_from: airportFrom.city.name,
     city_to: airportTo.city.name,
     airport_from: airportFrom.name,
     airport_to: airportTo.name,
+    flight_instance_id: flightInstanceId,
     flight_number: 1000 + ((seed + segmentIndex * 97) % 9000),
     company_name: company.name,
     duration,
@@ -345,6 +349,8 @@ const createSegment = ({
       baggage_price: baggagePrice,
     },
   };
+
+  return segment;
 };
 
 export const generateFlights = ({

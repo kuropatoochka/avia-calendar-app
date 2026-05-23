@@ -15,18 +15,20 @@ export const BookingsDrawer = ({ open, bookedFlights, onClose }: Props) => {
 
   return (
     <Drawer title="Мои бронирования" placement="right" open={open} onClose={onClose}>
-      <Flex vertical align-items="center">
-        {hasBookings ? (
-          bookedFlights.map((flight) => <BookedFlightCard key={flight.id} flight={flight} />)
-        ) : (
-          <>
-            <Eyes />
-            <Typography.Text type="secondary" className={styles.empty}>
-              Пока нет забронированных билетов
-            </Typography.Text>
-          </>
-        )}
-      </Flex>
+      {hasBookings ? (
+        <Flex vertical align-items="center" gap={16}>
+          {bookedFlights.map((flight) => (
+            <BookedFlightCard key={flight.id} flight={flight} />
+          ))}
+        </Flex>
+      ) : (
+        <Flex vertical align-items="center" gap={16}>
+          <Eyes />
+          <Typography.Text type="secondary" className={styles.empty}>
+            Пока нет забронированных билетов
+          </Typography.Text>
+        </Flex>
+      )}
     </Drawer>
   );
 };
