@@ -334,7 +334,7 @@ const OfferPageContent = () => {
       dateTo: dateTo.format('YYYY-MM-DD'),
       serviceClass,
       tripType,
-      passengersNumber: passengers.adults,
+      passengersNumber: passengers.adults + passengers.animals,
       childrenNumber: passengers.children,
       toddlersNumber: passengers.toddler,
     };
