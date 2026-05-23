@@ -5,13 +5,8 @@
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px;
-  background-color: var(--background-section);
-  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
 }
 
 .route {
@@ -24,6 +19,10 @@
 
 .meta {
   font-variant-numeric: tabular-nums;
+}
+
+.card :global(.ant-card-body) {
+  padding: 12px;
 }
 
 .empty {
