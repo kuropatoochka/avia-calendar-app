@@ -8,49 +8,24 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.services.ticket_sql_fragments import (
+    seats_available_sql,
+    tarif_id_for_class_sql,
+    total_price_sql,
+)
+
 if TYPE_CHECKING:
     from app.services.ticket_query import TicketListParams
 
 _TRANSFER_MIN_WAIT_MINUTES = 60
 _TRANSFER_MAX_WAIT_HOURS = 8
 
-_TOTAL_PRICE_SQL_TEMPLATE = """
-(
-  {tarif_alias}.toddler_price * CAST(:todlers_number AS integer)
-  + {tarif_alias}.children_price * CAST(:children_number AS integer)
-  + {tarif_alias}.price * CAST(:passengers_number AS integer)
-  + {tarif_alias}.baggage_price * CAST(:baggage_size AS integer)
-)
-""".strip()
-
-_PLANE_SEATS_FOR_CLASS_TEMPLATE = """
-CASE CAST(:service_class AS text)
-  WHEN 'BUDGET' THEN {plane_alias}.budget_seats
-  WHEN 'BUSINESS' THEN {plane_alias}.business_seats
-  WHEN 'COMFORT' THEN {plane_alias}.comfort_seats
-  WHEN 'FIRST_CLASS' THEN {plane_alias}.first_class_seats
-END
-""".strip()
-
-_SEGMENT_SEATS_SQL_TEMPLATE = """
-{tarif_alias}.seats >= CAST(:party_size AS integer)
-AND ({plane_seats}) >= CAST(:party_size AS integer)
-""".strip()
-
-_SEG1_TOTAL_SQL = _TOTAL_PRICE_SQL_TEMPLATE.format(tarif_alias="tt1")
-_SEG2_TOTAL_SQL = _TOTAL_PRICE_SQL_TEMPLATE.format(tarif_alias="tt2")
-
-_SEG1_PLANE_SEATS_SQL = _PLANE_SEATS_FOR_CLASS_TEMPLATE.format(plane_alias="pl1")
-_SEG2_PLANE_SEATS_SQL = _PLANE_SEATS_FOR_CLASS_TEMPLATE.format(plane_alias="pl2")
-
-_SEG1_SEATS_SQL = _SEGMENT_SEATS_SQL_TEMPLATE.format(
-    tarif_alias="tt1",
-    plane_seats=_SEG1_PLANE_SEATS_SQL,
-)
-_SEG2_SEATS_SQL = _SEGMENT_SEATS_SQL_TEMPLATE.format(
-    tarif_alias="tt2",
-    plane_seats=_SEG2_PLANE_SEATS_SQL,
-)
+_SEG1_TOTAL_SQL = total_price_sql("tt1")
+_SEG2_TOTAL_SQL = total_price_sql("tt2")
+_SEG1_SEATS_SQL = seats_available_sql("tt1", "pl1")
+_SEG2_SEATS_SQL = seats_available_sql("tt2", "pl2")
+_SEG1_TARIF_ID_SQL = tarif_id_for_class_sql("fi1")
+_SEG2_TARIF_ID_SQL = tarif_id_for_class_sql("fi2")
 
 _TRANSFER_FROM_AND_JOINS = f"""
 FROM flight_instance fi1
@@ -62,12 +37,7 @@ JOIN city c_transfer ON at1.city_id = c_transfer.id
 JOIN company co1 ON fi1.company_id = co1.id
 JOIN plane pl1 ON fi1.plane_id = pl1.id
 JOIN tarif tt1 ON tt1.id = (
-  CASE CAST(:service_class AS text)
-    WHEN 'BUDGET' THEN fi1.budget_tarif_id
-    WHEN 'BUSINESS' THEN fi1.business_tarif_id
-    WHEN 'COMFORT' THEN fi1.comfort_tarif_id
-    WHEN 'FIRST_CLASS' THEN fi1.first_class_tarif_id
-  END
+  {_SEG1_TARIF_ID_SQL}
 )
 JOIN flight_instance fi2 ON TRUE
 JOIN flight f2 ON fi2.flight_id = f2.id
@@ -77,12 +47,7 @@ JOIN city c_to ON at2.city_id = c_to.id
 JOIN company co2 ON fi2.company_id = co2.id
 JOIN plane pl2 ON fi2.plane_id = pl2.id
 JOIN tarif tt2 ON tt2.id = (
-  CASE CAST(:service_class AS text)
-    WHEN 'BUDGET' THEN fi2.budget_tarif_id
-    WHEN 'BUSINESS' THEN fi2.business_tarif_id
-    WHEN 'COMFORT' THEN fi2.comfort_tarif_id
-    WHEN 'FIRST_CLASS' THEN fi2.first_class_tarif_id
-  END
+  {_SEG2_TARIF_ID_SQL}
 )
 WHERE f1.airport_from_id = CAST(:airport_from AS integer)
   AND f2.airport_to_id = CAST(:airport_to AS integer)

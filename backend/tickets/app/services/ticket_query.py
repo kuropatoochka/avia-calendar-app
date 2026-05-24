@@ -8,6 +8,11 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.services.ticket_sql_fragments import (
+    seats_available_sql,
+    tarif_id_for_class_sql,
+    total_price_sql,
+)
 from app.services.ticket_transfer_query import fetch_transfer_tickets
 
 ALLOWED_SERVICE_CLASSES = frozenset(
@@ -76,27 +81,12 @@ def parse_company_csv(raw: str) -> tuple[int, ...]:
     return tuple(dict.fromkeys(ids))
 
 
-_TOTAL_PRICE_SQL = """
-(
-  tt.toddler_price * CAST(:todlers_number AS integer)
-  + tt.children_price * CAST(:children_number AS integer)
-  + tt.price * CAST(:passengers_number AS integer)
-  + tt.baggage_price * CAST(:baggage_size AS integer)
-)
-""".strip()
-
-_PLANE_SEATS_FOR_CLASS = """
-CASE CAST(:service_class AS text)
-  WHEN 'BUDGET' THEN pl.budget_seats
-  WHEN 'BUSINESS' THEN pl.business_seats
-  WHEN 'COMFORT' THEN pl.comfort_seats
-  WHEN 'FIRST_CLASS' THEN pl.first_class_seats
-END
-""".strip()
+_TOTAL_PRICE_SQL = total_price_sql("tt")
+_SEATS_AVAILABLE_SQL = seats_available_sql("tt", "pl")
+_TARIF_ID_SQL = tarif_id_for_class_sql("fi")
 
 _PRICE_FILTER_SQL = f"""
-tt.seats >= CAST(:party_size AS integer)
-AND ({_PLANE_SEATS_FOR_CLASS}) >= CAST(:party_size AS integer)
+{_SEATS_AVAILABLE_SQL}
 AND (
   CAST(:price_to AS integer) IS NULL
   OR {_TOTAL_PRICE_SQL} < CAST(:price_to AS integer)
@@ -113,12 +103,7 @@ JOIN city c_to ON at.city_id = c_to.id
 JOIN company co ON fi.company_id = co.id
 JOIN plane pl ON fi.plane_id = pl.id
 JOIN tarif tt ON tt.id = (
-  CASE CAST(:service_class AS text)
-    WHEN 'BUDGET' THEN fi.budget_tarif_id
-    WHEN 'BUSINESS' THEN fi.business_tarif_id
-    WHEN 'COMFORT' THEN fi.comfort_tarif_id
-    WHEN 'FIRST_CLASS' THEN fi.first_class_tarif_id
-  END
+  {_TARIF_ID_SQL}
 )
 WHERE af.id = CAST(:airport_from AS integer)
   AND at.id = CAST(:airport_to AS integer)
