@@ -8,6 +8,8 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.services.ticket_transfer_query import fetch_transfer_tickets
+
 ALLOWED_SERVICE_CLASSES = frozenset(
     {"BUDGET", "BUSINESS", "COMFORT", "FIRST_CLASS"},
 )
@@ -179,6 +181,34 @@ ORDER BY _sort_total ASC, fi.id ASC
 LIMIT CAST(:limit AS integer) OFFSET CAST(:offset AS integer)
 """
 
+LIST_TICKETS_ALL_SQL_TEMPLATE = f"""
+SELECT
+  fi.id AS flight_instance_id,
+  c_from.name AS city_from,
+  c_to.name AS city_to,
+  af.name AS airport_from,
+  at.name AS airport_to,
+  f.flight_number AS flight_number,
+  co.name AS company_name,
+  fi.duration AS duration,
+  fi.departure_date AS departure_date,
+  fi.departure_time AS departure_time,
+  fi.arrival_date AS arrival_date,
+  fi.arrival_time AS arrival_time,
+  pl.type AS plane_type,
+  pl.number AS plane_number,
+  json_build_object(
+    'total',
+      {_TOTAL_PRICE_SQL},
+    'price', tt.price,
+    'children_price', tt.children_price,
+    'todlers_price', tt.toddler_price,
+    'baggage_price', tt.baggage_price
+  )::json AS prices
+{_LIST_FROM_AND_JOINS}
+ORDER BY {_TOTAL_PRICE_SQL} ASC, fi.id ASC
+"""
+
 _COUNT_SQL = text(f"""
 SELECT COUNT(*)::int AS c
 {_LIST_FROM_AND_JOINS}
@@ -242,6 +272,46 @@ def _rows_to_items(rows: Sequence[Any]) -> list[dict[str, Any]]:
     return items
 
 
+def _route_total(route: Sequence[dict[str, Any]]) -> int:
+    return sum(int(seg["prices"]["total"]) for seg in route)
+
+
+def _route_sort_key(route: Sequence[dict[str, Any]]) -> tuple[int, int, int]:
+    total = _route_total(route)
+    seg1_id = int(route[0]["flight_instance_id"])
+    if len(route) > 1:
+        seg2_id = int(route[1]["flight_instance_id"])
+    else:
+        seg2_id = -1
+    return (total, seg1_id, seg2_id)
+
+
+def _paginate_groups(
+    groups: list[list[dict[str, Any]]],
+    offset: int,
+    limit: int,
+) -> tuple[list[list[dict[str, Any]]], int, int]:
+    total = len(groups)
+    if total == 0:
+        return [], 0, offset
+
+    offset_effective = offset
+    if offset_effective >= total:
+        offset_effective = max(0, ((total - 1) // limit) * limit)
+
+    return (
+        groups[offset_effective : offset_effective + limit],
+        total,
+        offset_effective,
+    )
+
+
+def _list_direct_items(db: Session, params: TicketListParams) -> list[dict[str, Any]]:
+    stmt = text(LIST_TICKETS_ALL_SQL_TEMPLATE)
+    rows = db.execute(stmt, _filter_bind_params(params)).mappings().all()
+    return _rows_to_items(rows)
+
+
 def fetch_tickets(
     db: Session, params: TicketListParams
 ) -> tuple[list[dict[str, Any]], int, int]:
@@ -284,3 +354,20 @@ def _count_tickets(db: Session, params: TicketListParams) -> int:
         .one()
     )
     return int(row["c"])
+
+
+def fetch_ticket_groups(
+    db: Session, params: TicketListParams
+) -> tuple[list[list[dict[str, Any]]], int, int]:
+    direct_items = _list_direct_items(db, params)
+    direct_groups = [[item] for item in direct_items]
+    transfer_groups = fetch_transfer_tickets(db, params)
+    combined = direct_groups + transfer_groups
+
+    if params.price_to is not None:
+        combined = [
+            route for route in combined if _route_total(route) < params.price_to
+        ]
+
+    combined.sort(key=_route_sort_key)
+    return _paginate_groups(combined, params.offset, params.limit)
