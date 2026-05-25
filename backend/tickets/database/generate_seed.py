@@ -269,7 +269,7 @@ def base_budget_price(duration_min: int) -> int:
         return random.randint(18000, 38000)
 
 
-def round_price(p: int, step: int = 100) -> int:
+def round_price(p: int, step: int = 10) -> int:
     return ceil(p / step) * step
 
 

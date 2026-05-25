@@ -1,5 +1,6 @@
 import { Flex, Space, Typography } from 'antd';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import {
   DEFAULT_FLIGHT_FILTERS,
@@ -19,8 +20,9 @@ import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
 import type { TagId } from '@/features/recommendation-tags';
 import { RecommendationTags, RecommendationTagsProvider } from '@/features/recommendation-tags';
 import type { SearchFormValues } from '@/features/search-form';
-import { SearchForm } from '@/features/search-form';
-import type { TicketItemDto, TicketsRequest } from '@/shared/types';
+import { DEFAULT_AIRPORT_OPTIONS, SearchForm } from '@/features/search-form';
+import AirportService from '@/shared/api/service/airport-service';
+import type { AirportDto, TicketItemDto, TicketsRequest } from '@/shared/types';
 import styles from './offer-page.module.css';
 
 const DEFAULT_TICKETS_LIMIT = 100;
@@ -59,6 +61,28 @@ const isSupportedRecommendationTag = (tagId: TagId) => {
 };
 
 const OfferPageContent = () => {
+  const [urlParams] = useSearchParams();
+  const urlFromId = Number(urlParams.get('from')) || undefined;
+  const urlToId = Number(urlParams.get('to')) || undefined;
+
+  // Аэропорты для предзаполнения формы — загружаются по ID из URL-параметров
+  const [seedAirports, setSeedAirports] = useState<AirportDto[]>(DEFAULT_AIRPORT_OPTIONS);
+
+  useEffect(() => {
+    if (!urlFromId || !urlToId) return;
+    AirportService.getAirports({ ids: [urlFromId, urlToId] })
+      .then((data) => {
+        if (data.items.length > 0) setSeedAirports(data.items);
+      })
+      .catch(() => {
+        /* молча используем дефолты */
+      });
+  }, [urlFromId, urlToId]);
+
+  // Ключ форсирует ремаунт SearchForm когда seedAirports подгрузились —
+  // иначе initialValues Ant Design Form не обновятся
+  const searchFormKey = seedAirports.map((a) => a.id).join('-');
+
   const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(null);
   const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
   const [filterKey, setFilterKey] = useState(0);
@@ -331,7 +355,13 @@ const OfferPageContent = () => {
           </Typography.Paragraph>
         </Space>
 
-        <SearchForm onSearch={handleSearch} />
+        <SearchForm
+          key={searchFormKey}
+          seedAirports={seedAirports}
+          initialOriginAirportId={urlFromId}
+          initialDestinationAirportId={urlToId}
+          onSearch={handleSearch}
+        />
 
         <Flex vertical gap={16}>
           <Typography.Title level={2}>График цен</Typography.Title>
