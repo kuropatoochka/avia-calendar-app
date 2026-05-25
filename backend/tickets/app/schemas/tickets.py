@@ -23,6 +23,9 @@ class ServiceClassPrices(BaseModel):
 
 
 class TicketItem(BaseModel):
+    flight_instance_id: int = Field(
+        description="Id экземпляра рейса (flight_instance)",
+    )
     city_from: str
     city_to: str
     airport_from: str
@@ -112,7 +115,7 @@ class TicketPricesPatchResponse(BaseModel):
 
 
 class TicketBookRequest(BaseModel):
-    """Тело POST /tickets/."""
+    """Один сегмент маршрута в теле POST /tickets/."""
 
     flight_instance_id: int = Field(
         ge=1,
@@ -128,8 +131,21 @@ class TicketBookRequest(BaseModel):
     )
 
 
-class TicketBookResponse(BaseModel):
-    message: str = Field(description="Сообщение об успешном бронировании")
+class TicketBookResultItem(BaseModel):
+    """Результат бронирования одного сегмента."""
+
+    flight_instance_id: int = Field(
+        description="Id экземпляра рейса из запроса",
+    )
     seats_remaining: int = Field(
         description="Оставшееся число мест в тарифе после бронирования",
+    )
+
+
+class TicketBookResponse(BaseModel):
+    message: str = Field(description="Сообщение об успешном бронировании")
+    items: list[TicketBookResultItem] = Field(
+        description=(
+            "Результат по каждому элементу тела запроса (порядок совпадает с запросом)"
+        ),
     )

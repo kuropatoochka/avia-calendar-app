@@ -1,5 +1,8 @@
 import { MoonFilled, SunFilled } from '@ant-design/icons';
+import { Avatar } from 'antd';
 import React from 'react';
+import { BriefcaseFill, ThunderboltFill } from '@/shared/assets';
+import { aeroflotLogo } from '@/shared/assets/airlines';
 import type { TicketFiltersRequest } from '@/shared/types';
 
 export type DestinationTagId = 'has_sea' | 'has_warm' | 'has_nature';
@@ -70,12 +73,14 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
   {
     id: 'direct_flight',
     type: 'stops',
-    label: 'Прямой рейс',
+    label: 'Прямой',
+    icon: React.createElement(ThunderboltFill, { style: { color: '#FF6B4A' } }),
   },
   {
     id: 'baggage_included',
     type: 'baggage',
     label: 'С багажом',
+    icon: React.createElement(BriefcaseFill, { style: { color: '#4FAF9A' } }),
   },
   {
     id: 'price_up_to_5000',
@@ -88,12 +93,17 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
     type: 'airline',
     label: 'Аэрофлот',
     companyName: 'Аэрофлот',
+    icon: React.createElement(Avatar, {
+      size: 16,
+      src: aeroflotLogo,
+      alt: 'Аэрофлот',
+    }),
   },
 
   {
     id: 'morning_departure',
     type: 'departureTime',
-    label: 'Утренний вылет',
+    label: 'Утренний',
     icon: React.createElement(SunFilled, { style: { color: '#F2B705' } }),
     departureTime: 'morning',
     exclusiveGroup: 'departureTime',
@@ -101,30 +111,9 @@ export const RECOMMENDATION_TAGS: RecommendationTag[] = [
   {
     id: 'night_departure',
     type: 'departureTime',
-    label: 'Ночной вылет',
+    label: 'Ночной',
     icon: React.createElement(MoonFilled, { style: { color: '#516FD4' } }),
     departureTime: 'night',
     exclusiveGroup: 'departureTime',
   },
-
-  // {
-  //   id: 'has_sea',
-  //   type: 'destination',
-  //   label: 'Море и пляж',
-  //   requestParam: 'has_sea',
-  // },
-  // {
-  //   id: 'has_warm',
-  //   type: 'destination',
-  //   label: 'Тепло',
-  //   icon: React.createElement(FireFilled, { style: { color: '#FF6B4A' } }),
-  //   requestParam: 'has_warm',
-  // },
-  // {
-  //   id: 'has_nature',
-  //   type: 'destination',
-  //   label: 'Природа',
-  //   icon: React.createElement(EnvironmentFilled, { style: { color: '#4DAA57' } }),
-  //   requestParam: 'has_nature',
-  // },
 ];

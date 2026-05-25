@@ -4,6 +4,7 @@ import { Button, Collapse, Flex, Tooltip, Typography } from 'antd';
 import { ArrowDown, ArrowRotateLeft } from '@/shared/assets';
 import { cn } from '@/shared/utils';
 import { DEFAULT_FLIGHT_FILTERS } from '../model/defaults';
+import { getActiveFiltersCount } from '../model/get-active-filter-count';
 import { useFlightFilters } from '../model/use-flight-filters';
 import { ConditionsSection } from './conditions-section';
 import styles from './flight-filters.module.css';
@@ -21,19 +22,14 @@ type CompanyOption = {
   label: string;
 };
 
-type FlightFiltersProps = {
+type Props = {
   onApply?: (filters: FlightFiltersState) => void;
   passengers?: PassengerCounts;
   companyOptions?: CompanyOption[];
   filters?: FlightFiltersState | null;
 };
 
-export const FlightFilters = ({
-  onApply,
-  passengers,
-  companyOptions = [],
-  filters,
-}: FlightFiltersProps) => {
+export const FlightFilters = ({ onApply, passengers, companyOptions = [], filters }: Props) => {
   const {
     draftFilters,
     updateDraftFilter,
@@ -43,10 +39,16 @@ export const FlightFilters = ({
     resetFilters,
   } = useFlightFilters(filters);
 
+  const activeFiltersCount = getActiveFiltersCount(draftFilters);
+  const hasSelectedFilters = activeFiltersCount > 0;
+
   const handleApplyFilters = () => {
+    if (!hasSelectedFilters) {
+      return;
+    }
+
     onApply?.(draftFilters);
   };
-
   const handleResetFilters = () => {
     resetFilters();
     onApply?.(DEFAULT_FLIGHT_FILTERS);
@@ -85,13 +87,25 @@ export const FlightFilters = ({
       <Flex justify="space-between" align="center">
         <Typography.Title level={3}>Дополнительные фильтры</Typography.Title>
 
-        <Tooltip title="Сброс фильтров">
+        <Flex align="center" gap={8}>
           <Button
-            icon={<ArrowRotateLeft className={styles.resetIcon} />}
-            className={styles.resetBtn}
-            onClick={handleResetFilters}
-          />
-        </Tooltip>
+            type="primary"
+            className={styles.applyButton}
+            disabled={!hasSelectedFilters}
+            onClick={handleApplyFilters}
+          >
+            Применить
+          </Button>
+
+          <Tooltip title="Сброс фильтров">
+            <Button
+              icon={<ArrowRotateLeft className={styles.resetIcon} />}
+              className={styles.resetBtn}
+              disabled={!hasSelectedFilters}
+              onClick={handleResetFilters}
+            />
+          </Tooltip>
+        </Flex>
       </Flex>
 
       <Flex vertical className={styles.panel}>
@@ -105,12 +119,6 @@ export const FlightFilters = ({
           defaultActiveKey={['flight', 'price', 'conditions']}
           items={filterSections}
         />
-
-        <Flex justify="flex-end">
-          <Button type="primary" className={styles.applyButton} onClick={handleApplyFilters}>
-            Применить фильтры
-          </Button>
-        </Flex>
       </Flex>
     </Flex>
   );

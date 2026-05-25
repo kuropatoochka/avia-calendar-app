@@ -1,5 +1,6 @@
 import { Layout, Menu } from 'antd';
 import { Link, useLocation } from 'react-router';
+import { BookingAvatar } from '@/features/booking-flight';
 import { Logo } from '@/shared/assets';
 import { PAGES, PATHS } from '@/shared/consts';
 import styles from './layout.module.css';
@@ -16,10 +17,11 @@ export const Header = () => {
 
   return (
     <Layout.Header className={styles.header}>
-      <Link to={PATHS.base} className={styles.logo}>
+      <Link to={PATHS.offer} className={styles.logo}>
         <Logo />
       </Link>
       <Menu items={items} selectedKeys={[pathname]} mode="horizontal" className={styles.menu} />
+      <BookingAvatar />
     </Layout.Header>
   );
 };

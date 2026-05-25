@@ -1,5 +1,5 @@
-export { LaunchExperimentProvider } from './ui/launch-experiment-provider';
-export { useLaunchExperiment } from './model/use-launch-experiment';
+export { Experiment, Goal } from './model/experiment-consts';
+export type { GoalName } from './model/experiment-consts';
 export { trackExperimentEvent } from './model/track-experiment';
-export { Goal } from './model/experiment-goals';
-export type { GoalName } from './model/experiment-goals';
+export { useLaunchExperiment } from './model/use-launch-experiment';
+export { LaunchExperimentProvider } from './ui/launch-experiment-provider';

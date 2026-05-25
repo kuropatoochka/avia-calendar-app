@@ -1,4 +1,5 @@
 export { filterTicketGroups } from './model/filter-ticket-groups';
+export { getActiveFiltersCount } from './model/get-active-filter-count';
 export { mapFiltersToTicketRequest } from './model/map-filters-to-ticket-request';
 
 export type { FlightFiltersState } from './model/types';

@@ -3,8 +3,8 @@ import dayjs from 'dayjs';
 import type { AirportDto, ServiceClass } from '@/shared/types';
 
 export const DEFAULT_ORIGIN_AIRPORT: AirportDto = {
-  id: 104,
-  name: 'Пулково',
+  id: 4,
+  name: 'Пулково (LED)',
   city: {
     id: 2,
     name: 'Санкт-Петербург',
@@ -12,8 +12,8 @@ export const DEFAULT_ORIGIN_AIRPORT: AirportDto = {
 };
 
 export const DEFAULT_DESTINATION_AIRPORT: AirportDto = {
-  id: 101,
-  name: 'Шереметьево',
+  id: 1,
+  name: 'Шереметьево (SVO)',
   city: {
     id: 1,
     name: 'Москва',

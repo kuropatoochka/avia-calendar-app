@@ -59,7 +59,6 @@
 
 .field :global(.ant-typography) {
   font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
 }
 

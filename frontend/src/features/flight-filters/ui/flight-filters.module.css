@@ -10,7 +10,7 @@
 
 .resetBtn {
   width: 24px;
-  height: 36px;
+  height: 32px;
   transition:
     background-color 0.15s,
     transform 0.1s;
@@ -40,6 +40,10 @@
 .collapse {
   width: 100%;
   background: transparent;
+}
+
+.collapse :global(.ant-collapse-header) {
+  padding: var(--space-xs) var(--space-sm) !important;
 }
 
 .collapseIcon {

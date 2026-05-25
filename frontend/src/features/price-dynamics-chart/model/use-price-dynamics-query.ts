@@ -1,11 +1,19 @@
 import type { PriceDynamicsSearchParams } from './types';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { FlightService } from '@/shared/api';
-import { useFetch } from '@/shared/hooks';
 import type { PriceDynamicsRequest } from '@/shared/types';
 
+type PriceDynamicsItem = {
+  departure_date: string;
+  min_total_price: number;
+};
+
 export const usePriceDynamicsQuery = () => {
-  const loadPriceDynamics = useCallback(async (params: PriceDynamicsSearchParams) => {
+  const [priceDynamics, setPriceDynamics] = useState<PriceDynamicsItem[]>([]);
+  const [isPriceDynamicsLoading, setIsPriceDynamicsLoading] = useState(false);
+  const [priceDynamicsError, setPriceDynamicsError] = useState('');
+
+  const fetchPriceDynamics = useCallback(async (params: PriceDynamicsSearchParams) => {
     const requestParams: PriceDynamicsRequest = {
       airport_from: params.airportFromId,
       airport_to: params.airportToId,
@@ -17,21 +25,42 @@ export const usePriceDynamicsQuery = () => {
       toddlers_number: params.toddlersNumber,
     };
 
-    // TODO: Remove mock delay when real backend integration is ready.
-    await new Promise((resolve) => {
-      setTimeout(resolve, 1200);
-    });
+    try {
+      setIsPriceDynamicsLoading(true);
+      setPriceDynamicsError('');
+      setPriceDynamics([]);
 
-    const data = await FlightService.getPriceDynamics(requestParams);
+      // TODO: Remove mock delay when real backend integration is ready.
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1200);
+      });
 
-    return data;
+      const data = await FlightService.getPriceDynamics(requestParams);
+
+      setPriceDynamics(data);
+
+      return data;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Не удалось загрузить динамику цен';
+
+      setPriceDynamicsError(message);
+      setPriceDynamics([]);
+
+      return null;
+    } finally {
+      setIsPriceDynamicsLoading(false);
+    }
   }, []);
 
-  const [fetchPriceDynamics, isPriceDynamicsLoading, priceDynamicsError] =
-    useFetch(loadPriceDynamics);
+  const clearPriceDynamics = useCallback(() => {
+    setPriceDynamics([]);
+    setPriceDynamicsError('');
+  }, []);
 
   return {
+    priceDynamics,
     fetchPriceDynamics,
+    clearPriceDynamics,
     isPriceDynamicsLoading,
     priceDynamicsError,
   };
