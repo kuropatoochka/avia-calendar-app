@@ -1,6 +1,6 @@
 """Тесты GET /tickets и разбора service_class."""
 
-from datetime import date
+from datetime import date, datetime, time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -26,6 +26,26 @@ from app.services.ticket_query import (
 from app.services.ticket_range_query import RANGE_TICKETS_SQL
 
 client = TestClient(app)
+
+
+def _get_tickets(params: dict[str, object]) -> dict[str, object]:
+    response = client.get("/tickets", params=params)
+    assert response.status_code == 200
+    return response.json()
+
+
+def _route_total(group: list[dict[str, object]]) -> int:
+    return sum(int(seg["prices"]["total"]) for seg in group)
+
+
+def _route_key(group: list[dict[str, object]]) -> tuple[int, int, int]:
+    seg1_id = int(group[0]["flight_instance_id"])
+    seg2_id = int(group[1]["flight_instance_id"]) if len(group) > 1 else -1
+    return (_route_total(group), seg1_id, seg2_id)
+
+
+def _parse_dt(d: str, t: str) -> datetime:
+    return datetime.combine(date.fromisoformat(d), time.fromisoformat(t))
 
 
 def test_parse_single_service_class_rejects_csv_like_string() -> None:
@@ -242,3 +262,70 @@ def test_patch_prices_duplicate_tarif_id_returns_422() -> None:
     )
     assert response.status_code == 422
     assert "duplicate" in response.json()["detail"]
+
+
+def test_tickets_returns_direct_and_transfer_groups() -> None:
+    params = {
+        "airport_from": 1,
+        "airport_to": 6,
+        "date": "2026-06-01",
+        "passengers_number": 1,
+        "service_class": "BUDGET",
+        "offset": 0,
+        "limit": 500,
+    }
+    data = _get_tickets(params)
+    items = data["items"]
+
+    assert all(len(group) in (1, 2) for group in items)
+    assert any(len(group) == 1 for group in items)
+    assert any(len(group) == 2 for group in items)
+    if data["total"] <= params["limit"]:
+        assert data["total"] == len(items)
+
+
+def test_tickets_transfer_group_is_ordered_and_connected() -> None:
+    params = {
+        "airport_from": 1,
+        "airport_to": 6,
+        "date": "2026-06-01",
+        "passengers_number": 1,
+        "service_class": "BUDGET",
+        "offset": 0,
+        "limit": 500,
+    }
+    data = _get_tickets(params)
+    items = data["items"]
+    transfer = next(group for group in items if len(group) == 2)
+
+    assert transfer[0]["airport_to"] == transfer[1]["airport_from"]
+    seg1_arr = _parse_dt(
+        transfer[0]["arrival_date"],
+        transfer[0]["arrival_time"],
+    )
+    seg2_dep = _parse_dt(
+        transfer[1]["departure_date"],
+        transfer[1]["departure_time"],
+    )
+    assert seg2_dep > seg1_arr
+
+
+def test_tickets_pagination_uses_combined_sorted_list() -> None:
+    base_params = {
+        "airport_from": 1,
+        "airport_to": 6,
+        "date": "2026-06-01",
+        "passengers_number": 1,
+        "service_class": "BUDGET",
+    }
+    full = _get_tickets({**base_params, "offset": 0, "limit": 500})
+    full_items = full["items"]
+    assert len(full_items) >= 2
+
+    keys = [_route_key(group) for group in full_items]
+    assert keys == sorted(keys)
+
+    page1 = _get_tickets({**base_params, "offset": 0, "limit": 1})
+    page2 = _get_tickets({**base_params, "offset": 1, "limit": 1})
+    assert page1["items"][0] == full_items[0]
+    assert page2["items"][0] == full_items[1]

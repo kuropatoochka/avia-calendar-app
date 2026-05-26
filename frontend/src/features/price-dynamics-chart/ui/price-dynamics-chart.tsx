@@ -16,7 +16,6 @@ import {
   DATE_LABEL_Y,
   DISABLED_BAR_HEIGHT,
   MAX_PRICE_BAR_HEIGHT,
-  MAX_VISIBLE_PRICE_DIFF_PERCENT,
   MIN_PRICE_BAR_HEIGHT,
   PRICE_LABEL_Y,
 } from '../model/consts';
@@ -47,20 +46,19 @@ const getChartWidth = (itemsCount: number) => {
   return chartWidth;
 };
 
-const getBarHeight = (price: number, minPrice: number) => {
-  if (price <= 0 || minPrice <= 0) {
+const getBarHeight = (price: number, minPrice: number, maxPrice: number) => {
+  if (price <= 0 || minPrice <= 0 || maxPrice <= 0 || maxPrice < minPrice) {
     return DISABLED_BAR_HEIGHT;
   }
 
-  const priceDiffPercent = (price - minPrice) / minPrice;
-  const clampedDiffPercent = Math.min(
-    Math.max(priceDiffPercent, 0),
-    MAX_VISIBLE_PRICE_DIFF_PERCENT,
-  );
+  if (maxPrice === minPrice) {
+    return MIN_PRICE_BAR_HEIGHT;
+  }
 
-  const visualRatio = clampedDiffPercent / MAX_VISIBLE_PRICE_DIFF_PERCENT;
+  const rawRatio = (price - minPrice) / (maxPrice - minPrice);
+  const ratio = Math.min(Math.max(rawRatio, 0), 1);
 
-  const height = MIN_PRICE_BAR_HEIGHT + visualRatio * (MAX_PRICE_BAR_HEIGHT - MIN_PRICE_BAR_HEIGHT);
+  const height = MIN_PRICE_BAR_HEIGHT + ratio * (MAX_PRICE_BAR_HEIGHT - MIN_PRICE_BAR_HEIGHT);
 
   return Math.round(height);
 };
@@ -178,6 +176,7 @@ export const PriceDynamicsChart = ({
   }, [items]);
 
   const minPrice = priceRange.minPrice === Infinity ? 0 : priceRange.minPrice;
+  const maxPrice = priceRange.maxPrice;
 
   const chartWidth = getChartWidth(renderItems.length);
 
@@ -229,7 +228,7 @@ export const PriceDynamicsChart = ({
 
             const isUnavailable = item.minTotalPrice <= 0;
 
-            const height = getBarHeight(item.minTotalPrice, minPrice);
+            const height = getBarHeight(item.minTotalPrice, minPrice, maxPrice);
             const y = BAR_BASE_Y - height;
 
             const bestBadgeX = x + BAR_WIDTH / 2 - BEST_BADGE_WIDTH / 2;

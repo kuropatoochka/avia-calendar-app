@@ -1,6 +1,7 @@
 import { Flex, Space, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useOutletContext, useSearchParams } from 'react-router';
+import type { LayoutOutletContext } from '@/app/layout/layout';
 import { addBookedFlight } from '@/features/booking-flight';
 import type { FlightFiltersState } from '@/features/flight-filters';
 import {
@@ -12,8 +13,7 @@ import {
   useCompaniesQuery,
 } from '@/features/flight-filters';
 import type { FlightBookingPayload } from '@/features/flight-list';
-import { FlightList, useTicketsQuery } from '@/features/flight-list';
-import { useBookTickets } from '@/features/flight-list';
+import { FlightList, useBookTickets, useTicketsQuery } from '@/features/flight-list';
 import {
   Experiment,
   Goal,
@@ -77,6 +77,8 @@ const isSupportedRecommendationTag = (tagId: TagId) => {
 };
 
 const OfferPageContent = () => {
+  const { pricesSyncVersion } = useOutletContext<LayoutOutletContext>();
+
   const [urlParams] = useSearchParams();
   const urlFromId = Number(urlParams.get('from')) || undefined;
   const urlToId = Number(urlParams.get('to')) || undefined;
@@ -130,6 +132,7 @@ const OfferPageContent = () => {
   const [ticketsTotal, setTicketsTotal] = useState(0);
 
   const priceDynamicsRef = useRef<HTMLDivElement | null>(null);
+  const lastSyncVersionRef = useRef(pricesSyncVersion);
 
   const variant = useLaunchExperiment();
   const showRecommendationTags = variant === 'B';
@@ -405,6 +408,46 @@ const OfferPageContent = () => {
     setFilterKey((key) => key + 1);
   };
 
+  useEffect(() => {
+    if (lastSyncVersionRef.current === pricesSyncVersion) {
+      return;
+    }
+
+    lastSyncVersionRef.current = pricesSyncVersion;
+
+    if (!searchParams || !selectedPriceDate) {
+      return;
+    }
+
+    let isActual = true;
+
+    const refreshTicketsAfterPricesSync = async () => {
+      const request = buildTicketsRequest({
+        offset: 0,
+        selectedDate: selectedPriceDate,
+      });
+
+      if (!request) {
+        return;
+      }
+
+      const data = await fetchTickets(request);
+
+      if (!isActual || !data) {
+        return;
+      }
+
+      setTicketGroups(data.items);
+      setTicketsTotal(data.total);
+    };
+
+    void refreshTicketsAfterPricesSync();
+
+    return () => {
+      isActual = false;
+    };
+  }, [buildTicketsRequest, fetchTickets, pricesSyncVersion, searchParams, selectedPriceDate]);
+
   const handleBookFlight = useCallback(
     async (flight: FlightBookingPayload) => {
       if (!bookingDetails) {
@@ -484,7 +527,11 @@ const OfferPageContent = () => {
 
         <Flex vertical gap={16} ref={priceDynamicsRef}>
           <Typography.Title level={2}>График цен</Typography.Title>
-          <PriceDynamicsContainer params={searchParams} onSelect={handleShowFlights} />
+          <PriceDynamicsContainer
+            params={searchParams}
+            onSelect={handleShowFlights}
+            refreshKey={pricesSyncVersion}
+          />
         </Flex>
 
         <div className={styles.columns}>

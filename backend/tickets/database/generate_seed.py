@@ -173,6 +173,103 @@ ROUTES = [
     (54, 26, 1, 3602, 510),   # PKC → SVO
     (55, 1, 27, 3701, 155),   # SVO → MCX  (Moscow → Махачкала / Дагестан)
     (56, 27, 1, 3702, 155),   # MCX → SVO
+    # --- Previously unreachable airports — adding Moscow routes ---
+    (57, 1, 17, 3801,  70),   # SVO → GOJ  (Moscow → Нижний Новгород)
+    (58, 17, 1, 3802,  70),   # GOJ → SVO
+    (59, 1, 18, 3901,  90),   # SVO → KUF  (Moscow → Самара)
+    (60, 18, 1, 3902,  90),   # KUF → SVO
+    (61, 1, 19, 4001, 140),   # SVO → OMS  (Moscow → Омск)
+    (62, 19, 1, 4002, 140),   # OMS → SVO
+    (63, 1, 20, 4101, 105),   # SVO → PEE  (Moscow → Пермь)
+    (64, 20, 1, 4102, 105),   # PEE → SVO
+    (65, 1, 21, 4201, 130),   # SVO → TJM  (Moscow → Тюмень)
+    (66, 21, 1, 4202, 130),   # TJM → SVO
+    (67, 1, 22, 4301, 120),   # SVO → MMK  (Moscow → Мурманск)
+    (68, 22, 1, 4302, 120),   # MMK → SVO
+    # --- St.Petersburg (LED) expanded network ---
+    (69,  4,  7, 4001, 150),  # LED → SVX  (SPb → Екатеринбург)
+    (70,  7,  4, 4002, 150),  # SVX → LED
+    (71,  4,  8, 4101, 240),  # LED → OVB  (SPb → Новосибирск)
+    (72,  8,  4, 4102, 240),  # OVB → LED
+    (73,  4, 11, 4201,  80),  # LED → KGD  (SPb → Калининград)
+    (74, 11,  4, 4202,  80),  # KGD → LED
+    (75,  4,  9, 4301, 150),  # LED → KRR  (SPb → Краснодар)
+    (76,  9,  4, 4302, 150),  # KRR → LED
+    (77,  4, 13, 4401, 120),  # LED → UFA  (SPb → Уфа)
+    (78, 13,  4, 4402, 120),  # UFA → LED
+    (79,  4, 22, 4501,  90),  # LED → MMK  (SPb → Мурманск)
+    (80, 22,  4, 4502,  90),  # MMK → LED
+    (81,  4, 14, 4601, 365),  # LED → IKT  (SPb → Иркутск)
+    (82, 14,  4, 4602, 365),  # IKT → LED
+    (83,  4, 10, 4701, 480),  # LED → VVO  (SPb → Владивосток)
+    (84, 10,  4, 4702, 480),  # VVO → LED
+    (85,  4, 15, 4801, 510),  # LED → KHV  (SPb → Хабаровск)
+    (86, 15,  4, 4802, 510),  # KHV → LED
+    (87,  4, 16, 4901, 330),  # LED → KJA  (SPb → Красноярск)
+    (88, 16,  4, 4902, 330),  # KJA → LED
+    (89,  4, 18, 5001, 100),  # LED → KUF  (SPb → Самара)
+    (90, 18,  4, 5002, 100),  # KUF → LED
+    (91,  4, 20, 5101,  90),  # LED → PEE  (SPb → Пермь)
+    (92, 20,  4, 5102,  90),  # PEE → LED
+    (93,  4, 17, 5201, 100),  # LED → GOJ  (SPb → Нижний Новгород)
+    (94, 17,  4, 5202, 100),  # GOJ → LED
+    (95,  4, 19, 5301, 220),  # LED → OMS  (SPb → Омск)
+    (96, 19,  4, 5302, 220),  # OMS → LED
+    (97,  4, 21, 5401, 200),  # LED → TJM  (SPb → Тюмень)
+    (98, 21,  4, 5402, 200),  # TJM → LED
+    (99,  4, 12, 5501, 190),  # LED → MRV  (SPb → Минеральные Воды)
+    (100, 12, 4, 5502, 190),  # MRV → LED
+    (101, 4, 27, 5601, 200),  # LED → MCX  (SPb → Махачкала)
+    (102, 27, 4, 5602, 200),  # MCX → LED
+    # --- Ekb (SVX) expanded network ---
+    (103, 7,  6, 5701,  75),  # SVX → KZN  (Екб → Казань)
+    (104, 6,  7, 5702,  75),  # KZN → SVX
+    (105, 7,  5, 5801, 200),  # SVX → AER  (Екб → Сочи)
+    (106, 5,  7, 5802, 200),  # AER → SVX
+    (107, 7,  9, 5901, 200),  # SVX → KRR  (Екб → Краснодар)
+    (108, 9,  7, 5902, 200),  # KRR → SVX
+    (109, 7, 15, 6001, 370),  # SVX → KHV  (Екб → Хабаровск)
+    (110, 15, 7, 6002, 370),  # KHV → SVX
+    (111, 7, 16, 6101, 210),  # SVX → KJA  (Екб → Красноярск)
+    (112, 16, 7, 6102, 210),  # KJA → SVX
+    (113, 7, 21, 6201,  50),  # SVX → TJM  (Екб → Тюмень, очень короткий)
+    (114, 21, 7, 6202,  50),  # TJM → SVX
+    (115, 7, 20, 6301,  80),  # SVX → PEE  (Екб → Пермь)
+    (116, 20, 7, 6302,  80),  # PEE → SVX
+    (117, 7, 13, 6401,  75),  # SVX → UFA  (Екб → Уфа)
+    (118, 13, 7, 6402,  75),  # UFA → SVX
+    # --- Novosibirsk (OVB) expanded network ---
+    (119, 8, 14, 6501, 160),  # OVB → IKT  (Новосибирск → Иркутск)
+    (120, 14, 8, 6502, 160),  # IKT → OVB
+    (121, 8, 15, 6601, 310),  # OVB → KHV  (Новосибирск → Хабаровск)
+    (122, 15, 8, 6602, 310),  # KHV → OVB
+    (123, 8, 10, 6701, 360),  # OVB → VVO  (Новосибирск → Владивосток)
+    (124, 10, 8, 6702, 360),  # VVO → OVB
+    (125, 8, 19, 6801,  60),  # OVB → OMS  (Новосибирск → Омск)
+    (126, 19, 8, 6802,  60),  # OMS → OVB
+    # --- Vladivostok (VVO) expanded network ---
+    (127, 10, 15, 6901,  90), # VVO → KHV  (Владивосток → Хабаровск)
+    (128, 15, 10, 6902,  90), # KHV → VVO
+    (129, 10, 14, 7001, 300), # VVO → IKT  (Владивосток → Иркутск)
+    (130, 14, 10, 7002, 300), # IKT → VVO
+    # --- Sochi (AER) expanded network ---
+    (131, 5,  6, 7101, 150),  # AER → KZN  (Сочи → Казань)
+    (132, 6,  5, 7102, 150),  # KZN → AER
+    (133, 5, 18, 7201, 120),  # AER → KUF  (Сочи → Самара)
+    (134, 18, 5, 7202, 120),  # KUF → AER
+    (135, 5, 13, 7301, 150),  # AER → UFA  (Сочи → Уфа)
+    (136, 13, 5, 7302, 150),  # UFA → AER
+    (137, 5, 20, 7401, 180),  # AER → PEE  (Сочи → Пермь)
+    (138, 20, 5, 7402, 180),  # PEE → AER
+    # --- Krasnodar (KRR) expanded ---
+    (139, 9,  6, 7501, 130),  # KRR → KZN  (Краснодар → Казань)
+    (140, 6,  9, 7502, 130),  # KZN → KRR
+    # --- Far East regional ---
+    (141, 15, 16, 7601, 320), # KHV → KJA  (Хабаровск → Красноярск)
+    (142, 16, 15, 7602, 320), # KJA → KHV
+    # --- Baikal short-haul ---
+    (143, 25, 14, 7701, 100), # UUD → IKT  (Улан-Удэ → Иркутск)
+    (144, 14, 25, 7702, 100), # IKT → UUD
 ]
 
 # ---------------------------------------------------------------------------
@@ -240,6 +337,103 @@ ROUTE_CONFIG = {
     54: {"fpd": 1, "companies": [1],       "planes": [7, 8]},
     55: {"fpd": 1, "companies": [1, 5],    "planes": [1, 3]},   # SVO → Махачкала
     56: {"fpd": 1, "companies": [1, 5],    "planes": [1, 3]},
+    # Previously unreachable airports
+    57: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},   # SVO → Нижний Новгород
+    58: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},
+    59: {"fpd": 1, "companies": [1, 4],    "planes": [1, 3]},   # SVO → Самара
+    60: {"fpd": 1, "companies": [1, 4],    "planes": [1, 3]},
+    61: {"fpd": 1, "companies": [1, 2],    "planes": [1, 5]},   # SVO → Омск
+    62: {"fpd": 1, "companies": [1, 2],    "planes": [1, 5]},
+    63: {"fpd": 1, "companies": [1, 3],    "planes": [1, 5]},   # SVO → Пермь
+    64: {"fpd": 1, "companies": [1, 3],    "planes": [1, 5]},
+    65: {"fpd": 1, "companies": [1, 2],    "planes": [1, 5]},   # SVO → Тюмень
+    66: {"fpd": 1, "companies": [1, 2],    "planes": [1, 5]},
+    67: {"fpd": 1, "companies": [1, 5],    "planes": [3, 5]},   # SVO → Мурманск
+    68: {"fpd": 1, "companies": [1, 5],    "planes": [3, 5]},
+    # SPb expanded
+    69: {"fpd": 1, "companies": [1, 3],    "planes": [1, 3]},   # LED → SVX
+    70: {"fpd": 1, "companies": [1, 3],    "planes": [1, 3]},
+    71: {"fpd": 1, "companies": [1, 2],    "planes": [2, 3]},   # LED → OVB
+    72: {"fpd": 1, "companies": [1, 2],    "planes": [2, 3]},
+    73: {"fpd": 1, "companies": [4, 5],    "planes": [1, 3]},   # LED → KGD
+    74: {"fpd": 1, "companies": [4, 5],    "planes": [1, 3]},
+    75: {"fpd": 1, "companies": [2, 5],    "planes": [1, 3]},   # LED → KRR
+    76: {"fpd": 1, "companies": [2, 5],    "planes": [1, 3]},
+    77: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},   # LED → UFA
+    78: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},
+    79: {"fpd": 1, "companies": [1, 5],    "planes": [3, 5]},   # LED → MMK
+    80: {"fpd": 1, "companies": [1, 5],    "planes": [3, 5]},
+    81: {"fpd": 1, "companies": [1, 2],    "planes": [2, 7]},   # LED → IKT
+    82: {"fpd": 1, "companies": [1, 2],    "planes": [2, 7]},
+    83: {"fpd": 1, "companies": [1],       "planes": [7, 8]},   # LED → VVO
+    84: {"fpd": 1, "companies": [1],       "planes": [7, 8]},
+    85: {"fpd": 1, "companies": [1],       "planes": [7, 8]},   # LED → KHV
+    86: {"fpd": 1, "companies": [1],       "planes": [7, 8]},
+    87: {"fpd": 1, "companies": [1, 2],    "planes": [2, 7]},   # LED → KJA
+    88: {"fpd": 1, "companies": [1, 2],    "planes": [2, 7]},
+    89: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},   # LED → KUF
+    90: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},
+    91: {"fpd": 1, "companies": [1, 5],    "planes": [1, 5]},   # LED → PEE
+    92: {"fpd": 1, "companies": [1, 5],    "planes": [1, 5]},
+    93: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},   # LED → GOJ
+    94: {"fpd": 1, "companies": [1, 4],    "planes": [1, 5]},
+    95: {"fpd": 1, "companies": [1, 2],    "planes": [1, 3]},   # LED → OMS
+    96: {"fpd": 1, "companies": [1, 2],    "planes": [1, 3]},
+    97: {"fpd": 1, "companies": [1, 2],    "planes": [1, 3]},   # LED → TJM
+    98: {"fpd": 1, "companies": [1, 2],    "planes": [1, 3]},
+    99: {"fpd": 1, "companies": [1, 5],    "planes": [1, 3]},   # LED → MRV
+    100: {"fpd": 1, "companies": [1, 5],   "planes": [1, 3]},
+    101: {"fpd": 1, "companies": [1, 5],   "planes": [1, 3]},   # LED → MCX
+    102: {"fpd": 1, "companies": [1, 5],   "planes": [1, 3]},
+    # Ekb expanded
+    103: {"fpd": 1, "companies": [1, 3],   "planes": [1, 5]},   # SVX → KZN
+    104: {"fpd": 1, "companies": [1, 3],   "planes": [1, 5]},
+    105: {"fpd": 1, "companies": [1, 3],   "planes": [1, 3]},   # SVX → AER
+    106: {"fpd": 1, "companies": [1, 3],   "planes": [1, 3]},
+    107: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},   # SVX → KRR
+    108: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},
+    109: {"fpd": 1, "companies": [1, 2],   "planes": [2, 7]},   # SVX → KHV
+    110: {"fpd": 1, "companies": [1, 2],   "planes": [2, 7]},
+    111: {"fpd": 1, "companies": [2, 3],   "planes": [1, 3]},   # SVX → KJA
+    112: {"fpd": 1, "companies": [2, 3],   "planes": [1, 3]},
+    113: {"fpd": 1, "companies": [3, 4],   "planes": [5, 6]},   # SVX → TJM
+    114: {"fpd": 1, "companies": [3, 4],   "planes": [5, 6]},
+    115: {"fpd": 1, "companies": [3, 4],   "planes": [5, 6]},   # SVX → PEE
+    116: {"fpd": 1, "companies": [3, 4],   "planes": [5, 6]},
+    117: {"fpd": 1, "companies": [3, 4],   "planes": [1, 5]},   # SVX → UFA
+    118: {"fpd": 1, "companies": [3, 4],   "planes": [1, 5]},
+    # OVB expanded
+    119: {"fpd": 1, "companies": [2, 3],   "planes": [3, 5]},   # OVB → IKT
+    120: {"fpd": 1, "companies": [2, 3],   "planes": [3, 5]},
+    121: {"fpd": 1, "companies": [2],      "planes": [3, 7]},   # OVB → KHV
+    122: {"fpd": 1, "companies": [2],      "planes": [3, 7]},
+    123: {"fpd": 1, "companies": [2],      "planes": [3, 7]},   # OVB → VVO
+    124: {"fpd": 1, "companies": [2],      "planes": [3, 7]},
+    125: {"fpd": 1, "companies": [2, 4],   "planes": [5, 6]},   # OVB → OMS
+    126: {"fpd": 1, "companies": [2, 4],   "planes": [5, 6]},
+    # VVO expanded
+    127: {"fpd": 1, "companies": [1, 2],   "planes": [3, 5]},   # VVO → KHV
+    128: {"fpd": 1, "companies": [1, 2],   "planes": [3, 5]},
+    129: {"fpd": 1, "companies": [1, 2],   "planes": [3, 7]},   # VVO → IKT
+    130: {"fpd": 1, "companies": [1, 2],   "planes": [3, 7]},
+    # AER expanded
+    131: {"fpd": 1, "companies": [1, 4],   "planes": [1, 3]},   # AER → KZN
+    132: {"fpd": 1, "companies": [1, 4],   "planes": [1, 3]},
+    133: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},   # AER → KUF
+    134: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},
+    135: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},   # AER → UFA
+    136: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},
+    137: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},   # AER → PEE
+    138: {"fpd": 1, "companies": [3, 4],   "planes": [1, 3]},
+    # KRR expanded
+    139: {"fpd": 1, "companies": [3, 5],   "planes": [1, 5]},   # KRR → KZN
+    140: {"fpd": 1, "companies": [3, 5],   "planes": [1, 5]},
+    # Far East regional
+    141: {"fpd": 1, "companies": [1, 2],   "planes": [3, 7]},   # KHV → KJA
+    142: {"fpd": 1, "companies": [1, 2],   "planes": [3, 7]},
+    # Baikal short-haul
+    143: {"fpd": 1, "companies": [2, 5],   "planes": [5, 6]},   # UUD → IKT
+    144: {"fpd": 1, "companies": [2, 5],   "planes": [5, 6]},
 }
 
 # Typical morning/afternoon/evening departure hours per slot index
