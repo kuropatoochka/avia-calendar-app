@@ -21,7 +21,5 @@ export const CHART_SIDE_PADDING = 24;
 
 export const DISABLED_BAR_HEIGHT = 4;
 
-export const MIN_PRICE_BAR_HEIGHT = 54;
+export const MIN_PRICE_BAR_HEIGHT = 28;
 export const MAX_PRICE_BAR_HEIGHT = 104;
-
-export const MAX_VISIBLE_PRICE_DIFF_PERCENT = 0.3;

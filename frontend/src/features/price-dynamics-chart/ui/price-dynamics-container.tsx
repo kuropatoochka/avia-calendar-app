@@ -22,6 +22,7 @@ import styles from './price-dynamics.module.css';
 interface Props {
   params: PriceDynamicsSearchParams | null;
   onSelect: (selection: PriceDynamicsSelection) => void;
+  refreshKey?: number;
 }
 
 type ChartDirection = PriceDynamicsSelection['direction'];
@@ -80,7 +81,7 @@ const getSearchKey = (params: PriceDynamicsSearchParams | null) => {
   ].join('|');
 };
 
-export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
+export const PriceDynamicsContainer = ({ params, onSelect, refreshKey }: Props) => {
   const [selectedItemState, setSelectedItemState] = useState<SelectedItemState>(null);
   const [airportNames, setAirportNames] = useState<Record<number, string>>({});
 
@@ -232,6 +233,7 @@ export const PriceDynamicsContainer = ({ params, onSelect }: Props) => {
     clearOutboundPriceDynamics,
     clearInboundPriceDynamics,
     resetChartTracking,
+    refreshKey,
   ]);
 
   useEffect(() => {
