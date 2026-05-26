@@ -1,6 +1,7 @@
 import { Layout, Menu } from 'antd';
 import { Link, useLocation } from 'react-router';
 import { BookingAvatar } from '@/features/booking-flight';
+import { SyncTicketPricesButton } from '@/features/sync-ticket-prices';
 import { Logo } from '@/shared/assets';
 import { PAGES, PATHS } from '@/shared/consts';
 import styles from './layout.module.css';
@@ -21,6 +22,7 @@ export const Header = () => {
         <Logo />
       </Link>
       <Menu items={items} selectedKeys={[pathname]} mode="horizontal" className={styles.menu} />
+      <SyncTicketPricesButton />
       <BookingAvatar />
     </Layout.Header>
   );
