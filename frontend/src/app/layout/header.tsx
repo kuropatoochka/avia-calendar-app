@@ -6,7 +6,12 @@ import { Logo } from '@/shared/assets';
 import { PAGES, PATHS } from '@/shared/consts';
 import styles from './layout.module.css';
 
-export const Header = () => {
+type Props = {
+  onSyncTicketPrices: () => void | Promise<void>;
+  isSyncing: boolean;
+};
+
+export const Header = ({ onSyncTicketPrices, isSyncing }: Props) => {
   const { pathname } = useLocation();
 
   const items = PAGES.map(({ path, title }) => {
@@ -22,7 +27,7 @@ export const Header = () => {
         <Logo />
       </Link>
       <Menu items={items} selectedKeys={[pathname]} mode="horizontal" className={styles.menu} />
-      <SyncTicketPricesButton />
+      <SyncTicketPricesButton onSync={onSyncTicketPrices} isLoading={isSyncing} />
       <BookingAvatar />
     </Layout.Header>
   );
