@@ -1,6 +1,6 @@
 import { Flex, Space, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useOutletContext } from 'react-router';
+import { useOutletContext, useSearchParams } from 'react-router';
 import type { LayoutOutletContext } from '@/app/layout/layout';
 import { addBookedFlight } from '@/features/booking-flight';
 import type { FlightFiltersState } from '@/features/flight-filters';
@@ -28,8 +28,15 @@ import { PriceDynamicsContainer } from '@/features/price-dynamics-chart';
 import type { TagId } from '@/features/recommendation-tags';
 import { RecommendationTags, RecommendationTagsProvider } from '@/features/recommendation-tags';
 import type { SearchFormValues } from '@/features/search-form';
-import { SearchForm } from '@/features/search-form';
-import type { TicketItemDto, TicketsRequest } from '@/shared/types';
+import {
+  DEFAULT_AIRPORT_OPTIONS,
+  DEFAULT_PASSENGERS,
+  DEFAULT_SERVICE_CLASS,
+  DEFAULT_TRIP_TYPE,
+  SearchForm,
+} from '@/features/search-form';
+import AirportService from '@/shared/api/service/airport-service';
+import type { AirportDto, TicketItemDto, TicketsRequest } from '@/shared/types';
 import styles from './offer-page.module.css';
 
 const DEFAULT_TICKETS_LIMIT = 100;
@@ -71,7 +78,53 @@ const isSupportedRecommendationTag = (tagId: TagId) => {
 
 const OfferPageContent = () => {
   const { pricesSyncVersion } = useOutletContext<LayoutOutletContext>();
-  const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(null);
+
+  const [urlParams] = useSearchParams();
+  const urlFromId = Number(urlParams.get('from')) || undefined;
+  const urlToId = Number(urlParams.get('to')) || undefined;
+  const urlDateFrom = urlParams.get('dateFrom') ?? undefined;
+  const urlDateTo = urlParams.get('dateTo') ?? undefined;
+
+  // Аэропорты для предзаполнения формы — загружаются по ID из URL-параметров
+  const [seedAirports, setSeedAirports] = useState<AirportDto[]>(DEFAULT_AIRPORT_OPTIONS);
+  // Форму не показываем пока нужные аэропорты не загрузились — иначе Select покажет числа вместо названий
+  const [isAirportsReady, setIsAirportsReady] = useState(!urlFromId || !urlToId);
+
+  useEffect(() => {
+    if (!urlFromId || !urlToId) return;
+    AirportService.getAirports({ ids: [urlFromId, urlToId] })
+      .then((data) => {
+        if (data.items.length > 0) setSeedAirports(data.items);
+      })
+      .catch(() => {
+        /* молча используем дефолты */
+      })
+      .finally(() => setIsAirportsReady(true));
+  }, [urlFromId, urlToId]);
+
+  // Ключ форсирует ремаунт SearchForm когда seedAirports подгрузились —
+  // иначе initialValues Ant Design Form не обновятся
+  const searchFormKey = [...seedAirports.map((a) => a.id), urlDateFrom, urlDateTo]
+    .filter(Boolean)
+    .join('-');
+
+  const [searchParams, setSearchParams] = useState<PriceDynamicsSearchParams | null>(() => {
+    // Если в URL есть все 4 параметра и аэропорты разные — авто-запускаем поиск
+    if (urlFromId && urlToId && urlFromId !== urlToId && urlDateFrom && urlDateTo) {
+      return {
+        airportFromId: urlFromId,
+        airportToId: urlToId,
+        dateFrom: urlDateFrom,
+        dateTo: urlDateTo,
+        serviceClass: DEFAULT_SERVICE_CLASS,
+        tripType: DEFAULT_TRIP_TYPE,
+        passengersNumber: DEFAULT_PASSENGERS.adults + DEFAULT_PASSENGERS.animals,
+        childrenNumber: DEFAULT_PASSENGERS.children ?? 0,
+        toddlersNumber: DEFAULT_PASSENGERS.toddler ?? 0,
+      };
+    }
+    return null;
+  });
   const [selectedPriceDate, setSelectedPriceDate] = useState<PriceDynamicsSelection | null>(null);
   const [filterKey, setFilterKey] = useState(0);
   const [activeFilters, setActiveFilters] = useState<FlightFiltersState | null>(null);
@@ -460,7 +513,17 @@ const OfferPageContent = () => {
           </Typography.Paragraph>
         </Space>
 
-        <SearchForm onSearch={handleSearch} />
+        {isAirportsReady && (
+          <SearchForm
+            key={searchFormKey}
+            seedAirports={seedAirports}
+            initialOriginAirportId={urlFromId}
+            initialDestinationAirportId={urlToId}
+            initialDateFrom={urlDateFrom}
+            initialDateTo={urlDateTo}
+            onSearch={handleSearch}
+          />
+        )}
 
         <Flex vertical gap={16} ref={priceDynamicsRef}>
           <Typography.Title level={2}>График цен</Typography.Title>

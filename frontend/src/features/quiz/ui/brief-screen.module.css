@@ -127,3 +127,9 @@
   margin: 0;
   text-align: center;
 }
+
+@media (max-width: 560px) {
+  .wrapper {
+    padding: var(--space-md) var(--space-sm);
+  }
+}

@@ -1,5 +1,6 @@
 import { Button } from 'antd';
 import { useMemo } from 'react';
+import { useHoverOnMount } from '@/shared/hooks';
 import { pickRandom } from '../model/get-result';
 import {
   LANDING_BUTTONS,
@@ -15,6 +16,7 @@ interface LandingScreenProps {
 }
 
 export const LandingScreen = ({ onStart, onBrowse }: LandingScreenProps) => {
+  const browseHover = useHoverOnMount();
   const title = useMemo(() => pickRandom(LANDING_TITLES), []);
   const subtitle = useMemo(() => pickRandom(LANDING_SUBTITLES), []);
   const buttonText = useMemo(() => pickRandom(LANDING_BUTTONS), []);
@@ -22,21 +24,25 @@ export const LandingScreen = ({ onStart, onBrowse }: LandingScreenProps) => {
 
   return (
     <div className={styles.wrapper}>
-      <span className={styles.flyingPlane} aria-hidden="true">
-        ✈
-      </span>
-      <div className={styles.content}>
-        <div className={styles.badge}>пройди опрос: куда лететь?</div>
-        <h1 className={styles.title}>{title}</h1>
-        <p className={styles.subtitle}>{subtitle}</p>
-        <Button className={styles.button} onClick={onStart}>
-          {buttonText}
-        </Button>
-        <p className={styles.footnote}>{footnote}</p>
+      <div className={styles.main}>
+        <span className={styles.flyingPlane} aria-hidden="true">
+          ✈
+        </span>
+        <div className={styles.content}>
+          <div className={styles.badge}>пройди опрос: куда лететь?</div>
+          <h1 className={styles.title}>{title}</h1>
+          <p className={styles.subtitle}>{subtitle}</p>
+          <Button className={styles.button} onClick={onStart}>
+            {buttonText}
+          </Button>
+          <p className={styles.footnote}>{footnote}</p>
+        </div>
       </div>
-      <button type="button" className={styles.browseLink} onClick={onBrowse}>
-        Посмотреть все направления и цены →
-      </button>
+      <div className={styles.footer}>
+        <button type="button" className={styles.browseLink} onClick={onBrowse} {...browseHover}>
+          Посмотреть все направления и цены →
+        </button>
+      </div>
     </div>
   );
 };
