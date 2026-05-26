@@ -12,6 +12,8 @@ type Params = {
 export default class AirportService {
   static async getAirports(params: Params = {}): Promise<AirportsDto> {
     const normalizedParams = {
+      offset: 0,
+      limit: 500,
       ...params,
       ids: params.ids?.length ? params.ids.join(',') : undefined,
     };

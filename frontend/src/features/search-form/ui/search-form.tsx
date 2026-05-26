@@ -1,5 +1,6 @@
 import type { SearchFormError, SearchFormErrorField, SearchFormValues } from '../model/types';
 import { Alert, Button, Flex, Form, Input } from 'antd';
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Search, Swap } from '@/shared/assets';
 import type { AirportDto, ServiceClass } from '@/shared/types';
@@ -25,6 +26,10 @@ type Props = {
   initialOriginAirportId?: number;
   /** Переопределяет destinationAirportId в начальных значениях формы */
   initialDestinationAirportId?: number;
+  /** Начальная дата «Откуда» в формате YYYY-MM-DD (например, из URL-параметра) */
+  initialDateFrom?: string;
+  /** Начальная дата «Куда» в формате YYYY-MM-DD (например, из URL-параметра) */
+  initialDateTo?: string;
 };
 
 export const SearchForm = ({
@@ -32,6 +37,8 @@ export const SearchForm = ({
   seedAirports,
   initialOriginAirportId,
   initialDestinationAirportId,
+  initialDateFrom,
+  initialDateTo,
 }: Props) => {
   const [form] = Form.useForm<SearchFormValues>();
 
@@ -40,6 +47,11 @@ export const SearchForm = ({
     ...(initialOriginAirportId != null ? { originAirportId: initialOriginAirportId } : {}),
     ...(initialDestinationAirportId != null
       ? { destinationAirportId: initialDestinationAirportId }
+      : {}),
+    ...(initialDateFrom != null
+      ? {
+          dateRange: [dayjs(initialDateFrom), initialDateTo != null ? dayjs(initialDateTo) : null],
+        }
       : {}),
   };
 

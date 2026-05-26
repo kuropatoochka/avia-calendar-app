@@ -2,6 +2,9 @@ export {
   DEFAULT_AIRPORT_OPTIONS,
   DEFAULT_DESTINATION_AIRPORT,
   DEFAULT_ORIGIN_AIRPORT,
+  DEFAULT_PASSENGERS,
+  DEFAULT_SERVICE_CLASS,
+  DEFAULT_TRIP_TYPE,
 } from './model/consts';
 
 export type { PassengersState, SearchFormValues, TripType } from './model/types';

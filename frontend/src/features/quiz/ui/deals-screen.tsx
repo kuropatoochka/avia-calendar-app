@@ -7,11 +7,12 @@ import {
   SunFilled,
   ThunderboltFilled,
 } from '@ant-design/icons';
-import { Button, Dropdown, Spin } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Dropdown, Spin } from 'antd';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import FlightService from '@/shared/api/service/flight-service';
 import { PATHS } from '@/shared/consts';
+import { useHoverOnMount } from '@/shared/hooks';
 import { DESTINATIONS } from '../model/quiz-data';
 import { AnimatedEmoji } from './animated-emoji';
 import styles from './deals-screen.module.css';
@@ -90,12 +91,11 @@ const DEST_CATEGORIES: Partial<Record<DestinationKey, DealCategory[]>> = {
 };
 
 // ─────────────────────────────────────────────────
-// Real API mode — used when VITE_BACKEND_URL is set
+// Real API mode — controlled by VITE_DATA_SOURCE env var
 // Airport IDs match the real database seed (seed_data.sql)
 // ─────────────────────────────────────────────────
 
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/$/, '');
-const USE_REAL_API = Boolean(BACKEND_URL);
+const USE_REAL_API = import.meta.env.VITE_DATA_SOURCE !== 'mock';
 
 // Real DB airport IDs (PostgreSQL seed_data.sql).
 // Массив — у Москвы три аэропорта, запросы идут по всем, берётся минимальная цена.
@@ -242,6 +242,12 @@ const priceFormatter = new Intl.NumberFormat('ru-RU', {
 // Types
 // ─────────────────────────────────────────────────
 
+interface SegmentResult {
+  price: number;
+  fromId: number;
+  toId: number;
+}
+
 interface DealItem {
   key: DestinationKey;
   name: string;
@@ -249,6 +255,10 @@ interface DealItem {
   tagline: string;
   minPrice: number;
   categories: DealCategory[];
+  /** Конкретный аэропорт отправления с минимальной ценой (для перехода на offer) */
+  winOriginAirportId: number;
+  /** Конкретный аэропорт прибытия с минимальной ценой (для перехода на offer) */
+  winDestAirportId: number;
 }
 
 interface DealsScreenProps {
@@ -262,6 +272,7 @@ interface DealsScreenProps {
 
 export const DealsScreen = ({ result, onRestart }: DealsScreenProps) => {
   const navigate = useNavigate();
+  const restartHover = useHoverOnMount();
   const [activeTags, setActiveTags] = useState<Set<DealCategory>>(new Set());
   const [originKey, setOriginKey] = useState<OriginKey>('moscow');
   const [allDeals, setAllDeals] = useState<DealItem[]>([]);
@@ -270,74 +281,86 @@ export const DealsScreen = ({ result, onRestart }: DealsScreenProps) => {
   const [settledOriginKey, setSettledOriginKey] = useState<OriginKey | null>(null);
   const isLoading = settledOriginKey !== originKey;
 
+  // Диапазон дат для поиска — «сегодня + 1 месяц», вычисляется один раз при монтировании
+  const { fromDate, toDate } = useRef(
+    (() => {
+      const today = new Date();
+      return {
+        fromDate: today.toISOString().slice(0, 10),
+        toDate: new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
+          .toISOString()
+          .slice(0, 10),
+      };
+    })(),
+  ).current;
+
   const originCity = ORIGIN_CITIES.find((c) => c.key === originKey)!;
 
   useEffect(() => {
     let cancelled = false;
-
-    const today = new Date();
-    const fromDate = today.toISOString().slice(0, 10);
-    const toDate = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
-      .toISOString()
-      .slice(0, 10);
 
     const entries = (Object.entries(DEST_AIRPORT) as [DestinationKey, number[]][]).filter(
       ([key]) => (key as string) !== originKey,
     );
 
     // Хаб для составных маршрутов — Москва (SVO + DME + VKO).
-    // В моке хаб не нужен: mock генерирует цены для любой пары.
+    // В mock-режиме хаб не нужен: MSW генерирует цены для любой пары.
     const HUB_IDS = USE_REAL_API ? [1, 2, 3] : [];
 
-    // ── Низкоуровневая функция: минимальная цена между двумя наборами аэропортов ──
+    // ── Низкоуровневая функция: минимальная цена + победившая пара аэропортов ──
     const fetchSegmentPrice = async (
       fromIds: number[],
       toIds: number[],
-    ): Promise<number | null> => {
-      if (USE_REAL_API && BACKEND_URL) {
+    ): Promise<SegmentResult | null> => {
+      if (USE_REAL_API) {
+        // Перебираем все пары через /api прокси (работает и в Vite dev, и на Vercel)
         const pairs = fromIds.flatMap((f) => toIds.filter((t) => t !== f).map((t) => ({ f, t })));
         if (pairs.length === 0) return null;
         const results = await Promise.all(
           pairs.map(async ({ f, t }) => {
             try {
-              const url = new URL(`${BACKEND_URL}/tickets/range`);
-              url.searchParams.set('airport_from', String(f));
-              url.searchParams.set('airport_to', String(t));
-              url.searchParams.set('from_date', fromDate);
-              url.searchParams.set('to_date', toDate);
-              url.searchParams.set('passengers_number', '1');
-              url.searchParams.set('service_class', 'BUDGET');
-              const resp = await fetch(url.toString());
-              if (!resp.ok) return null;
-              const data = (await resp.json()) as Array<{
-                departure_date: string;
-                min_total_price: number | null;
-              }>;
+              const data = await FlightService.getPriceDynamics({
+                airport_from: f,
+                airport_to: t,
+                from_date: fromDate,
+                to_date: toDate,
+                passengers_number: 1,
+                service_class: 'BUDGET',
+              });
               const prices = data
                 .map((r) => r.min_total_price)
                 .filter((p): p is number => p != null && p > 0);
-              return prices.length > 0 ? Math.min(...prices) : null;
+              return prices.length > 0
+                ? ({ price: Math.min(...prices), fromId: f, toId: t } satisfies SegmentResult)
+                : null;
             } catch {
               return null;
             }
           }),
         );
-        const valid = results.filter((p): p is number => p !== null);
-        return valid.length > 0 ? Math.min(...valid) : null;
+        const valid = results.filter((r): r is SegmentResult => r !== null);
+        if (valid.length === 0) return null;
+        return valid.reduce((best, r) => (r.price < best.price ? r : best));
       }
-      // MSW mock
-      const range = await FlightService.getPriceDynamics({
-        airport_from: fromIds[0],
-        airport_to: toIds[0],
-        from_date: fromDate,
-        to_date: toDate,
-        passengers_number: 1,
-        service_class: 'BUDGET',
-      });
-      const prices = range
-        .map((r) => r.min_total_price)
-        .filter((p): p is number => p != null && p > 0);
-      return prices.length > 0 ? Math.min(...prices) : null;
+      // MSW mock — победившая пара = первые элементы массивов
+      try {
+        const range = await FlightService.getPriceDynamics({
+          airport_from: fromIds[0],
+          airport_to: toIds[0],
+          from_date: fromDate,
+          to_date: toDate,
+          passengers_number: 1,
+          service_class: 'BUDGET',
+        });
+        const prices = range
+          .map((r) => r.min_total_price)
+          .filter((p): p is number => p != null && p > 0);
+        return prices.length > 0
+          ? { price: Math.min(...prices), fromId: fromIds[0], toId: toIds[0] }
+          : null;
+      } catch {
+        return null;
+      }
     };
 
     void (async () => {
@@ -357,22 +380,37 @@ export const DealsScreen = ({ result, onRestart }: DealsScreenProps) => {
           try {
             const destIsHub = HUB_IDS.some((id) => destIds.includes(id));
 
-            const [directPrice, hubToDestPrice] = await Promise.all([
-              // прямой рейс
+            const [directResult, hubToDestResult] = await Promise.all([
               fetchSegmentPrice(originCity.airportIds, destIds),
-              // второй сегмент составного: Москва → назначение
-              // (не нужен если отправление или назначение само является хабом)
               !originIsHub && !destIsHub && originToHub !== null
                 ? fetchSegmentPrice(HUB_IDS, destIds)
                 : Promise.resolve(null),
             ]);
 
             const compositePrice =
-              originToHub !== null && hubToDestPrice !== null ? originToHub + hubToDestPrice : null;
+              originToHub !== null && hubToDestResult !== null
+                ? originToHub.price + hubToDestResult.price
+                : null;
 
-            const minPrice = [directPrice, compositePrice]
-              .filter((p): p is number => p !== null)
-              .reduce<number | null>((min, p) => (min === null || p < min ? p : min), null);
+            // Выбираем лучший вариант и сохраняем конкретные аэропорты
+            let minPrice: number | null = null;
+            let winOriginAirportId = originCity.airportIds[0];
+            let winDestAirportId = destIds[0];
+
+            if (
+              directResult !== null &&
+              (compositePrice === null || directResult.price <= compositePrice)
+            ) {
+              minPrice = directResult.price;
+              winOriginAirportId = directResult.fromId;
+              winDestAirportId = directResult.toId;
+            } else if (compositePrice !== null) {
+              minPrice = compositePrice;
+              // При составном маршруте: отправляемся из аэропорта с min ценой до хаба,
+              // прилетаем в аэропорт назначения с min ценой от хаба
+              winOriginAirportId = originToHub!.fromId;
+              winDestAirportId = hubToDestResult!.toId;
+            }
 
             if (minPrice === null) return null;
             return {
@@ -382,6 +420,8 @@ export const DealsScreen = ({ result, onRestart }: DealsScreenProps) => {
               tagline: dest.tagline,
               minPrice,
               categories: DEST_CATEGORIES[key] ?? [],
+              winOriginAirportId,
+              winDestAirportId,
             } as DealItem;
           } catch {
             return null;
@@ -420,109 +460,115 @@ export const DealsScreen = ({ result, onRestart }: DealsScreenProps) => {
   };
 
   const handleCardClick = (deal: DealItem) => {
-    const destIds = DEST_AIRPORT[deal.key];
-    const toId = destIds?.[0];
-    if (!toId) {
-      void navigate(PATHS.offer);
-      return;
-    }
     const params = new URLSearchParams({
-      from: String(originCity.airportIds[0]),
-      to: String(toId),
+      from: String(deal.winOriginAirportId),
+      to: String(deal.winDestAirportId),
+      dateFrom: fromDate,
+      dateTo: toDate,
     });
     void navigate(`${PATHS.offer}?${params.toString()}`);
   };
 
   return (
     <div className={styles.wrapper}>
-      {/* ── Header ── */}
-      <div className={styles.header}>
-        {result && <p className={styles.eyebrow}>всё ещё сомневаешься?</p>}
-        <h2 className={styles.title}>Все направления — по цене</h2>
-        <p className={styles.subtitle}>
-          Перелёты из{' '}
-          <Dropdown
-            trigger={['click']}
-            placement="bottomLeft"
-            autoAdjustOverflow={false}
-            menu={{
-              items: ORIGIN_CITIES.map((city) => ({
-                key: city.key,
-                label: city.name,
-              })),
-              selectedKeys: [originKey],
-              onClick: ({ key }) => setOriginKey(key as OriginKey),
-              style: { maxHeight: 260, overflowY: 'auto' },
-            }}
-          >
-            <button type="button" className={styles.originButton}>
-              {originCity.nameFrom}
-            </button>
-          </Dropdown>{' '}
-          · бюджетный класс · 1 пассажир
-        </p>
-      </div>
-
-      {/* ── Filter tags ── */}
-      <div className={styles.tagsRow}>
-        {DEAL_TAGS.map((tag) => {
-          const active = activeTags.has(tag.id);
-          return (
-            <button
-              key={tag.id}
-              type="button"
-              className={`${styles.tag} ${active ? styles.tagActive : ''}`}
-              onClick={() => toggleTag(tag.id)}
-              aria-pressed={active}
+      <div className={styles.body}>
+        {/* ── Header ── */}
+        <div className={styles.header}>
+          {result && <p className={styles.eyebrow}>всё ещё сомневаешься?</p>}
+          <h2 className={styles.title}>Все направления — по цене</h2>
+          <p className={styles.subtitle}>
+            Перелёты из{' '}
+            <Dropdown
+              trigger={['click']}
+              placement="bottomLeft"
+              autoAdjustOverflow={false}
+              menu={{
+                items: ORIGIN_CITIES.map((city) => ({
+                  key: city.key,
+                  label: city.name,
+                })),
+                selectedKeys: [originKey],
+                onClick: ({ key }) => setOriginKey(key as OriginKey),
+                style: { maxHeight: 260, overflowY: 'auto' },
+              }}
             >
-              {tag.icon}
-              {tag.label}
-            </button>
-          );
-        })}
-      </div>
+              <button type="button" className={styles.originButton}>
+                {originCity.nameFrom}
+              </button>
+            </Dropdown>{' '}
+            · бюджетный класс · 1 пассажир
+          </p>
+        </div>
 
-      {/* ── Deals list ── */}
-      <div className={styles.list}>
-        {isLoading && (
-          <div className={styles.loadingState}>
-            <Spin size="small" />
-            <span>Загружаем цены…</span>
-          </div>
-        )}
-        {!isLoading && visibleDeals.length === 0 && (
-          <p className={styles.empty}>Нет направлений по выбранным фильтрам</p>
-        )}
-        {!isLoading &&
-          visibleDeals.map((deal) => {
-            const isResult = deal.key === result;
+        {/* ── Filter tags ── */}
+        <div className={styles.tagsRow}>
+          {DEAL_TAGS.map((tag) => {
+            const active = activeTags.has(tag.id);
             return (
               <button
-                key={deal.key}
-                className={`${styles.card} ${isResult ? styles.cardHighlighted : ''}`}
-                onClick={() => handleCardClick(deal)}
+                key={tag.id}
+                type="button"
+                className={`${styles.tag} ${active ? styles.tagActive : ''}`}
+                onClick={() => toggleTag(tag.id)}
+                aria-pressed={active}
               >
-                <AnimatedEmoji emoji={deal.emoji} className={styles.cardEmoji} />
-
-                <div className={styles.cardInfo}>
-                  <div className={styles.cardNameRow}>
-                    <span className={styles.cardName}>{deal.name}</span>
-                    {isResult && <span className={styles.resultBadge}>твой результат</span>}
-                  </div>
-                  <span className={styles.cardTagline}>{deal.tagline}</span>
-                </div>
-
-                <span className={styles.cardPrice}>от {priceFormatter.format(deal.minPrice)}</span>
+                {tag.icon}
+                {tag.label}
               </button>
             );
           })}
-      </div>
+        </div>
 
-      {/* ── Footer ── */}
+        {/* ── Deals list ── */}
+        <div className={styles.list}>
+          {isLoading && (
+            <div className={styles.loadingState}>
+              <Spin size="small" />
+              <span>Загружаем цены…</span>
+            </div>
+          )}
+          {!isLoading && visibleDeals.length === 0 && (
+            <p className={styles.empty}>Нет направлений по выбранным фильтрам</p>
+          )}
+          {!isLoading &&
+            visibleDeals.map((deal) => {
+              const isResult = deal.key === result;
+              return (
+                <button
+                  key={deal.key}
+                  className={`${styles.card} ${isResult ? styles.cardHighlighted : ''}`}
+                  onClick={() => handleCardClick(deal)}
+                >
+                  <AnimatedEmoji emoji={deal.emoji} className={styles.cardEmoji} />
+
+                  <div className={styles.cardInfo}>
+                    <div className={styles.cardNameRow}>
+                      <span className={styles.cardName}>{deal.name}</span>
+                      {isResult && <span className={styles.resultBadge}>твой результат</span>}
+                    </div>
+                    <span className={styles.cardTagline}>{deal.tagline}</span>
+                  </div>
+
+                  <span className={styles.cardPrice}>
+                    от {priceFormatter.format(deal.minPrice)}
+                  </span>
+                </button>
+              );
+            })}
+        </div>
+      </div>
+      {/* end .body */}
+
+      {/* ── Footer — вне анимации, чтобы :hover работал сразу ── */}
       <div className={styles.footer}>
-        <Button className={styles.restartButton} onClick={onRestart}>
+        <button
+          type="button"
+          className={styles.restartButton}
+          onClick={onRestart}
+          {...restartHover}
+        >
           {result ? 'Пройти опрос заново' : 'Пройти опрос'}
-        </Button>
+        </button>
       </div>
     </div>
   );
