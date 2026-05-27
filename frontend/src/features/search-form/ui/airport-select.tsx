@@ -49,11 +49,9 @@ export const AirportSelect = ({
         popupMatchSelectWidth={200}
         loading={isLoading}
         notFoundContent="Результаты не найдены"
-        showSearch={{
-          optionFilterProp: 'label',
-          filterOption: false,
-          onSearch,
-        }}
+        showSearch
+        filterOption={false}
+        onSearch={onSearch}
         onOpenChange={(nextOpen) => {
           setOpen(nextOpen);
           onOpenChange(nextOpen);

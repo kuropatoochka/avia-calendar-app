@@ -33,40 +33,40 @@ export const DEST_AIRPORT_REAL: Partial<Record<DestinationKey, number[]>> = {
   dagestan: [27], // Уйташ (MCX) — Махачкала
 };
 
-/** Mock airport IDs (MSW / generateFlights) */
+/** Mock airport IDs (MSW / generateFlights) — same IDs as real DB since airport-mock.ts uses 1-27 */
 export const DEST_AIRPORT_MOCK: Partial<Record<DestinationKey, number[]>> = {
-  moscow: [101],
-  spb: [104],
-  sochi: [109],
-  kazan: [107],
-  ekb: [106],
-  novosib: [105],
-  krasnodar: [108],
-  vladivostok: [112],
-  samara: [110],
-  ufa: [111],
-  irkutsk: [201],
-  khabarovsk: [202],
-  krasnoyarsk: [203],
-  murmansk: [204],
-  kaliningrad: [205],
-  omsk: [206],
-  perm: [207],
-  tyumen: [208],
-  mineralvody: [209],
-  nnov: [210],
-  karelia: [211],
-  altai: [212],
-  baikal: [213],
-  kamchatka: [214],
-  dagestan: [215],
+  moscow: [1, 2, 3],
+  spb: [4],
+  sochi: [5],
+  kazan: [6],
+  ekb: [7],
+  novosib: [8],
+  krasnodar: [9],
+  vladivostok: [10],
+  kaliningrad: [11],
+  mineralvody: [12],
+  ufa: [13],
+  irkutsk: [14],
+  khabarovsk: [15],
+  krasnoyarsk: [16],
+  nnov: [17],
+  samara: [18],
+  omsk: [19],
+  perm: [20],
+  tyumen: [21],
+  murmansk: [22],
+  karelia: [23],
+  altai: [24],
+  baikal: [25],
+  kamchatka: [26],
+  dagestan: [27],
 };
 
 /** Moscow airport IDs (real DB) */
 export const MOSCOW_AIRPORT_IDS = [1, 2, 3] as const; // SVO, DME, VKO
 
-/** Moscow mock airport ID */
-export const MOSCOW_MOCK_AIRPORT_ID = 101;
+/** Moscow mock airport ID (SVO) */
+export const MOSCOW_MOCK_AIRPORT_ID = 1;
 
 // ─────────────────────────────────────────────────────────────────
 // Утилита: найти аэропорт Москвы с минимальной ценой до назначения
