@@ -47,6 +47,7 @@ const getBestPriceRank = (
   items: PriceDynamicsChartItem[],
 ): BestPriceRank => {
   const bestItems = [...items]
+    .filter((chartItem) => chartItem.minTotalPrice > 0)
     .sort(
       (firstItem, secondItem) =>
         firstItem.minTotalPrice - secondItem.minTotalPrice ||
