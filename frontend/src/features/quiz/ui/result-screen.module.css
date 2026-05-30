@@ -193,3 +193,9 @@
   margin: 0;
   animation: fadeSlideUp 0.4s ease 0.52s both;
 }
+
+@media (max-width: 560px) {
+  .wrapper {
+    padding: var(--space-md) var(--space-sm) var(--space-sm);
+  }
+}

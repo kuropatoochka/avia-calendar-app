@@ -19,7 +19,9 @@ JOIN city c ON a.city_id = c.id
 WHERE (
   CAST(:search AS text) IS NULL
   OR a.name ILIKE '%' || :search || '%'
+  OR a.name LIKE '%' || :search_title || '%'
   OR c.name ILIKE '%' || :search || '%'
+  OR c.name LIKE '%' || :search_title || '%'
 )
 AND (
   CAST(:airport_ids AS int[]) IS NULL
@@ -36,7 +38,9 @@ JOIN city c ON a.city_id = c.id
 WHERE (
   CAST(:search AS text) IS NULL
   OR a.name ILIKE '%' || :search || '%'
+  OR a.name LIKE '%' || :search_title || '%'
   OR c.name ILIKE '%' || :search || '%'
+  OR c.name LIKE '%' || :search_title || '%'
 )
 AND (
   CAST(:airport_ids AS int[]) IS NULL
@@ -90,6 +94,15 @@ def _rows_to_items(rows: Sequence[Any]) -> list[dict[str, Any]]:
     ]
 
 
+def _title_search(search: str | None) -> str | None:
+    """
+    Конвертирует поисковый запрос в title-case с помощью Python (корректно
+    работает с кириллицей в отличие от PostgreSQL lower() при locale=C).
+    Используется для LIKE-поиска по именам, хранящимся с заглавной буквы.
+    """
+    return search.title() if search else None
+
+
 def fetch_airports(
     db: Session, params: AirportListParams
 ) -> tuple[list[dict[str, Any]], int, int]:
@@ -100,10 +113,12 @@ def fetch_airports(
     начала последней страницы, чтобы не отдавать пустой items при ненулевом total.
     """
     stmt = text(LIST_AIRPORTS_SQL)
+    search_title = _title_search(params.search)
     bind = {
         "offset": params.offset,
         "limit": params.limit,
         "search": params.search,
+        "search_title": search_title,
         "airport_ids": list(params.ids) if params.ids else None,
     }
     rows = db.execute(stmt, bind).mappings().all()
@@ -114,6 +129,7 @@ def fetch_airports(
 
     count_bind = {
         "search": params.search,
+        "search_title": search_title,
         "airport_ids": list(params.ids) if params.ids else None,
     }
     total = int(db.execute(_COUNT_AIRPORTS_SQL, count_bind).mappings().one()["c"])
@@ -126,6 +142,7 @@ def fetch_airports(
             "offset": last_page_offset,
             "limit": params.limit,
             "search": params.search,
+            "search_title": search_title,
             "airport_ids": list(params.ids) if params.ids else None,
         }
         rows2 = db.execute(stmt, bind2).mappings().all()

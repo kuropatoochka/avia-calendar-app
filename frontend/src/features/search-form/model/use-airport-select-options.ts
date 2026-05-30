@@ -1,5 +1,5 @@
 import type { SelectOption } from './types';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { AirportDto } from '@/shared/types';
 import { useAirportsQuery } from './use-airports-query';
 
@@ -32,13 +32,20 @@ export const useAirportSelectOptions = (initialAirports: AirportDto[]) => {
     visibleOptions: initialAirports.map(getOption),
   }));
 
+  const currentSearchRef = useRef<string | undefined>(undefined);
+
   const loadOptions = useCallback(
     async (search?: string) => {
+      currentSearchRef.current = search;
       const data = await fetchAirports(search);
       const fetchedOptions = data ? data.map(getOption) : [];
 
       setState((prev) => {
         const cachedOptions = mergeOptions([...prev.cachedOptions, ...fetchedOptions]);
+
+        if (currentSearchRef.current !== search) {
+          return { ...prev, cachedOptions };
+        }
 
         return {
           cachedOptions,
@@ -54,6 +61,7 @@ export const useAirportSelectOptions = (initialAirports: AirportDto[]) => {
       const normalizedSearch = search.trim();
 
       if (!normalizedSearch) {
+        currentSearchRef.current = undefined;
         setState((prev) => ({
           ...prev,
           visibleOptions: prev.cachedOptions,
@@ -74,12 +82,11 @@ export const useAirportSelectOptions = (initialAirports: AirportDto[]) => {
         return;
       }
 
-      if (!open) {
-        setState((prev) => ({
-          ...prev,
-          visibleOptions: prev.cachedOptions,
-        }));
-      }
+      currentSearchRef.current = undefined;
+      setState((prev) => ({
+        ...prev,
+        visibleOptions: prev.cachedOptions,
+      }));
     },
     [loadOptions],
   );

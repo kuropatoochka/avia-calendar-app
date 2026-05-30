@@ -1,8 +1,9 @@
 import type { SearchFormError, SearchFormErrorField, SearchFormValues } from '../model/types';
 import { Alert, Button, Flex, Form, Input } from 'antd';
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Search, Swap } from '@/shared/assets';
-import type { ServiceClass } from '@/shared/types';
+import type { AirportDto, ServiceClass } from '@/shared/types';
 import { cn } from '@/shared/utils';
 import {
   DEFAULT_AIRPORT_OPTIONS,
@@ -19,10 +20,40 @@ import { TripTypeSelect } from './trip-type-select';
 
 type Props = {
   onSearch: (values: SearchFormValues) => void;
+  /** Начальные аэропорты для селекта (подставляются вместо DEFAULT_AIRPORT_OPTIONS) */
+  seedAirports?: AirportDto[];
+  /** Переопределяет originAirportId в начальных значениях формы */
+  initialOriginAirportId?: number;
+  /** Переопределяет destinationAirportId в начальных значениях формы */
+  initialDestinationAirportId?: number;
+  /** Начальная дата «Откуда» в формате YYYY-MM-DD (например, из URL-параметра) */
+  initialDateFrom?: string;
+  /** Начальная дата «Куда» в формате YYYY-MM-DD (например, из URL-параметра) */
+  initialDateTo?: string;
 };
 
-export const SearchForm = ({ onSearch }: Props) => {
+export const SearchForm = ({
+  onSearch,
+  seedAirports,
+  initialOriginAirportId,
+  initialDestinationAirportId,
+  initialDateFrom,
+  initialDateTo,
+}: Props) => {
   const [form] = Form.useForm<SearchFormValues>();
+
+  const formInitialValues: SearchFormValues = {
+    ...getDefaultSearchFormValues(),
+    ...(initialOriginAirportId != null ? { originAirportId: initialOriginAirportId } : {}),
+    ...(initialDestinationAirportId != null
+      ? { destinationAirportId: initialDestinationAirportId }
+      : {}),
+    ...(initialDateFrom != null
+      ? {
+          dateRange: [dayjs(initialDateFrom), initialDateTo != null ? dayjs(initialDateTo) : null],
+        }
+      : {}),
+  };
 
   const [tripTypeOpen, setTripTypeOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -36,7 +67,7 @@ export const SearchForm = ({ onSearch }: Props) => {
     isAirportOptionsLoading,
     onAirportOptionsSearch,
     onAirportOptionsOpenChange,
-  } = useAirportSelectOptions(DEFAULT_AIRPORT_OPTIONS);
+  } = useAirportSelectOptions(seedAirports ?? DEFAULT_AIRPORT_OPTIONS);
 
   const serviceClass =
     Form.useWatch('serviceClass', { form, preserve: true }) ?? DEFAULT_SERVICE_CLASS;
@@ -84,7 +115,7 @@ export const SearchForm = ({ onSearch }: Props) => {
     <Form
       form={form}
       className={styles.form}
-      initialValues={getDefaultSearchFormValues()}
+      initialValues={formInitialValues}
       onFinish={handleFinish}
       onValuesChange={handleValuesChange}
     >

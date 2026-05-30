@@ -13,8 +13,19 @@ export const mapTicketGroupToCard = (
     return null;
   }
 
-  const prices = firstTicket.prices;
   const duration = getRouteDuration(ticketGroup);
+
+  // Aggregate prices across all segments so transfer routes show the correct total.
+  const prices = ticketGroup.reduce(
+    (acc, ticket) => ({
+      total: acc.total + ticket.prices.total,
+      price: acc.price + ticket.prices.price,
+      children_price: acc.children_price + ticket.prices.children_price,
+      todlers_price: acc.todlers_price + ticket.prices.todlers_price,
+      baggage_price: acc.baggage_price + ticket.prices.baggage_price,
+    }),
+    { total: 0, price: 0, children_price: 0, todlers_price: 0, baggage_price: 0 },
+  );
 
   return {
     id: `${firstTicket.flight_number}-${firstTicket.departure_date}-${firstTicket.departure_time}-${index}`,

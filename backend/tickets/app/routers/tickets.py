@@ -39,7 +39,7 @@ from app.services.ticket_prices_patch import (
 )
 from app.services.ticket_query import (
     TicketListParams,
-    fetch_tickets,
+    fetch_ticket_groups,
     parse_company_csv,
     parse_single_service_class,
 )
@@ -368,8 +368,11 @@ def list_tickets(
         has_warm=has_warm,
         has_nature=has_nature,
     )
-    rows, total, offset_effective = fetch_tickets(db, params)
-    items = [[TicketItem.model_validate(r)] for r in rows]
+    groups, total, offset_effective = fetch_ticket_groups(db, params)
+    items = [
+        [TicketItem.model_validate(segment) for segment in group]
+        for group in groups
+    ]
     return TicketsListResponse(
         items=items,
         total=total,

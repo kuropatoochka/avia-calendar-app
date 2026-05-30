@@ -111,3 +111,10 @@ export type TicketBookResponse = {
   message: string;
   items: TicketBookResponseItem[];
 };
+
+export type AnalyticsSyncTicketsResponse = {
+  inserted: number;
+  prices_patched: number;
+  training_samples: number;
+  reference_date: string;
+};

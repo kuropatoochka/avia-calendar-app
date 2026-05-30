@@ -6,3 +6,4 @@ export { companyMock } from './mock/company-mock';
 export { default as AirportService } from './service/airport-service';
 export { default as FlightService } from './service/flight-service';
 export { default as CompanyService } from './service/company-service';
+export { default as AnalyticsService } from './service/analytics-service';
